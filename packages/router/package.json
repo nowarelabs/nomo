@@ -12,7 +12,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src/**/*.test.ts src/**/*.spec.ts --passWithNoTests --deps.inline nomo",
+    "test": "vitest run src/**/*.test.ts src/**/*.spec.ts --passWithNoTests ",
     "test:watch": "vitest"
   },
   "dependencies": {
