@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export abstract class BaseValidator<T = any> {
   protected abstract schema: z.ZodType<T>;
@@ -13,10 +13,7 @@ export abstract class BaseValidator<T = any> {
     return this.schema.safeParse(this.data);
   }
 
-  static validate<V extends BaseValidator>(
-    this: new (data: any) => V,
-    data: any,
-  ) {
+  static validate<V extends BaseValidator>(this: new (data: any) => V, data: any) {
     return new this(data).validate();
   }
 }

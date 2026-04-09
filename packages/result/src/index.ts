@@ -33,26 +33,21 @@ type ErrorResult = {
   code: string;
   stack?: string;
   details?: ErrorDetails;
-  match: <U>(
-    onSuccess: (data: never) => U,
-    onError: (error: ErrorInfo) => U,
-  ) => U;
+  match: <U>(onSuccess: (data: never) => U, onError: (error: ErrorInfo) => U) => U;
   transform: <U>(fn: (data: never) => U) => Result<U>;
   andThen: <U>(fn: (data: never) => Result<U>) => Result<U>;
   recover: <T>(fn: (error: ErrorInfo) => Result<T>) => Result<T>;
   transformAsync: <U>(fn: (data: never) => Promise<U>) => Promise<Result<U>>;
-  andThenAsync: <U>(
-    fn: (data: never) => Promise<Result<U>>,
-  ) => Promise<Result<U>>;
+  andThenAsync: <U>(fn: (data: never) => Promise<Result<U>>) => Promise<Result<U>>;
 };
 
 type Result<T> = SuccessResult<T> | ErrorResult;
 
 const ok = <T>(
   data: T,
-  message: string = "Success",
+  message: string = 'Success',
   status: number = 200,
-  code: string = "OK",
+  code: string = 'OK'
 ): Result<T> => ({
   success: true,
   data,
@@ -85,7 +80,7 @@ function err(
   status?: number,
   code?: string,
   stack?: string,
-  details?: ErrorDetails,
+  details?: ErrorDetails
 ): Result<never>;
 function err<TagValue extends string | number | boolean>(
   taggedData: { tag: TagValue } & Record<string, unknown>,
@@ -93,25 +88,24 @@ function err<TagValue extends string | number | boolean>(
   status?: number,
   code?: string,
   stack?: string,
-  tagName?: string,
+  tagName?: string
 ): Result<never>;
 function err<TagValue extends string | number | boolean>(
   errorOrTagged: string | ({ tag: TagValue } & Record<string, unknown>),
-  message: string = "Error",
+  message: string = 'Error',
   status: number = 500,
-  code: string = "ERROR",
+  code: string = 'ERROR',
   stack?: string,
   detailsOrTagName?: ErrorDetails | string,
-  tagName: string = "tag",
+  tagName: string = 'tag'
 ): Result<never> {
   // Check if first argument is tagged data
   const actualTagName =
-    (typeof detailsOrTagName === "string" ? detailsOrTagName : tagName) ||
-    tagName;
+    (typeof detailsOrTagName === 'string' ? detailsOrTagName : tagName) || tagName;
   const isTaggedData =
-    typeof errorOrTagged === "object" &&
+    typeof errorOrTagged === 'object' &&
     errorOrTagged !== null &&
-    (actualTagName in errorOrTagged || "tag" in errorOrTagged);
+    (actualTagName in errorOrTagged || 'tag' in errorOrTagged);
 
   if (isTaggedData) {
     const taggedData = errorOrTagged as Record<string, unknown>;
@@ -119,10 +113,10 @@ function err<TagValue extends string | number | boolean>(
 
     // Extract error message from tagged data (prefer 'error' or 'message' property, or tag itself)
     const errorMessage =
-      (typeof taggedData.error === "string" ? taggedData.error : null) ||
-      (typeof taggedData.message === "string" ? taggedData.message : null) ||
-      (message !== "Error" ? message : null) ||
-      (tagValue ? String(tagValue) : "Error");
+      (typeof taggedData.error === 'string' ? taggedData.error : null) ||
+      (typeof taggedData.message === 'string' ? taggedData.message : null) ||
+      (message !== 'Error' ? message : null) ||
+      (tagValue ? String(tagValue) : 'Error');
 
     // Create tagged payload
     const taggedPayload = { ...taggedData };
@@ -130,13 +124,13 @@ function err<TagValue extends string | number | boolean>(
     return {
       success: false,
       error: errorMessage,
-      message: message !== "Error" ? message : errorMessage,
+      message: message !== 'Error' ? message : errorMessage,
       status,
       code,
       ...(stack !== undefined && { stack }),
       details: taggedPayload,
       match(_, onError) {
-        const errorMsg = message !== "Error" ? message : errorMessage;
+        const errorMsg = message !== 'Error' ? message : errorMessage;
         const errorObj: ErrorInfo = {
           error: errorMessage,
           message: errorMsg,
@@ -154,7 +148,7 @@ function err<TagValue extends string | number | boolean>(
         return this as unknown as Result<never>;
       },
       recover(fn) {
-        const errorMsg = message !== "Error" ? message : errorMessage;
+        const errorMsg = message !== 'Error' ? message : errorMessage;
         return fn({
           error: errorMessage,
           message: errorMsg,
@@ -210,17 +204,15 @@ function err<TagValue extends string | number | boolean>(
 }
 
 const getErrorDetails = (e: unknown): ErrorDetails | undefined => {
-  if (e && typeof e === "object") {
+  if (e && typeof e === 'object') {
     const errorObj = e as Record<string, unknown>;
     const extractedDetails: ErrorDetails = {};
     for (const [key, value] of Object.entries(errorObj)) {
-      if (key !== "message" && key !== "name" && key !== "stack") {
+      if (key !== 'message' && key !== 'name' && key !== 'stack') {
         extractedDetails[key] = value;
       }
     }
-    return Object.keys(extractedDetails).length > 0
-      ? extractedDetails
-      : undefined;
+    return Object.keys(extractedDetails).length > 0 ? extractedDetails : undefined;
   }
   return undefined;
 };
@@ -241,19 +233,17 @@ const safe = <T>(fn: () => T | Result<T>): Result<T> => {
     const details = getErrorDetails(e);
 
     return err(
-      error.message || "Operation failed",
-      "Operation failed",
+      error.message || 'Operation failed',
+      'Operation failed',
       500,
-      "ERROR",
+      'ERROR',
       stack,
-      details,
+      details
     );
   }
 };
 
-const safeAsync = async <T>(
-  fn: () => Promise<T | Result<T>>,
-): Promise<Result<T>> => {
+const safeAsync = async <T>(fn: () => Promise<T | Result<T>>): Promise<Result<T>> => {
   try {
     const result = await fn();
     // If function already returns a Result, use it
@@ -268,41 +258,34 @@ const safeAsync = async <T>(
     const details = getErrorDetails(e);
 
     return err(
-      error.message || "Operation failed",
-      "Operation failed",
+      error.message || 'Operation failed',
+      'Operation failed',
       500,
-      "ASYNC_ERROR",
+      'ASYNC_ERROR',
       stack,
-      details,
+      details
     );
   }
 };
 
 function when<T>(condition: boolean, value: T, defaultValue: T): T;
 function when<T>(condition: boolean, value: T): T | undefined;
-function when<T>(
-  condition: boolean,
-  value: T,
-  defaultValue?: T,
-): T | undefined {
+function when<T>(condition: boolean, value: T, defaultValue?: T): T | undefined {
   return condition ? value : defaultValue;
 }
 
 const whenResult = <T>(
   condition: boolean,
   value: T,
-  errorMessage: string = "Condition not met",
-  errorCode: string = "CONDITION_FAILED",
-  statusCode: number = 400,
-): Result<T> =>
-  condition
-    ? ok(value)
-    : err(errorMessage, errorMessage, statusCode, errorCode);
+  errorMessage: string = 'Condition not met',
+  errorCode: string = 'CONDITION_FAILED',
+  statusCode: number = 400
+): Result<T> => (condition ? ok(value) : err(errorMessage, errorMessage, statusCode, errorCode));
 
 const matchCode = <T>(
   code: string,
   overrides: Record<string, T>,
-  defaultValue?: T,
+  defaultValue?: T
 ): T | undefined => {
   // Direct match check using 'in' operator to handle falsy values correctly
   if (code in overrides) {
@@ -310,9 +293,9 @@ const matchCode = <T>(
   }
 
   // Pattern matching for wildcards
-  const patterns = Object.keys(overrides).filter((key) => key.includes("*"));
+  const patterns = Object.keys(overrides).filter((key) => key.includes('*'));
   for (const pattern of patterns) {
-    const regex = new RegExp(`^${pattern.replace(/\*/g, ".*")}$`);
+    const regex = new RegExp(`^${pattern.replace(/\*/g, '.*')}$`);
     if (regex.test(code)) {
       return overrides[pattern];
     }
@@ -325,13 +308,12 @@ const matchCodeResult = <T>(
   code: string,
   overrides: Record<string, T | (() => T | Result<T>)>,
   errorMessage: string = `No match found for code: ${code}`,
-  errorCode: string = "CODE_NOT_FOUND",
-  statusCode: number = 404,
+  errorCode: string = 'CODE_NOT_FOUND',
+  statusCode: number = 404
 ): Result<T> => {
   const matched = matchCode(code, overrides);
   if (matched !== undefined) {
-    const value =
-      typeof matched === "function" ? (matched as Function)() : matched;
+    const value = typeof matched === 'function' ? (matched as Function)() : matched;
     return isResult<T>(value) ? value : ok(value as T);
   }
   return err(errorMessage, errorMessage, statusCode, errorCode);
@@ -340,20 +322,19 @@ const matchCodeResult = <T>(
 const matchStatus = <T>(
   status: number,
   overrides: Record<number, T>,
-  defaultValue?: T,
+  defaultValue?: T
 ): T | undefined => (status in overrides ? overrides[status] : defaultValue);
 
 const matchStatusResult = <T>(
   status: number,
   overrides: Record<number, T | (() => T | Result<T>)>,
   errorMessage: string = `No match found for status: ${status}`,
-  errorCode: string = "STATUS_NOT_FOUND",
-  statusCode: number = 404,
+  errorCode: string = 'STATUS_NOT_FOUND',
+  statusCode: number = 404
 ): Result<T> => {
   const matched = matchStatus(status, overrides);
   if (matched !== undefined) {
-    const value =
-      typeof matched === "function" ? (matched as Function)() : matched;
+    const value = typeof matched === 'function' ? (matched as Function)() : matched;
     return isResult<T>(value) ? value : ok(value as T);
   }
   return err(errorMessage, errorMessage, statusCode, errorCode);
@@ -364,7 +345,7 @@ const matchResult = <T, R>(
   handlers: {
     ok: (data: T) => R;
     err: (error: ErrorInfo) => R;
-  },
+  }
 ): R => {
   if (result.success) {
     return handlers.ok(result.data);
@@ -385,21 +366,22 @@ const matchResult = <T, R>(
   }
 };
 
-function tagged<
-  TagValue extends string | number | boolean,
-  T extends Record<string, unknown>,
->(value: TagValue, data: T, tagName?: string): T & { tag: TagValue };
+function tagged<TagValue extends string | number | boolean, T extends Record<string, unknown>>(
+  value: TagValue,
+  data: T,
+  tagName?: string
+): T & { tag: TagValue };
 function tagged<TagValue extends string | number | boolean>(
   value: TagValue,
-  tagName?: string,
+  tagName?: string
 ): <T extends Record<string, unknown>>(data: T) => T & { tag: TagValue };
 function tagged(value: any, arg2?: any, arg3?: any): any {
-  if (typeof arg2 === "object" && arg2 !== null) {
+  if (typeof arg2 === 'object' && arg2 !== null) {
     const data = arg2;
-    const tagName = arg3 || "tag";
+    const tagName = arg3 || 'tag';
     return { ...data, [tagName]: value };
   }
-  const tagName = arg2 || "tag";
+  const tagName = arg2 || 'tag';
   return (data: any) => ({ ...data, [tagName]: value });
 }
 
@@ -408,15 +390,12 @@ function taggedWith<
   TagValue extends string | number | boolean,
   T extends Record<string, unknown>,
 >(tag: Tag, value: TagValue, data: T): T & { [K in Tag]: TagValue };
-function taggedWith<
-  Tag extends string,
-  TagValue extends string | number | boolean,
->(
+function taggedWith<Tag extends string, TagValue extends string | number | boolean>(
   tag: Tag,
-  value: TagValue,
+  value: TagValue
 ): <T extends Record<string, unknown>>(data: T) => T & { [K in Tag]: TagValue };
 function taggedWith(tag: any, value: any, arg3?: any): any {
-  if (typeof arg3 === "object" && arg3 !== null) {
+  if (typeof arg3 === 'object' && arg3 !== null) {
     const data = arg3;
     return { ...data, [tag]: value };
   }
@@ -426,10 +405,10 @@ function taggedWith(tag: any, value: any, arg3?: any): any {
 type MatchHandlers<
   T extends { [K in TagName]: string | number | boolean },
   R,
-  TagName extends string = "tag",
+  TagName extends string = 'tag',
 > = {
   [K in Extract<T[TagName], PropertyKey>]?: (
-    payload: Omit<Extract<T, { [P in TagName]: K }>, TagName>,
+    payload: Omit<Extract<T, { [P in TagName]: K }>, TagName>
   ) => R;
 } & {
   error?: (error: ErrorInfo) => R;
@@ -439,37 +418,26 @@ type MatchHandlers<
 
 const match = <
   T extends { [K in TagName]: string | number | boolean },
-  TagName extends string = "tag",
-  Handlers extends MatchHandlers<T, any, TagName> = MatchHandlers<
-    T,
-    any,
-    TagName
-  >,
+  TagName extends string = 'tag',
+  Handlers extends MatchHandlers<T, any, TagName> = MatchHandlers<T, any, TagName>,
 >(
   result: Result<T>,
   handlers: Handlers,
-  tagName: TagName = "tag" as TagName,
-): Result<
-  Handlers[keyof Handlers] extends (...args: any[]) => infer R ? R : never
-> => {
-  type ReturnVal = Handlers[keyof Handlers] extends (...args: any[]) => infer R
-    ? R
-    : never;
+  tagName: TagName = 'tag' as TagName
+): Result<Handlers[keyof Handlers] extends (...args: any[]) => infer R ? R : never> => {
+  type ReturnVal = Handlers[keyof Handlers] extends (...args: any[]) => infer R ? R : never;
 
   if (!result.success) {
     // 1. Try to match on tag value in error details
-    if (result.details && typeof result.details === "object") {
+    if (result.details && typeof result.details === 'object') {
       const tagValue = (result.details as Record<string, unknown>)[tagName] as
         | T[TagName]
         | undefined;
 
       if (tagValue !== undefined && tagValue !== null) {
         const handler = handlers[String(tagValue)];
-        if (typeof handler === "function") {
-          const { [tagName]: _, ...payload } = result.details as Record<
-            string,
-            unknown
-          >;
+        if (typeof handler === 'function') {
+          const { [tagName]: _, ...payload } = result.details as Record<string, unknown>;
           return ok(handler(payload) as ReturnVal);
         }
       }
@@ -503,7 +471,7 @@ const match = <
 
   if (tagValue !== undefined && tagValue !== null) {
     const handler = handlers[String(tagValue)];
-    if (typeof handler === "function") {
+    if (typeof handler === 'function') {
       const { [tagName]: _, ...payload } = data;
       return ok(handler(payload) as ReturnVal);
     }
@@ -516,24 +484,21 @@ const match = <
 
   return err(
     `No handler found for tag value: ${String(tagValue)}`,
-    "Match error",
+    'Match error',
     500,
-    "MATCH_ERROR",
+    'MATCH_ERROR'
   ) as unknown as Result<ReturnVal>;
 };
 
 function isTagged(value: unknown): value is { tag: string | number | boolean };
-function isTagged<
-  Tag extends string,
-  TagValue extends string | number | boolean,
->(
+function isTagged<Tag extends string, TagValue extends string | number | boolean>(
   value: unknown,
   tag: Tag,
-  tagValue: TagValue,
+  tagValue: TagValue
 ): value is { [K in Tag]: TagValue };
 function isTagged(value: unknown, tag?: string, tagValue?: any): boolean {
-  const t = tag || "tag";
-  const hasTag = typeof value === "object" && value !== null && t in value;
+  const t = tag || 'tag';
+  const hasTag = typeof value === 'object' && value !== null && t in value;
   if (!hasTag) return false;
   if (tagValue !== undefined) {
     return (value as Record<string, unknown>)[t] === tagValue;
@@ -543,21 +508,18 @@ function isTagged(value: unknown, tag?: string, tagValue?: any): boolean {
 
 const isResult = <T>(value: unknown): value is Result<T> => {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "success" in value &&
-    typeof (value as Result<T>).success === "boolean" &&
-    "match" in value &&
-    typeof (value as Result<T>).match === "function"
+    'success' in value &&
+    typeof (value as Result<T>).success === 'boolean' &&
+    'match' in value &&
+    typeof (value as Result<T>).match === 'function'
   );
 };
 
-const isSuccess = <T>(result: Result<T>): result is SuccessResult<T> =>
-  result.success;
-const isError = <T>(result: Result<T>): result is ErrorResult =>
-  !result.success;
-const isOk = <T>(result: Result<T>): result is SuccessResult<T> =>
-  result.success;
+const isSuccess = <T>(result: Result<T>): result is SuccessResult<T> => result.success;
+const isError = <T>(result: Result<T>): result is ErrorResult => !result.success;
+const isOk = <T>(result: Result<T>): result is SuccessResult<T> => result.success;
 const isErr = <T>(result: Result<T>): result is ErrorResult => !result.success;
 
 export {
@@ -594,9 +556,7 @@ export const all = <T>(results: Result<T>[]): Result<T[]> => {
   return ok(data);
 };
 
-export const allSettled = <T>(
-  results: Result<T>[],
-): Result<{ data: T[]; errors: ErrorInfo[] }> => {
+export const allSettled = <T>(results: Result<T>[]): Result<{ data: T[]; errors: ErrorInfo[] }> => {
   const data: T[] = [];
   const errors: ErrorInfo[] = [];
   for (const r of results) {
@@ -635,10 +595,10 @@ export async function tryWhile<T>(
   const baseDelayMs = Math.floor(options?.baseDelayMs ?? 100);
   const maxDelayMs = Math.floor(options?.maxDelayMs ?? 3000);
   if (baseDelayMs <= 0 || maxDelayMs <= 0) {
-    throw new Error("baseDelayMs and maxDelayMs must be greater than 0");
+    throw new Error('baseDelayMs and maxDelayMs must be greater than 0');
   }
   if (baseDelayMs >= maxDelayMs) {
-    throw new Error("baseDelayMs must be less than maxDelayMs");
+    throw new Error('baseDelayMs must be less than maxDelayMs');
   }
   let attempt = 1;
   while (true) {
@@ -647,7 +607,7 @@ export async function tryWhile<T>(
     } catch (err) {
       if (options?.verbose) {
         console.info({
-          message: "tryWhile",
+          message: 'tryWhile',
           attempt,
           error: String(err),
           errorProps: err,
@@ -692,26 +652,20 @@ export async function tryN<T>(
   options?: TryNOptions
 ): Promise<T> {
   if (n <= 0) {
-    throw new Error("n must be greater than 0");
+    throw new Error('n must be greater than 0');
   }
   n = Math.floor(n);
 
   return await tryWhile(
     fn,
     (err: unknown, nextAttempt: number) => {
-      return (
-        nextAttempt <= n && (options?.isRetryable?.(err, nextAttempt) ?? true)
-      );
+      return nextAttempt <= n && (options?.isRetryable?.(err, nextAttempt) ?? true);
     },
     options
   );
 }
 
-export function jitterBackoff(
-  attempt: number,
-  baseDelayMs: number,
-  maxDelayMs: number
-): number {
+export function jitterBackoff(attempt: number, baseDelayMs: number, maxDelayMs: number): number {
   const attemptUpperBoundMs = Math.min(2 ** attempt * baseDelayMs, maxDelayMs);
   return Math.floor(Math.random() * attemptUpperBoundMs);
 }
@@ -721,6 +675,6 @@ export function isErrorRetryable(err: unknown): boolean {
   return (
     Boolean((err as any)?.retryable) &&
     !Boolean((err as any)?.overloaded) &&
-    !msg.includes("Durable Object is overloaded")
+    !msg.includes('Durable Object is overloaded')
   );
 }

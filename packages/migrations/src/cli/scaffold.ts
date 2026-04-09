@@ -1,12 +1,12 @@
-import { defineCommand } from "citty";
-import { consola } from "consola";
-import * as fs from "node:fs/promises";
-import * as path from "pathe";
-import { spawnSync } from "node:child_process";
-import * as i from "inflection";
-import { downloadTemplate } from "giget";
-import { hash } from "ohash";
-import { tmpdir } from "node:os";
+import { defineCommand } from 'citty';
+import { consola } from 'consola';
+import * as fs from 'node:fs/promises';
+import * as path from 'pathe';
+import { spawnSync } from 'node:child_process';
+import * as i from 'inflection';
+import { downloadTemplate } from 'giget';
+import { hash } from 'ohash';
+import { tmpdir } from 'node:os';
 
 const camelCase = (str: string) => i.camelize(str, true);
 const pascalCase = (str: string) => i.camelize(str, false);
@@ -23,7 +23,7 @@ export interface Field {
   type: string;
   options: Record<string, any>;
   relationship?: {
-    type: "hasMany" | "belongsTo" | "hasOne";
+    type: 'hasMany' | 'belongsTo' | 'hasOne';
     target: string;
     foreignKey?: string;
     name?: string;
@@ -34,7 +34,7 @@ export interface ParsedMigration {
   tableName: string;
   className: string;
   fields: Field[];
-  location: "d1" | "do";
+  location: 'd1' | 'do';
   durableObjectClass?: string;
   doType?: string;
   populateFrom: string[];
@@ -68,7 +68,7 @@ class LocalTemplateLoader implements ITemplateLoader {
   async load(name: string): Promise<string> {
     try {
       const filePath = path.join(this.templateDir, `${name}.t`);
-      return await fs.readFile(filePath, "utf-8");
+      return await fs.readFile(filePath, 'utf-8');
     } catch {
       consola.error(`Template not found: ${name}.t in ${this.templateDir}`);
       process.exit(1);
@@ -82,16 +82,18 @@ class RemoteTemplateLoader implements ITemplateLoader {
 
   constructor(templateUrl: string) {
     const tempPath = path.join(tmpdir(), `nomo-scaffold-${hash(templateUrl)}`);
-    
-    this.downloadPromise = downloadTemplate(templateUrl, { 
-      dir: tempPath, 
-      force: true 
-    }).then(({ dir }) => {
-      this.localLoader = new LocalTemplateLoader(dir);
-    }).catch((err) => {
-      consola.error(`Failed to download template: ${err}`);
-      process.exit(1);
-    });
+
+    this.downloadPromise = downloadTemplate(templateUrl, {
+      dir: tempPath,
+      force: true,
+    })
+      .then(({ dir }) => {
+        this.localLoader = new LocalTemplateLoader(dir);
+      })
+      .catch((err) => {
+        consola.error(`Failed to download template: ${err}`);
+        process.exit(1);
+      });
   }
 
   async load(name: string): Promise<string> {
@@ -118,7 +120,7 @@ class TemplateEngine {
   constructor(private readonly loader: ITemplateLoader) {}
 
   // ── Factory Methods ──────────────────────────────────────────────────────
-  
+
   static fromLocalDir(templateDir: string): TemplateEngine {
     return new TemplateEngine(new LocalTemplateLoader(templateDir));
   }
@@ -128,7 +130,7 @@ class TemplateEngine {
   }
 
   // ── Loading ──────────────────────────────────────────────────────────────
-  
+
   async load(name: string): Promise<string> {
     return this.loader.load(name);
   }
@@ -139,52 +141,49 @@ class TemplateEngine {
   }
 
   // ── Static Renderer (pure, no I/O) ──────────────────────────────────────
-  
+
   static renderString(template: string, vars: Record<string, any>): string {
     let res = template;
 
     // {{#if key}}...{{/if}}
     res = res.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_match, key, content) => {
       const val = vars[key];
-      if (!val || (Array.isArray(val) && val.length === 0)) return "";
+      if (!val || (Array.isArray(val) && val.length === 0)) return '';
       return TemplateEngine.renderString(content, vars);
     });
 
     // {{#each key}}...{{/each}}
     res = res.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (_match, key, content) => {
       const arr = vars[key];
-      if (!Array.isArray(arr) || arr.length === 0) return "";
+      if (!Array.isArray(arr) || arr.length === 0) return '';
       return arr
         .map((item: any) => {
           let block = content;
           block = block.replace(/\{\{this\}\}/g, String(item));
           for (const [helperName, helperFn] of Object.entries(TEMPLATE_HELPERS)) {
             block = block.replace(
-              new RegExp(`\\{\\{${helperName}\\s+this\\}\\}`, "g"),
+              new RegExp(`\\{\\{${helperName}\\s+this\\}\\}`, 'g'),
               helperFn(String(item))
             );
           }
           return block;
         })
-        .join("");
+        .join('');
     });
 
     // {{helperName varName}}
     for (const [helperName, helperFn] of Object.entries(TEMPLATE_HELPERS)) {
-      res = res.replace(
-        new RegExp(`\\{\\{${helperName}\\s+(\\w+)\\}\\}`, "g"),
-        (_match, key) => {
-          const val = vars[key];
-          if (val === undefined || val === null) return "";
-          return helperFn(String(val));
-        }
-      );
+      res = res.replace(new RegExp(`\\{\\{${helperName}\\s+(\\w+)\\}\\}`, 'g'), (_match, key) => {
+        const val = vars[key];
+        if (val === undefined || val === null) return '';
+        return helperFn(String(val));
+      });
     }
 
     // {{varName}}
     for (const [key, val] of Object.entries(vars)) {
-      if (Array.isArray(val) || typeof val === "object") continue;
-      const replacement = val === undefined || val === null ? "" : String(val);
+      if (Array.isArray(val) || typeof val === 'object') continue;
+      const replacement = val === undefined || val === null ? '' : String(val);
       res = res.replaceAll(`{{${key}}}`, replacement);
     }
 
@@ -220,7 +219,7 @@ class TemplateVarsBuilder {
       pluralCamelName: pluralize(camelCase(typeName)),
       singularName: camelCase(modelNameFromTableName(parsed.tableName)),
       colCount: parsed.fields.filter((f) => !f.relationship).length + 2,
-      doType: parsed.doType || "view",
+      doType: parsed.doType || 'view',
       populateFrom: parsed.populateFrom,
       doModel: parsed.doModel,
       componentClassName: pluralTitle,
@@ -234,8 +233,8 @@ class TemplateVarsBuilder {
     this.vars.editRowFields = this.buildEditRowFields(fields);
     this.vars.viewRowFields = this.buildViewRowFields(fields);
     this.vars.tableHeadFields = this.buildTableHeadFields(fields);
-    this.vars.jsCreateData = this.buildJsData(fields, "form");
-    this.vars.jsUpdateData = this.buildJsData(fields, "row");
+    this.vars.jsCreateData = this.buildJsData(fields, 'form');
+    this.vars.jsUpdateData = this.buildJsData(fields, 'row');
     return this;
   }
 
@@ -260,53 +259,53 @@ class TemplateVarsBuilder {
       .filter((f) => !f.relationship)
       .map((f) => {
         const placeholder = pascalCase(f.name);
-        if (f.type === "boolean") {
+        if (f.type === 'boolean') {
           return `              <select name="${f.name}" className="edit-select">\n                <option value="true">True</option>\n                <option value="false">False</option>\n              </select>`;
         }
-        return `              <input type="${f.type === "integer" ? "number" : "text"}" name="${f.name}" placeholder="${placeholder}" required className="edit-input" />`;
+        return `              <input type="${f.type === 'integer' ? 'number' : 'text'}" name="${f.name}" placeholder="${placeholder}" required className="edit-input" />`;
       })
-      .join("\n");
+      .join('\n');
   }
 
   private buildEditRowFields(fields: Field[]): string {
     return fields
       .filter((f) => !f.relationship)
       .map((f) => {
-        if (f.type === "boolean") {
+        if (f.type === 'boolean') {
           return `              <td>\n                <select name="${f.name}" className="edit-select">\n                  <option value="true" nofo-selected="${f.name}">True</option>\n                  <option value="false" nofo-selected="${f.name}">False</option>\n                </select>\n              </td>`;
         }
-        return `              <td><input type="${f.type === "integer" ? "number" : "text"}" name="${f.name}" value="{{${f.name}}}" required className="edit-input" /></td>`;
+        return `              <td><input type="${f.type === 'integer' ? 'number' : 'text'}" name="${f.name}" value="{{${f.name}}}" required className="edit-input" /></td>`;
       })
-      .join("\n");
+      .join('\n');
   }
 
   private buildViewRowFields(fields: Field[]): string {
     return fields
       .filter((f) => !f.relationship)
       .map((f) => `              <td>{\`{{${f.name}}}\`}</td>`)
-      .join("\n");
+      .join('\n');
   }
 
   private buildTableHeadFields(fields: Field[]): string {
     return fields
       .filter((f) => !f.relationship)
       .map((f) => `              <th>${pascalCase(f.name)}</th>`)
-      .join("\n");
+      .join('\n');
   }
 
-  private buildJsData(fields: Field[], source: "form" | "row"): string {
+  private buildJsData(fields: Field[], source: 'form' | 'row'): string {
     return fields
       .filter((f) => !f.relationship)
       .map((f) => {
         let val =
-          source === "form"
+          source === 'form'
             ? `form.${f.name}.value`
             : `row.querySelector('[name="${f.name}"]').value`;
-        if (f.type === "integer") val = `parseInt(${val})`;
-        if (f.type === "boolean") val = `${val} === 'true'`;
+        if (f.type === 'integer') val = `parseInt(${val})`;
+        if (f.type === 'boolean') val = `${val} === 'true'`;
         return `      ${f.name}: ${val},`;
       })
-      .join("\n");
+      .join('\n');
   }
 }
 
@@ -351,15 +350,15 @@ abstract class FileGenerator {
   }
 
   protected buildRelationships(fields: Field[]): string {
-    let relationships = "";
+    let relationships = '';
     for (const field of fields) {
       if (field.relationship) {
         const relName = field.relationship.name || field.relationship.target;
-        const targetModel = pascalCase(field.relationship.target) + "Model";
+        const targetModel = pascalCase(field.relationship.target) + 'Model';
         const fk = field.relationship.foreignKey || field.name;
         relationships += `\t\tthis.${field.relationship.type}("${relName}", { model: "${targetModel}", foreignKey: "${fk}" });\n`;
       } else if (field.options.references) {
-        const targetModel = pascalCase(field.options.references) + "Model";
+        const targetModel = pascalCase(field.options.references) + 'Model';
         const fk = field.name;
         relationships += `\t\tthis.belongsTo("${field.options.references}", { model: "${targetModel}", foreignKey: "${fk}" });\n`;
       }
@@ -378,114 +377,134 @@ abstract class FileGenerator {
 // ═════════════════════════════════════════════════════════════════════════════
 
 class ModelGenerator extends FileGenerator {
-  getTemplateName() { return "model.ts"; }
+  getTemplateName() {
+    return 'model.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/models", `${vars.modelFileName}.ts`);
+    return path.join(this.projectRoot, 'src/models', `${vars.modelFileName}.ts`);
   }
 }
 
 class RpcGenerator extends FileGenerator {
-  getTemplateName() { return "rpc.ts"; }
+  getTemplateName() {
+    return 'rpc.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/rpc", `${vars.tableName}.ts`);
+    return path.join(this.projectRoot, 'src/rpc', `${vars.tableName}.ts`);
   }
 }
 
 class RpcInstanceGenerator extends FileGenerator {
-  getTemplateName() { return "rpc_instance.ts"; }
+  getTemplateName() {
+    return 'rpc_instance.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
     const fileName = `${vars.tableName}_rpc_instance`;
-    return path.join(this.projectRoot, "src/rpc/instances", `${fileName}.ts`);
+    return path.join(this.projectRoot, 'src/rpc/instances', `${fileName}.ts`);
   }
 }
 
 class ControllerGenerator extends FileGenerator {
-  getTemplateName() { return "controller.ts"; }
+  getTemplateName() {
+    return 'controller.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/controllers", `${vars.tableName}_controller.ts`);
+    return path.join(this.projectRoot, 'src/controllers', `${vars.tableName}_controller.ts`);
   }
 }
 
 class ControllerRpcGenerator extends FileGenerator {
-  getTemplateName() { return "controller_rpc.ts"; }
+  getTemplateName() {
+    return 'controller_rpc.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/controllers/rpcs", `${vars.tableName}.ts`);
+    return path.join(this.projectRoot, 'src/controllers/rpcs', `${vars.tableName}.ts`);
   }
 }
 
 class ServiceGenerator extends FileGenerator {
-  getTemplateName() { return "service.ts"; }
+  getTemplateName() {
+    return 'service.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/services", `${vars.tableName}_service.ts`);
+    return path.join(this.projectRoot, 'src/services', `${vars.tableName}_service.ts`);
   }
 }
 
 class ViewGenerator extends FileGenerator {
-  getTemplateName() { return "view.tsx"; }
+  getTemplateName() {
+    return 'view.tsx';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/views", vars.tableName, "index.tsx");
+    return path.join(this.projectRoot, 'src/views', vars.tableName, 'index.tsx');
   }
 }
 
 class ComponentJsGenerator extends FileGenerator {
-  getTemplateName() { return "component.js"; }
+  getTemplateName() {
+    return 'component.js';
+  }
   resolveTargetPath(vars: Record<string, any>) {
     const kebabName = (vars.kebabTableName || vars.tableName).replace(/_/g, '-');
-    return path.join(this.projectRoot, "public/components", `${kebabName}-table.js`);
+    return path.join(this.projectRoot, 'public/components', `${kebabName}-table.js`);
   }
 }
 
 class ComponentCssGenerator extends FileGenerator {
-  getTemplateName() { return "component.css"; }
+  getTemplateName() {
+    return 'component.css';
+  }
   resolveTargetPath(vars: Record<string, any>) {
     const kebabName = (vars.kebabTableName || vars.tableName).replace(/_/g, '-');
-    return path.join(this.projectRoot, "public/components", `${kebabName}-table.css`);
+    return path.join(this.projectRoot, 'public/components', `${kebabName}-table.css`);
   }
 }
 
 class TypeFileGenerator extends FileGenerator {
-  getTemplateName() { return "types.ts"; }
+  getTemplateName() {
+    return 'types.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/models/types", `${snakeCase(vars.typeName)}.ts`);
+    return path.join(this.projectRoot, 'src/models/types', `${snakeCase(vars.typeName)}.ts`);
   }
 }
 
 class DurableObjectGenerator extends FileGenerator {
-  getTemplateName() { return "durable_object.ts"; }
+  getTemplateName() {
+    return 'durable_object.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/durable_objects", `${vars.doClassName}.ts`);
+    return path.join(this.projectRoot, 'src/durable_objects', `${vars.doClassName}.ts`);
   }
 }
 
 class ControllerRpcViewGenerator extends FileGenerator {
-  getTemplateName() { return "controller_rpc_view.ts"; }
+  getTemplateName() {
+    return 'controller_rpc_view.ts';
+  }
   resolveTargetPath(vars: Record<string, any>) {
-    return path.join(this.projectRoot, "src/controllers/rpcs/views", `${vars.tableName}.ts`);
+    return path.join(this.projectRoot, 'src/controllers/rpcs/views', `${vars.tableName}.ts`);
   }
 }
 
 // ── Generator Type Registry ──────────────────────────────────────────────────
 
 type GeneratorType =
-  | "model"
-  | "rpc"
-  | "rpc_instance"
-  | "controller"
-  | "controller_rpc"
-  | "service"
-  | "view"
-  | "component_js"
-  | "component_css"
-  | "type_file"
-  | "durable_object"
-  | "controller_rpc_view";
+  | 'model'
+  | 'rpc'
+  | 'rpc_instance'
+  | 'controller'
+  | 'controller_rpc'
+  | 'service'
+  | 'view'
+  | 'component_js'
+  | 'component_css'
+  | 'type_file'
+  | 'durable_object'
+  | 'controller_rpc_view';
 
 class FileGeneratorFactory {
-  static create(
-    type: GeneratorType,
-    engine: TemplateEngine,
-    projectRoot: string
-  ): FileGenerator {
+  static create(type: GeneratorType, engine: TemplateEngine, projectRoot: string): FileGenerator {
     const registry: Record<GeneratorType, new (e: TemplateEngine, r: string) => FileGenerator> = {
       model: ModelGenerator,
       rpc: RpcGenerator,
@@ -500,7 +519,7 @@ class FileGeneratorFactory {
       durable_object: DurableObjectGenerator,
       controller_rpc_view: ControllerRpcViewGenerator,
     };
-    
+
     const Ctor = registry[type];
     if (!Ctor) throw new Error(`Unknown generator type: ${type}`);
     return new Ctor(engine, projectRoot);
@@ -509,16 +528,16 @@ class FileGeneratorFactory {
   /** Standard generators used for every D1 and DO migration */
   static createStandard(engine: TemplateEngine, projectRoot: string): FileGenerator[] {
     const standardTypes: GeneratorType[] = [
-      "model",
-      "rpc",
-      "rpc_instance",
-      "controller",
-      "controller_rpc",
-      "service",
-      "view",
-      "component_js",
-      "component_css",
-      "type_file",
+      'model',
+      'rpc',
+      'rpc_instance',
+      'controller',
+      'controller_rpc',
+      'service',
+      'view',
+      'component_js',
+      'component_css',
+      'type_file',
     ];
     return standardTypes.map((t) => FileGeneratorFactory.create(t, engine, projectRoot));
   }
@@ -526,8 +545,8 @@ class FileGeneratorFactory {
   /** Extra generators only used for Durable Object migrations */
   static createDurableObjectExtras(engine: TemplateEngine, projectRoot: string): FileGenerator[] {
     return [
-      FileGeneratorFactory.create("durable_object", engine, projectRoot),
-      FileGeneratorFactory.create("controller_rpc_view", engine, projectRoot),
+      FileGeneratorFactory.create('durable_object', engine, projectRoot),
+      FileGeneratorFactory.create('controller_rpc_view', engine, projectRoot),
     ];
   }
 }
@@ -550,40 +569,42 @@ class SchemaGenerator extends FileGenerator {
     super(engine, projectRoot);
   }
 
-  getTemplateName() { return "schema.ts"; }
-  
+  getTemplateName() {
+    return 'schema.ts';
+  }
+
   resolveTargetPath(_vars: Record<string, any>) {
-    return path.resolve(this.projectRoot, "src/db/schema/schema.ts");
+    return path.resolve(this.projectRoot, 'src/db/schema/schema.ts');
   }
 
   override async generate(vars: Record<string, any>, fields: Field[]): Promise<string> {
     const { tableName } = vars;
-    const schemaDir = path.resolve(this.projectRoot, "src/db/schema");
+    const schemaDir = path.resolve(this.projectRoot, 'src/db/schema');
     await fs.mkdir(schemaDir, { recursive: true });
 
     const fullPath = this.resolveTargetPath(vars);
     const columnLines = this.buildColumnLines(fields);
-    const content = await this.engine.render(this.getTemplateName(), { 
-      tableName, 
-      columns: columnLines 
+    const content = await this.engine.render(this.getTemplateName(), {
+      tableName,
+      columns: columnLines,
     });
 
     try {
-      const existing = await fs.readFile(fullPath, "utf-8");
+      const existing = await fs.readFile(fullPath, 'utf-8');
       if (!existing.includes(`export const ${tableName}`)) {
         await fs.appendFile(fullPath, `\n${content}\n`);
       } else if (this.force) {
         consola.info(`Overwriting existing schema for ${tableName}`);
         const regex = new RegExp(
           `export const ${tableName} = sqliteTable\\('${tableName}', [\\s\\S]*?\\);`,
-          "g"
+          'g'
         );
         await fs.writeFile(fullPath, existing.replace(regex, content));
       }
     } catch {
-      const importsTpl = await this.engine.load("schema_imports.ts");
+      const importsTpl = await this.engine.load('schema_imports.ts');
       const imports = TemplateEngine.renderString(importsTpl, {});
-      await fs.writeFile(fullPath, imports + "\n" + content);
+      await fs.writeFile(fullPath, imports + '\n' + content);
     }
 
     return fullPath;
@@ -594,22 +615,22 @@ class SchemaGenerator extends FileGenerator {
       .filter((f) => !f.relationship)
       .map((field) => {
         let drizzleType = field.type;
-        if (drizzleType === "string") drizzleType = "text";
-        if (drizzleType === "boolean") drizzleType = "integer";
+        if (drizzleType === 'string') drizzleType = 'text';
+        if (drizzleType === 'boolean') drizzleType = 'integer';
 
         let line = `  ${field.name}: ${drizzleType}('${field.name}')`;
-        if (field.options.notNull) line += ".notNull()";
-        if (field.options.primaryKey) line += ".primaryKey()";
-        if (field.options.autoincrement) line += ".autoincrement()";
+        if (field.options.notNull) line += '.notNull()';
+        if (field.options.primaryKey) line += '.primaryKey()';
+        if (field.options.autoincrement) line += '.autoincrement()';
         if (field.options.default !== undefined) {
           const val = isNaN(Number(field.options.default))
             ? `sql\`'${field.options.default}'\``
             : field.options.default;
           line += `.default(${val})`;
         }
-        return line + ",";
+        return line + ',';
       })
-      .join("\n");
+      .join('\n');
   }
 }
 
@@ -637,7 +658,7 @@ class RoutesGenerator {
   ) {}
 
   get routesPath(): string {
-    return path.join(this.projectRoot, "src/routes.ts");
+    return path.join(this.projectRoot, 'src/routes.ts');
   }
 
   /** Accumulate route registrations for a single migration (used in --all mode) */
@@ -645,7 +666,7 @@ class RoutesGenerator {
     this.controllerImports.push(pluralTypeName);
     this.controllerRpcImports.push(`${pluralTypeName}Rpc`);
 
-    if (migration.location === "d1") {
+    if (migration.location === 'd1') {
       this.d1ResourceRoutes.push(
         `      v1.resources('${migration.tableName}', ${pluralTypeName}Controller, { rpc: ${pluralTypeName}Rpc });`
       );
@@ -654,7 +675,7 @@ class RoutesGenerator {
       );
     }
 
-    if (migration.location === "do") {
+    if (migration.location === 'do') {
       this.controllerRpcViewImports.push(`${pluralTypeName}Rpc`);
       this.doRpcViewRoutes.push(
         `        views.post('/${migration.tableName}', ${pluralTypeName}RpcController.action('rpc'));`
@@ -666,21 +687,21 @@ class RoutesGenerator {
   async generateRoutesFile(): Promise<string> {
     const controllerImportLines = this.controllerImports
       .map((name) => `  ${name}Controller,`)
-      .join("\n");
+      .join('\n');
     const controllerRpcImportLines = this.controllerRpcImports
       .map((name) => `  ${name}RpcController,`)
-      .join("\n");
+      .join('\n');
     const controllerRpcViewImportLines = this.controllerRpcViewImports
       .map((name) => `  ${name}RpcController,`)
-      .join("\n");
+      .join('\n');
 
-    const content = await this.engine.render("routes.ts", {
+    const content = await this.engine.render('routes.ts', {
       controllerImports: controllerImportLines,
       controllerRpcImports: controllerRpcImportLines,
       controllerRpcViewImports: controllerRpcViewImportLines,
-      d1ResourceRoutes: this.d1ResourceRoutes.join("\n"),
-      d1RpcRoutes: this.d1RpcRoutes.join("\n"),
-      doRpcViewRoutes: this.doRpcViewRoutes.join("\n"),
+      d1ResourceRoutes: this.d1ResourceRoutes.join('\n'),
+      d1RpcRoutes: this.d1RpcRoutes.join('\n'),
+      doRpcViewRoutes: this.doRpcViewRoutes.join('\n'),
     });
 
     await fs.writeFile(this.routesPath, content);
@@ -689,19 +710,23 @@ class RoutesGenerator {
 
   /** Also generate the types/index.ts barrel (companion to routes in --all mode) */
   async generateTypesIndex(typeExports: string[]): Promise<string> {
-    const indexPath = path.join(this.projectRoot, "src/models/types", "index.ts");
+    const indexPath = path.join(this.projectRoot, 'src/models/types', 'index.ts');
     await fs.mkdir(path.dirname(indexPath), { recursive: true });
-    const content = await this.engine.render("types_index.ts", {
-      typeExports: typeExports.join("\n"),
+    const content = await this.engine.render('types_index.ts', {
+      typeExports: typeExports.join('\n'),
     });
     await fs.writeFile(indexPath, content);
     return indexPath;
   }
 
   /** Patch an existing routes.ts with a new single resource (single mode) */
-  async updateRoutes(tableName: string, pluralTypeName: string, isDurableObject: boolean): Promise<void> {
+  async updateRoutes(
+    tableName: string,
+    pluralTypeName: string,
+    isDurableObject: boolean
+  ): Promise<void> {
     try {
-      let content = await fs.readFile(this.routesPath, "utf-8");
+      let content = await fs.readFile(this.routesPath, 'utf-8');
 
       if (
         content.includes(`v1.resources('${tableName}'`) ||
@@ -718,7 +743,7 @@ class RoutesGenerator {
         );
         if (viewsMatch) {
           const index = viewsMatch.index! + viewsMatch[0].length;
-          content = content.slice(0, index) + "\n" + viewRegistration + content.slice(index);
+          content = content.slice(0, index) + '\n' + viewRegistration + content.slice(index);
           await fs.writeFile(this.routesPath, content);
           consola.success(`Updated routes.ts with DO view route for ${tableName}`);
         } else {
@@ -732,7 +757,7 @@ class RoutesGenerator {
         const v1Match = content.match(/this\.version\('1',\s*\(v1:\s*AppRoutes\)\s*=>\s*\{/);
         if (v1Match) {
           const index = v1Match.index! + v1Match[0].length;
-          content = content.slice(0, index) + "\n" + resourceRegistration + content.slice(index);
+          content = content.slice(0, index) + '\n' + resourceRegistration + content.slice(index);
           await fs.writeFile(this.routesPath, content);
           consola.success(`Updated routes.ts with resource route for ${tableName}`);
         } else {
@@ -743,7 +768,7 @@ class RoutesGenerator {
         const rpcMatch = content.match(/v1\.namespace\('rpc',\s*\(rpc:\s*AppRoutes\)\s*=>\s*\{/);
         if (rpcMatch) {
           const index = rpcMatch.index! + rpcMatch[0].length;
-          content = content.slice(0, index) + "\n" + rpcRegistration + content.slice(index);
+          content = content.slice(0, index) + '\n' + rpcRegistration + content.slice(index);
           await fs.writeFile(this.routesPath, content);
           consola.success(`Updated routes.ts with RPC route for ${tableName}`);
         }
@@ -760,8 +785,8 @@ class RoutesGenerator {
 
 class MigrationParser {
   static async parse(filePath: string): Promise<ParsedMigrationFile> {
-    const content = await fs.readFile(filePath, "utf-8");
-    const fileName = path.basename(filePath, ".ts");
+    const content = await fs.readFile(filePath, 'utf-8');
+    const fileName = path.basename(filePath, '.ts');
 
     const classNameMatch = content.match(/export\s+default\s+class\s+(\w+)/);
     const className = classNameMatch ? classNameMatch[1] : pascalCase(fileName);
@@ -774,13 +799,16 @@ class MigrationParser {
     }
 
     const locationMatch = content.match(/location:\s*['"]([^'"]+)['"]/);
-    const defaultLocation = locationMatch ? locationMatch[1] : "d1";
+    const defaultLocation = locationMatch ? locationMatch[1] : 'd1';
 
     const migrations: ParsedMigration[] = [];
 
     for (const tableName of tableNames) {
       const tableBlockMatch = content.match(
-        new RegExp(`this\\.(?:create|up)Table\\(['"]${tableName}['"][\\s\\S]*?(?=\\n\\s*(?:await\\s+)?this\\.|(?:async\\s+)?change\\(\\)|$)`, "i")
+        new RegExp(
+          `this\\.(?:create|up)Table\\(['"]${tableName}['"][\\s\\S]*?(?=\\n\\s*(?:await\\s+)?this\\.|(?:async\\s+)?change\\(\\)|$)`,
+          'i'
+        )
       );
 
       let tableContent = content;
@@ -801,35 +829,35 @@ class MigrationParser {
       const populateFrom: string[] = [];
       if (populateMatch) {
         const args = populateMatch[1].match(/['"]([^'"]+)['"]/g);
-        if (args) populateFrom.push(...args.map((a) => a.replace(/['"]/g, "")));
+        if (args) populateFrom.push(...args.map((a) => a.replace(/['"]/g, '')));
       }
 
       const doModelMatch = content.match(/t\.doModel\(['"]([^'"]+)['"]/);
       const doModel = doModelMatch ? doModelMatch[1] : undefined;
 
       const fields: Field[] = [];
-      const foreignKeys: ParsedMigration["foreignKeys"] = [];
-      const indexes: ParsedMigration["indexes"] = [];
+      const foreignKeys: ParsedMigration['foreignKeys'] = [];
+      const indexes: ParsedMigration['indexes'] = [];
 
       const fieldRegex = /t\.(\w+)\(['"]([^'"]+)['"]\s*(?:,\s*(\{[^}]+\}))?\);/g;
       let match;
       while ((match = fieldRegex.exec(tableContent)) !== null) {
         const originalType = match[1];
         const name = match[2];
-        const optsRaw = match[3] || "";
+        const optsRaw = match[3] || '';
         const options: Record<string, any> = {};
 
         let type = originalType;
-        if (type === "text") type = "string";
-        if (type === "timestamp") type = "string";
-        if (type === "datetime") type = "string";
-        if (type === "id") type = "integer";
+        if (type === 'text') type = 'string';
+        if (type === 'timestamp') type = 'string';
+        if (type === 'datetime') type = 'string';
+        if (type === 'id') type = 'integer';
 
-        if (optsRaw.includes("notNull: true")) options.notNull = true;
-        if (optsRaw.includes("unique: true")) options.unique = true;
-        if (optsRaw.includes("index: true")) options.index = true;
-        if (optsRaw.includes("primaryKey: true")) options.primaryKey = true;
-        if (optsRaw.includes("autoincrement: true")) options.autoincrement = true;
+        if (optsRaw.includes('notNull: true')) options.notNull = true;
+        if (optsRaw.includes('unique: true')) options.unique = true;
+        if (optsRaw.includes('index: true')) options.index = true;
+        if (optsRaw.includes('primaryKey: true')) options.primaryKey = true;
+        if (optsRaw.includes('autoincrement: true')) options.autoincrement = true;
         const defaultMatch = optsRaw.match(/default:\s*([^,}]+)/);
         if (defaultMatch) options.default = defaultMatch[1].trim();
 
@@ -840,7 +868,7 @@ class MigrationParser {
         /t\.foreignKey\(['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"](?:\s*,\s*(\{[^}]+\}))?\);/g;
       while ((match = fkRegex.exec(tableContent)) !== null) {
         const fk: any = { column: match[1], toTable: match[2], toColumn: match[3] };
-        const onDeleteMatch = (match[4] || "").match(/onDelete:\s*['"]([^'"]+)['"]/);
+        const onDeleteMatch = (match[4] || '').match(/onDelete:\s*['"]([^'"]+)['"]/);
         if (onDeleteMatch) fk.onDelete = onDeleteMatch[1];
         foreignKeys.push(fk);
       }
@@ -848,19 +876,19 @@ class MigrationParser {
       const indexRegex = /t\.index\(([^)]+)\);/g;
       while ((match = indexRegex.exec(tableContent)) !== null) {
         const cols = match[1].match(/['"]([^'"]+)['"]/g);
-        if (cols) indexes.push({ columns: cols.map((c) => c.replace(/['"]/g, "")) });
+        if (cols) indexes.push({ columns: cols.map((c) => c.replace(/['"]/g, '')) });
       }
 
       const relRegex = /t\.(belongsTo|hasMany|hasOne)\(['"]([^'"]+)['"]\s*,\s*(\{[^}]+\})\);/g;
       while ((match = relRegex.exec(tableContent)) !== null) {
-        const relType = match[1] as "hasMany" | "belongsTo" | "hasOne";
+        const relType = match[1] as 'hasMany' | 'belongsTo' | 'hasOne';
         const target = match[2];
         const optsRaw = match[3];
         const nameMatch = optsRaw.match(/name:\s*['"]([^'"]+)['"]/);
         const fkMatch = optsRaw.match(/foreignKey:\s*['"]([^'"]+)['"]/);
         fields.push({
           name: nameMatch ? nameMatch[1] : target,
-          type: "relationship",
+          type: 'relationship',
           options: {},
           relationship: {
             type: relType,
@@ -875,7 +903,7 @@ class MigrationParser {
         tableName,
         className,
         fields,
-        location: location as "d1" | "do",
+        location: location as 'd1' | 'do',
         durableObjectClass,
         doType,
         populateFrom,
@@ -895,7 +923,7 @@ class MigrationParser {
 
   static async parseAll(migrationsDir: string): Promise<ParsedMigration[]> {
     if (!(await fs.stat(migrationsDir).catch(() => null))) return [];
-    const files = (await fs.readdir(migrationsDir)).filter((f) => f.endsWith(".ts")).sort();
+    const files = (await fs.readdir(migrationsDir)).filter((f) => f.endsWith('.ts')).sort();
     const results: ParsedMigration[] = [];
     for (const file of files) {
       try {
@@ -968,7 +996,7 @@ class ScaffoldDirector {
         consola.success(`Generated: ${path.relative(this.options.projectRoot, stub)}`);
       }
 
-      await this.routesGen.updateRoutes(parsed.tableName, pluralTypeName, parsed.location === "do");
+      await this.routesGen.updateRoutes(parsed.tableName, pluralTypeName, parsed.location === 'do');
     }
 
     this.runMigrations();
@@ -983,21 +1011,21 @@ class ScaffoldDirector {
 
     const migrations = await MigrationParser.parseAll(migrationsDir);
     if (migrations.length === 0) {
-      consola.error("No migration files found");
+      consola.error('No migration files found');
       process.exit(1);
     }
 
     consola.success(`Found ${migrations.length} migration(s)`);
 
-    const d1 = migrations.filter((m) => m.location === "d1");
-    const doMigs = migrations.filter((m) => m.location === "do");
-    consola.info(`D1 tables: ${d1.map((m) => m.tableName).join(", ")}`);
+    const d1 = migrations.filter((m) => m.location === 'd1');
+    const doMigs = migrations.filter((m) => m.location === 'do');
+    consola.info(`D1 tables: ${d1.map((m) => m.tableName).join(', ')}`);
     if (doMigs.length > 0) {
-      consola.info(`DO tables: ${doMigs.map((m) => m.tableName).join(", ")}`);
+      consola.info(`DO tables: ${doMigs.map((m) => m.tableName).join(', ')}`);
     }
 
     await this.ensureDirectories();
-    consola.start("Generating full project scaffold...");
+    consola.start('Generating full project scaffold...');
 
     const typeExports: string[] = [];
 
@@ -1024,7 +1052,7 @@ class ScaffoldDirector {
     await this.routesGen.generateTypesIndex(typeExports);
     await this.routesGen.generateRoutesFile();
 
-    consola.success("\nFull project scaffold complete!");
+    consola.success('\nFull project scaffold complete!');
     consola.info(`Generated ${migrations.length} resource(s) across D1 and Durable Objects`);
 
     this.runMigrations();
@@ -1044,12 +1072,12 @@ class ScaffoldDirector {
       generated.push(await gen.generate(vars, migration.fields));
     }
 
-    if (migration.location === "do") {
+    if (migration.location === 'do') {
       const typeName = vars.typeName as string;
       const doClassName = migration.durableObjectClass || `${typeName}DurableObject`;
       const doVars = new TemplateVarsBuilder()
         .withExtra(vars)
-        .withDurableObject(doClassName, migration.doType || "view", migration.populateFrom)
+        .withDurableObject(doClassName, migration.doType || 'view', migration.populateFrom)
         .build();
 
       const doGenerators = FileGeneratorFactory.createDurableObjectExtras(
@@ -1074,7 +1102,10 @@ class ScaffoldDirector {
         process.exit(1);
       }
       const files = await fs.readdir(migrationsDir);
-      const latest = files.filter((f) => f.endsWith(".ts")).sort().pop();
+      const latest = files
+        .filter((f) => f.endsWith('.ts'))
+        .sort()
+        .pop();
       if (!latest) {
         consola.error(`No migration files found in ${migrationsDir}`);
         process.exit(1);
@@ -1088,7 +1119,7 @@ class ScaffoldDirector {
     if (await fs.stat(cwdPath).catch(() => null)) return cwdPath;
     if (await fs.stat(migrationsPath).catch(() => null)) return migrationsPath;
 
-    if (!migrationFile.endsWith(".ts")) {
+    if (!migrationFile.endsWith('.ts')) {
       const files = await fs.readdir(migrationsDir);
       const match = files.find((f) => f.includes(migrationFile));
       if (match) return path.join(migrationsDir, match);
@@ -1101,26 +1132,24 @@ class ScaffoldDirector {
   private async ensureDirectories(): Promise<void> {
     const { projectRoot } = this.options;
     const dirs = [
-      "src/models/types",
-      "src/controllers/rpcs",
-      "src/controllers/rpcs/views",
-      "src/services",
-      "src/rpc",
-      "src/rpc/instances",
-      "src/views",
-      "src/durable_objects",
-      "public/components",
+      'src/models/types',
+      'src/controllers/rpcs',
+      'src/controllers/rpcs/views',
+      'src/services',
+      'src/rpc',
+      'src/rpc/instances',
+      'src/views',
+      'src/durable_objects',
+      'public/components',
     ];
-    await Promise.all(
-      dirs.map((d) => fs.mkdir(path.join(projectRoot, d), { recursive: true }))
-    );
+    await Promise.all(dirs.map((d) => fs.mkdir(path.join(projectRoot, d), { recursive: true })));
   }
 
   private runMigrations(): void {
     if (this.options.skipMigrate) return;
-    consola.start("Running db:migrate:full...");
-    spawnSync("pnpm", ["db:migrate:full"], {
-      stdio: "inherit",
+    consola.start('Running db:migrate:full...');
+    spawnSync('pnpm', ['db:migrate:full'], {
+      stdio: 'inherit',
       cwd: this.options.projectRoot,
     });
   }
@@ -1132,56 +1161,60 @@ class ScaffoldDirector {
 
 export const scaffoldCommand = defineCommand({
   meta: {
-    name: "scaffold",
-    description: "Generate scaffold files from migration files",
+    name: 'scaffold',
+    description: 'Generate scaffold files from migration files',
   },
   args: {
     file: {
-      type: "positional",
-      description: "Path to migration file (optional, defaults to latest)",
+      type: 'positional',
+      description: 'Path to migration file (optional, defaults to latest)',
       required: false,
     },
     all: {
-      type: "boolean",
-      alias: "a",
-      description: "Generate the entire project from all migrations",
+      type: 'boolean',
+      alias: 'a',
+      description: 'Generate the entire project from all migrations',
       default: false,
     },
     template: {
-      type: "string",
-      alias: "t",
-      description: "Remote template or local directory path",
+      type: 'string',
+      alias: 't',
+      description: 'Remote template or local directory path',
     },
     force: {
-      type: "boolean",
-      alias: "f",
-      description: "Force overwrite existing files",
+      type: 'boolean',
+      alias: 'f',
+      description: 'Force overwrite existing files',
       default: false,
     },
     skipMigrate: {
-      type: "boolean",
-      description: "Skip running db:migrate:full after generation",
+      type: 'boolean',
+      description: 'Skip running db:migrate:full after generation',
       default: false,
     },
     out: {
-      type: "string",
-      description: "Target output directory (defaults to current project root)",
+      type: 'string',
+      description: 'Target output directory (defaults to current project root)',
     },
     src: {
-      type: "string",
-      description: "Source directory override (where migrations are found)",
+      type: 'string',
+      description: 'Source directory override (where migrations are found)',
     },
   },
   async run({ args }) {
     const projectRoot = (args.out as string) || process.cwd();
     const srcRoot = (args.src as string) || process.cwd();
-    const migrationsDir = path.resolve(srcRoot, "src/db/migrate");
+    const migrationsDir = path.resolve(srcRoot, 'src/db/migrate');
 
     // Resolve template engine via Adapter pattern
     let engine: TemplateEngine;
     if (args.template) {
       const templateValue = args.template as string;
-      const isRemote = templateValue.startsWith("gh:") || templateValue.startsWith("http://") || templateValue.startsWith("https://") || templateValue.startsWith("gitlab:");
+      const isRemote =
+        templateValue.startsWith('gh:') ||
+        templateValue.startsWith('http://') ||
+        templateValue.startsWith('https://') ||
+        templateValue.startsWith('gitlab:');
       if (isRemote) {
         consola.info(`Fetching remote template: ${templateValue}`);
         engine = TemplateEngine.fromRemoteUrl(templateValue);
@@ -1189,7 +1222,7 @@ export const scaffoldCommand = defineCommand({
         engine = TemplateEngine.fromLocalDir(path.resolve(process.cwd(), templateValue));
       }
     } else {
-      engine = TemplateEngine.fromLocalDir(path.resolve(__dirname, "../../templates/scaffold"));
+      engine = TemplateEngine.fromLocalDir(path.resolve(__dirname, '../../templates/scaffold'));
     }
 
     const director = new ScaffoldDirector(engine, {
@@ -1239,8 +1272,12 @@ export async function generateFromTemplate(
 
   // Use an anonymous inline generator so the logic matches FileGenerator.generate()
   const gen = new (class extends FileGenerator {
-    getTemplateName() { return name; }
-    resolveTargetPath() { return targetPath; }
+    getTemplateName() {
+      return name;
+    }
+    resolveTargetPath() {
+      return targetPath;
+    }
   })(engine, path.dirname(targetPath));
 
   return gen.generate(vars, fields);
@@ -1259,10 +1296,10 @@ class TypesIndexGenerator {
   ) {}
 
   async generate(typeExports: string[]): Promise<string> {
-    const indexPath = path.join(this.projectRoot, "src/models/types", "index.ts");
+    const indexPath = path.join(this.projectRoot, 'src/models/types', 'index.ts');
     await fs.mkdir(path.dirname(indexPath), { recursive: true });
-    const content = await this.engine.render("types_index.ts", {
-      typeExports: typeExports.join("\n"),
+    const content = await this.engine.render('types_index.ts', {
+      typeExports: typeExports.join('\n'),
     });
     await fs.writeFile(indexPath, content);
     return indexPath;
@@ -1292,9 +1329,9 @@ function typeNameFromTableName(tableName: string): string {
  *   ":hasMany=comments"
  */
 export function parseField(token: string): Field {
-  const parts = token.split(":");
-  const name = parts[0] ?? "";
-  const typeRaw = parts[1] ?? "string";
+  const parts = token.split(':');
+  const name = parts[0] ?? '';
+  const typeRaw = parts[1] ?? 'string';
   const modifiers = parts.slice(2);
 
   const options: Record<string, any> = {};
@@ -1306,24 +1343,39 @@ export function parseField(token: string): Field {
       name,
       type: typeRaw,
       options,
-      relationship: { 
-        type: relMatch[1] as "hasMany" | "belongsTo" | "hasOne", 
-        target: relMatch[2] 
+      relationship: {
+        type: relMatch[1] as 'hasMany' | 'belongsTo' | 'hasOne',
+        target: relMatch[2],
       },
     };
   }
 
   for (const mod of modifiers) {
-    if (mod === "notNull") { options.notNull = true; continue; }
-    if (mod === "unique") { options.unique = true; continue; }
-    if (mod === "index") { options.index = true; continue; }
-    if (mod === "primaryKey") { options.primaryKey = true; continue; }
-    if (mod === "autoincrement") { options.autoincrement = true; continue; }
+    if (mod === 'notNull') {
+      options.notNull = true;
+      continue;
+    }
+    if (mod === 'unique') {
+      options.unique = true;
+      continue;
+    }
+    if (mod === 'index') {
+      options.index = true;
+      continue;
+    }
+    if (mod === 'primaryKey') {
+      options.primaryKey = true;
+      continue;
+    }
+    if (mod === 'autoincrement') {
+      options.autoincrement = true;
+      continue;
+    }
 
-    const [key, val] = mod.split("=");
+    const [key, val] = mod.split('=');
     if (val !== undefined) {
       const num = Number(val);
-      if (key === "default" || val === "") {
+      if (key === 'default' || val === '') {
         options[key] = val;
       } else {
         options[key] = isNaN(num) ? val : num;

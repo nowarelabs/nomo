@@ -16,8 +16,6 @@ export const TABLE_START = `
 export const {{tableName}} = sqliteTable('{{tableName}}', {
 `;
 
-
-
 export const MODEL_TEMPLATE = `// model
 import { BaseModel, type DatabaseInstance } from 'nomo/models';
 import { {{tableName}} } from '../db/schema/schema';

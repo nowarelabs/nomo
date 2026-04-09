@@ -1,4 +1,4 @@
-import { DurableObjectBaseDelegate } from "../delegate";
+import { DurableObjectBaseDelegate } from '../delegate';
 
 export interface QueueConfig<T = any> {
   name: string;
@@ -18,7 +18,7 @@ export class QueueDelegate<T = any> extends DurableObjectBaseDelegate<QueueConfi
        VALUES (?, ?, ?, ?, ?)`,
       [id, JSON.stringify(item), 'pending', 0, Date.now()]
     );
-    return { status: "enqueued", id };
+    return { status: 'enqueued', id };
   }
 
   /**
@@ -26,13 +26,15 @@ export class QueueDelegate<T = any> extends DurableObjectBaseDelegate<QueueConfi
    */
   async process(batchSize: number = 10): Promise<number> {
     const { onProcess, maxRetries = 3, name } = this.config;
-    
+
     // Simple FIFO processing
-    const results = await this.durableObject.storage.sql.exec(
-      `SELECT * FROM queue_${name} WHERE status = 'pending' OR (status = 'failed' AND retries < ?) 
+    const results = await this.durableObject.storage.sql
+      .exec(
+        `SELECT * FROM queue_${name} WHERE status = 'pending' OR (status = 'failed' AND retries < ?) 
        ORDER BY created_at ASC LIMIT ?`,
-      [maxRetries, batchSize]
-    ).toArray();
+        [maxRetries, batchSize]
+      )
+      .toArray();
 
     if (results.length === 0) return 0;
 
@@ -40,18 +42,17 @@ export class QueueDelegate<T = any> extends DurableObjectBaseDelegate<QueueConfi
       const item = JSON.parse(row.payload as string);
       try {
         await onProcess(this.durableObject, item);
-        await this.durableObject.storage.sql.exec(
-          `DELETE FROM queue_${name} WHERE id = ?`,
-          [row.id]
-        );
-      } catch (e) {
+        await this.durableObject.storage.sql.exec(`DELETE FROM queue_${name} WHERE id = ?`, [
+          row.id,
+        ]);
+      } catch (_e) {
         await this.durableObject.storage.sql.exec(
           `UPDATE queue_${name} SET status = 'failed', retries = retries + 1 WHERE id = ?`,
           [row.id]
         );
       }
     }
-    
+
     return results.length;
   }
 }

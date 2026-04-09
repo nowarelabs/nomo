@@ -1,4 +1,4 @@
-import { ComponentChild } from "./types";
+import { ComponentChild } from './types';
 
 export declare namespace JSX {
   interface IntrinsicElements {
@@ -8,7 +8,9 @@ export declare namespace JSX {
   interface ElementClass {
     render(): ComponentChild;
   }
-  interface ElementAttributesProperty { props: {}; }
+  interface ElementAttributesProperty {
+    props: {};
+  }
 }
 
 declare global {
@@ -24,6 +26,8 @@ declare global {
     interface ElementClass {
       render(): ComponentChild;
     }
-    interface ElementAttributesProperty { props: {}; }
+    interface ElementAttributesProperty {
+      props: {};
+    }
   }
 }

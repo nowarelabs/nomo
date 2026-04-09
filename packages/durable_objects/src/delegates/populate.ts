@@ -1,5 +1,5 @@
-import { DurableObjectBaseDelegate } from "../delegate";
-import { BaseDurableObject } from "../index";
+import { DurableObjectBaseDelegate } from '../delegate';
+import { BaseDurableObject } from '../index';
 
 export interface PopulateConfig<T = any> {
   from: (owner: BaseDurableObject, ...args: any[]) => Promise<T[]>;
@@ -20,7 +20,7 @@ export class PopulateDelegate extends DurableObjectBaseDelegate<PopulateConfig> 
     await this.durableObject.clear(into);
 
     const records = await from(this.durableObject, ...args);
-    
+
     let count = 0;
     if (records && records.length > 0) {
       count = await this.durableObject.insertBatch(into, records);
@@ -30,6 +30,6 @@ export class PopulateDelegate extends DurableObjectBaseDelegate<PopulateConfig> 
       await onAfterPopulate(this.durableObject, count);
     }
 
-    return { status: "populated", count };
+    return { status: 'populated', count };
   }
 }

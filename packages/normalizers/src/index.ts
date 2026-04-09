@@ -3,10 +3,7 @@ export abstract class BaseNormalizer<T = any> {
 
   abstract normalize(): T;
 
-  static normalize<N extends BaseNormalizer>(
-    this: new (data: any) => N,
-    data: any,
-  ) {
+  static normalize<N extends BaseNormalizer>(this: new (data: any) => N, data: any) {
     return new this(data).normalize();
   }
 }

@@ -1,6 +1,6 @@
-import * as fs from "node:fs/promises";
-import * as path from "pathe";
-import { Result, ok, err, tryAsync } from "nomo/result";
+import * as fs from 'node:fs/promises';
+import * as path from 'pathe';
+import { Result, ok, err, tryAsync } from 'nomo/result';
 
 export interface MigrationEntry {
   tag: string;
@@ -26,11 +26,9 @@ export class WranglerConfigUpdater {
   /**
    * Load and initialize the updater from a file.
    */
-  static async fromFile(
-    configPath: string,
-  ): Promise<Result<WranglerConfigUpdater>> {
+  static async fromFile(configPath: string): Promise<Result<WranglerConfigUpdater>> {
     return await tryAsync(async () => {
-      const content = await fs.readFile(configPath, "utf-8");
+      const content = await fs.readFile(configPath, 'utf-8');
       return new WranglerConfigUpdater(configPath, content);
     });
   }
@@ -49,15 +47,15 @@ export class WranglerConfigUpdater {
     }
 
     const start = migrationsFieldMatch.index!;
-    const arrayStart = start + migrationsFieldMatch[0].indexOf("[");
+    const arrayStart = start + migrationsFieldMatch[0].indexOf('[');
 
     // 2. Find the matching closing bracket ]
     let depth = 0;
     let end = -1;
     for (let i = arrayStart; i < this.content.length; i++) {
       const char = this.content[i];
-      if (char === "[") depth++;
-      else if (char === "]") depth--;
+      if (char === '[') depth++;
+      else if (char === ']') depth--;
 
       if (depth === 0) {
         end = i + 1;
@@ -103,7 +101,7 @@ export class WranglerConfigUpdater {
     // If we don't have a migrations array yet, we'd need to add it.
     // For now, based on sync.ts logic, we assume it exists or warn.
     if (!this.migrationsRange) {
-      return err("Migrations array not found in configuration");
+      return err('Migrations array not found in configuration');
     }
 
     this.updateContent(newEntries);
@@ -118,16 +116,14 @@ export class WranglerConfigUpdater {
 
     const [start, end] = this.migrationsRange;
     const migrationsBlock = this.content.substring(start, end);
-    const arrayStart = migrationsBlock.indexOf("[");
-    const arrayEnd = migrationsBlock.lastIndexOf("]");
+    const arrayStart = migrationsBlock.indexOf('[');
+    const arrayEnd = migrationsBlock.lastIndexOf(']');
 
     if (arrayStart === -1 || arrayEnd === -1) return;
 
-    let innerContent = migrationsBlock
-      .substring(arrayStart + 1, arrayEnd)
-      .trim();
-    if (innerContent && !innerContent.endsWith(",")) {
-      innerContent += ",";
+    let innerContent = migrationsBlock.substring(arrayStart + 1, arrayEnd).trim();
+    if (innerContent && !innerContent.endsWith(',')) {
+      innerContent += ',';
     }
 
     for (const entry of newEntries) {
@@ -135,16 +131,14 @@ export class WranglerConfigUpdater {
     }
 
     // Remove last comma
-    innerContent = innerContent.replace(/,$/, "");
+    innerContent = innerContent.replace(/,$/, '');
 
     const newMigrationsBlock =
       migrationsBlock.substring(0, arrayStart + 1) +
       `\n\t\t${innerContent}\n\t` +
       migrationsBlock.substring(arrayEnd);
     this.content =
-      this.content.substring(0, start) +
-      newMigrationsBlock +
-      this.content.substring(end);
+      this.content.substring(0, start) + newMigrationsBlock + this.content.substring(end);
 
     // Re-parse to update ranges for any subsequent updates (though unlikely in current flow)
     this.parseMigrations();
@@ -155,7 +149,7 @@ export class WranglerConfigUpdater {
    */
   async save(): Promise<Result<void>> {
     return await tryAsync(async () => {
-      await fs.writeFile(this.configPath, this.content, "utf-8");
+      await fs.writeFile(this.configPath, this.content, 'utf-8');
     });
   }
 }

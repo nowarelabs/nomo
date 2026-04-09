@@ -25,6 +25,7 @@ A chainable query builder that constructs SQL statements programmatically. Used 
 **Under the Hood**: Initializes a new Statement builder with the table name and dialect strategy.
 
 **Example**:
+
 ```typescript
 const query = new FluentQuery(db, usersTable, logger);
 const users = await query.where({ active: true }).limit(10).all();
@@ -41,14 +42,13 @@ const users = await query.where({ active: true }).limit(10).all();
 **Under the Hood**: Builds a `SELECT` clause with only the specified columns. If `"*"` is passed, resets to select all columns.
 
 **Example**:
+
 ```typescript
-const users = await userModel
-  .select("id", "email", "name")
-  .where({ active: true })
-  .all();
+const users = await userModel.select('id', 'email', 'name').where({ active: true }).all();
 ```
 
 **Expected Result**:
+
 ```json
 [
   { "id": 1, "email": "john@example.com", "name": "John" },
@@ -65,6 +65,7 @@ const users = await userModel
 **Purpose**: Filters records based on conditions.
 
 **Under the Hood**: Builds a `WHERE` clause. Supports special operators via object syntax:
+
 - `{ eq: value }` - equals
 - `{ neq: value }` - not equals
 - `{ gt: value }` - greater than
@@ -77,27 +78,34 @@ const users = await userModel
 - `null` - IS NULL
 
 **Example**:
+
 ```typescript
 // Simple equality
-const users = await userModel.where({ role: "admin" }).all();
+const users = await userModel.where({ role: 'admin' }).all();
 
 // Complex conditions
-const users = await userModel.where({
-  role: "admin",
-  age: { gte: 18 },
-  name: { like: "%john%" },
-  deleted_at: null
-}).all();
+const users = await userModel
+  .where({
+    role: 'admin',
+    age: { gte: 18 },
+    name: { like: '%john%' },
+    deleted_at: null,
+  })
+  .all();
 
 // IN clause - find users with specific roles
-const users = await userModel.where({
-  role: { in: ["admin", "moderator", "editor"] }
-}).all();
+const users = await userModel
+  .where({
+    role: { in: ['admin', 'moderator', 'editor'] },
+  })
+  .all();
 
 // NOT IN clause - exclude specific IDs
-const users = await userModel.where({
-  id: { nin: [1, 2, 3] }
-}).all();
+const users = await userModel
+  .where({
+    id: { nin: [1, 2, 3] },
+  })
+  .all();
 ```
 
 **Expected Result**: Records matching all conditions combined with AND.
@@ -113,11 +121,12 @@ const users = await userModel.where({
 **Under the Hood**: Builds an `ORDER BY` clause. Multiple calls add multiple order clauses.
 
 **Example**:
+
 ```typescript
 const users = await userModel
   .where({ active: true })
-  .orderBy("created_at", "DESC")
-  .orderBy("name", "ASC")
+  .orderBy('created_at', 'DESC')
+  .orderBy('name', 'ASC')
   .all();
 ```
 
@@ -132,12 +141,13 @@ const users = await userModel
 **Under the Hood**: Builds `LIMIT` and `OFFSET` clauses.
 
 **Example**:
+
 ```typescript
 const page = 2;
 const pageSize = 20;
 const users = await userModel
   .where({ active: true })
-  .orderBy("created_at", "DESC")
+  .orderBy('created_at', 'DESC')
   .limit(pageSize)
   .offset((page - 1) * pageSize)
   .all();
@@ -152,32 +162,29 @@ const users = await userModel
 **Purpose**: Eager load related records to avoid N+1 query problems.
 
 **Under the Hood**:
+
 - **`with()`**: Auto-selects best strategy (preload or joins)
 - **`withJoins()`**: Generates a single SQL query with LEFT JOINs, then parses prefixed columns
 - **`withSeparateQueries()`**: Executes N+1 queries - collects all foreign keys, queries related table once, groups results
 
 **Example**:
+
 ```typescript
 // With auto strategy
-const posts = await postModel
-  .with("author", "comments")
-  .where({ published: true })
-  .all();
+const posts = await postModel.with('author', 'comments').where({ published: true }).all();
 
 // With explicit joins (single query)
-const posts = await postModel
-  .withJoins("author", "tags")
-  .where({ published: true })
-  .all();
+const posts = await postModel.withJoins('author', 'tags').where({ published: true }).all();
 
 // With separate queries (preload pattern)
 const posts = await postModel
-  .withSeparateQueries("author", "comments")
+  .withSeparateQueries('author', 'comments')
   .where({ published: true })
   .all();
 ```
 
 **Expected Result**:
+
 ```json
 [
   {
@@ -204,10 +211,9 @@ const posts = await postModel
 **Under the Hood**: Builds a `SELECT column FROM table` query and maps results to extract just that column value.
 
 **Example**:
+
 ```typescript
-const emailList = await userModel
-  .where({ active: true })
-  .pluck("email");
+const emailList = await userModel.where({ active: true }).pluck('email');
 ```
 
 **Expected Result**: `["john@example.com", "jane@example.com"]`
@@ -223,8 +229,9 @@ const emailList = await userModel
 **Under the Hood**: Executes `SELECT COUNT(*) as count` with any WHERE clauses.
 
 **Example**:
+
 ```typescript
-const totalAdmins = await userModel.where({ role: "admin" }).count();
+const totalAdmins = await userModel.where({ role: 'admin' }).count();
 ```
 
 **Expected Result**: `42`
@@ -238,8 +245,9 @@ const totalAdmins = await userModel.where({ role: "admin" }).count();
 **Under the Hood**: Sets limit to 1 and returns first result or null.
 
 **Example**:
+
 ```typescript
-const user = await userModel.where({ email: "john@example.com" }).first();
+const user = await userModel.where({ email: 'john@example.com' }).first();
 ```
 
 **Expected Result**: `{ "id": 1, "email": "john@example.com", ... }` or `null`
@@ -253,6 +261,7 @@ const user = await userModel.where({ email: "john@example.com" }).first();
 **Under the Hood**: Builds the full SQL statement, executes it via the appropriate database driver (D1, Drizzle, Durable Object storage, or RPC), and applies eager loading if relations were specified.
 
 **Example**:
+
 ```typescript
 const users = await userModel.where({ active: true }).all();
 ```
@@ -268,10 +277,11 @@ const users = await userModel.where({ active: true }).all();
 **Under the Hood**: Builds the SQL and converts to string using the dialect strategy.
 
 **Example**:
+
 ```typescript
 const sql = userModel
-  .where({ role: "admin", age: { gte: 18 } })
-  .orderBy("created_at", "DESC")
+  .where({ role: 'admin', age: { gte: 18 } })
+  .orderBy('created_at', 'DESC')
   .limit(10)
   .toSql();
 
@@ -290,6 +300,7 @@ Extends FluentQuery with CRUD operations, relationships, callbacks, and lifecycl
 **Purpose**: Insert a new record.
 
 **Under the Hood**:
+
 1. Runs `beforeValidation` and `afterValidation` callbacks
 2. Runs `beforeSave` and `beforeCreate` callbacks
 3. Auto-generates UUID if table has no auto-increment ID
@@ -298,11 +309,12 @@ Extends FluentQuery with CRUD operations, relationships, callbacks, and lifecycl
 6. Returns the created record with assigned ID
 
 **Example**:
+
 ```typescript
 const user = await userModel.create({
-  email: "john@example.com",
-  name: "John Doe",
-  role: "user"
+  email: 'john@example.com',
+  name: 'John Doe',
+  role: 'user',
 });
 ```
 
@@ -317,6 +329,7 @@ const user = await userModel.create({
 **Purpose**: Update an existing record.
 
 **Under the Hood**:
+
 1. Runs `beforeValidation` and `afterValidation` callbacks
 2. Runs `beforeSave` and `beforeUpdate` callbacks
 3. Executes `UPDATE ... WHERE id = ? RETURNING *`
@@ -324,10 +337,11 @@ const user = await userModel.create({
 5. Returns the updated record
 
 **Example**:
+
 ```typescript
 const updated = await userModel.update(123, {
-  name: "John Smith",
-  role: "admin"
+  name: 'John Smith',
+  role: 'admin',
 });
 ```
 
@@ -342,11 +356,13 @@ const updated = await userModel.update(123, {
 **Purpose**: Hard delete a record.
 
 **Under the Hood**:
+
 1. Runs `beforeDestroy` callback
 2. Executes `DELETE ... WHERE id = ? RETURNING *`
 3. Runs `afterDestroy` and commit callbacks
 
 **Example**:
+
 ```typescript
 const success = await userModel.delete(123);
 ```
@@ -362,6 +378,7 @@ const success = await userModel.delete(123);
 **Under the Hood**: Uses Drizzle's query builder if available, otherwise falls back to FluentQuery with `{ id }` condition.
 
 **Example**:
+
 ```typescript
 const user = await userModel.find(123);
 ```
@@ -377,9 +394,10 @@ const user = await userModel.find(123);
 **Under the Hood**: Creates a FluentQuery with WHERE conditions and calls `first()`.
 
 **Example**:
+
 ```typescript
-const user = await userModel.findBy({ email: "john@example.com" });
-const userWithOffset = await userModel.findBy({ role: "admin" }, { offset: 5 });
+const user = await userModel.findBy({ email: 'john@example.com' });
+const userWithOffset = await userModel.findBy({ role: 'admin' }, { offset: 5 });
 ```
 
 **Expected Result**: First matching record or `null`.
@@ -393,13 +411,14 @@ const userWithOffset = await userModel.findBy({ role: "admin" }, { offset: 5 });
 **Under the Hood**: Creates a FluentQuery, applies order/limit/offset, calls `all()`.
 
 **Example**:
+
 ```typescript
 const admins = await userModel.findAllBy(
-  { role: "admin" },
+  { role: 'admin' },
   {
-    orderBy: { column: "created_at", direction: "DESC" },
+    orderBy: { column: 'created_at', direction: 'DESC' },
     limit: 20,
-    offset: 40
+    offset: 40,
   }
 );
 ```
@@ -415,6 +434,7 @@ const admins = await userModel.findAllBy(
 **Under the Hood**: Uses the `in` operator internally - converts array to `WHERE id IN (...)`.
 
 **Example**:
+
 ```typescript
 const users = await userModel.findByIds([1, 2, 3, 4, 5]);
 // SELECT * FROM users WHERE id IN (1, 2, 3, 4, 5)
@@ -433,9 +453,10 @@ const users = await userModel.findByIds([1, 2, 3, 4, 5]);
 **Under the Hood**: Creates a query with WHERE conditions and executes `SELECT COUNT(*)`.
 
 **Example**:
+
 ```typescript
-const adminCount = await userModel.countBy({ role: "admin" });
-const activeVipCount = await userModel.countBy({ role: "vip", status: "active" });
+const adminCount = await userModel.countBy({ role: 'admin' });
+const activeVipCount = await userModel.countBy({ role: 'vip', status: 'active' });
 ```
 
 **Expected Result**: Number as integer (e.g., `42`).
@@ -449,12 +470,13 @@ const activeVipCount = await userModel.countBy({ role: "vip", status: "active" }
 **Under the Hood**: Identical to `findBy` - creates FluentQuery with WHERE conditions and calls `first()`.
 
 **Example**:
+
 ```typescript
 // findBy - more ambiguous
-const user = await userModel.findBy({ email: "john@example.com" });
+const user = await userModel.findBy({ email: 'john@example.com' });
 
 // firstBy - intent is clearer: "get first matching record"
-const user = await userModel.firstBy({ email: "john@example.com" });
+const user = await userModel.firstBy({ email: 'john@example.com' });
 ```
 
 **Expected Result**: First matching record or `null` if none found.
@@ -468,12 +490,13 @@ const user = await userModel.firstBy({ email: "john@example.com" });
 **Under the Hood**: Executes main query, then for each result, runs separate queries for each included relation based on foreign keys.
 
 **Example**:
+
 ```typescript
 const posts = await postModel.findAllWith(
   { published: true },
   {
-    author: { model: "User", foreignKey: "author_id" },
-    comments: { model: "Comment", foreignKey: "post_id" }
+    author: { model: 'User', foreignKey: 'author_id' },
+    comments: { model: 'Comment', foreignKey: 'post_id' },
   },
   { limit: 10 }
 );
@@ -490,10 +513,11 @@ const posts = await postModel.findAllWith(
 **Purpose**: Find single record with related data.
 
 **Example**:
+
 ```typescript
 const post = await postModel.findWith(
   { id: 123 },
-  { author: { model: "User", foreignKey: "author_id" } }
+  { author: { model: 'User', foreignKey: 'author_id' } }
 );
 ```
 
@@ -508,6 +532,7 @@ const post = await postModel.findWith(
 **Under the Hood**: Uses Drizzle's select if available, otherwise delegates to FluentQuery.
 
 **Example**:
+
 ```typescript
 const allUsers = await userModel.all();
 ```
@@ -521,9 +546,10 @@ const allUsers = await userModel.all();
 **Purpose**: Count all records or filtered records.
 
 **Example**:
+
 ```typescript
 const total = await userModel.count();
-const admins = await userModel.where({ role: "admin" }).count();
+const admins = await userModel.where({ role: 'admin' }).count();
 ```
 
 **Expected Result**: Number as integer.
@@ -537,24 +563,29 @@ const admins = await userModel.where({ role: "admin" }).count();
 **Under the Hood**: Delegates to FluentQuery's pluck for single column, or select for multiple. The conditions parameter supports all `where()` operators including `in` and `nin`.
 
 **Example**:
+
 ```typescript
 // Basic - single column
-const emails = await userModel.pluck("email");
+const emails = await userModel.pluck('email');
 
 // Multiple columns
-const namesAndEmails = await userModel.pluck(["name", "email"], { active: true });
+const namesAndEmails = await userModel.pluck(['name', 'email'], { active: true });
 
 // With IN operator - get emails for specific roles
-const adminEmails = await userModel.pluck("email", { role: { in: ["admin", "editor"] } });
+const adminEmails = await userModel.pluck('email', { role: { in: ['admin', 'editor'] } });
 
 // With NOT IN operator - exclude specific users
-const userIds = await userModel.pluck("id", { id: { nin: [1, 2, 3] } });
+const userIds = await userModel.pluck('id', { id: { nin: [1, 2, 3] } });
 
 // With options - order, limit, offset
-const recentEmails = await userModel.pluck("email", { active: true }, {
-  orderBy: { column: "created_at", direction: "DESC" },
-  limit: 100
-});
+const recentEmails = await userModel.pluck(
+  'email',
+  { active: true },
+  {
+    orderBy: { column: 'created_at', direction: 'DESC' },
+    limit: 100,
+  }
+);
 ```
 
 **Expected Result**: Array of values or array of objects.
@@ -568,9 +599,9 @@ Define relationships in your model constructor:
 ```typescript
 class Post extends BaseModel<typeof posts> {
   relationships = {
-    author: { type: "belongs_to", model: "User", foreignKey: "author_id" },
-    comments: { type: "has_many", model: "Comment", foreignKey: "post_id" },
-    tags: { type: "has_many", model: "Tag", foreignKey: "post_id" },
+    author: { type: 'belongs_to', model: 'User', foreignKey: 'author_id' },
+    comments: { type: 'has_many', model: 'Comment', foreignKey: 'post_id' },
+    tags: { type: 'has_many', model: 'Tag', foreignKey: 'post_id' },
   };
 }
 ```
@@ -580,6 +611,7 @@ class Post extends BaseModel<typeof posts> {
 **Purpose**: Define a "this belongs to that" relationship.
 
 **Example**:
+
 ```typescript
 class Comment extends BaseModel<typeof comments> {
   constructor(...) {
@@ -626,29 +658,29 @@ class Comment extends BaseModel<typeof comments> {
 
 ```typescript
 // Filter by status
-userModel.trashed()      // trashed_at IS NOT NULL
-userModel.notTrashed()   // trashed_at IS NULL
-userModel.hidden()       // hidden_at IS NOT NULL
-userModel.notHidden()    // hidden_at IS NULL
-userModel.flagged()      // flagged_at IS NOT NULL
-userModel.notFlagged()   // flagged_at IS NULL
-userModel.retired()      // retired_at IS NOT NULL
-userModel.notRetired()   // retired_at IS NULL
-userModel.active()       // trashed_at AND hidden_at AND retired_at are NULL
+userModel.trashed(); // trashed_at IS NOT NULL
+userModel.notTrashed(); // trashed_at IS NULL
+userModel.hidden(); // hidden_at IS NOT NULL
+userModel.notHidden(); // hidden_at IS NULL
+userModel.flagged(); // flagged_at IS NOT NULL
+userModel.notFlagged(); // flagged_at IS NULL
+userModel.retired(); // retired_at IS NOT NULL
+userModel.notRetired(); // retired_at IS NULL
+userModel.active(); // trashed_at AND hidden_at AND retired_at are NULL
 ```
 
 ### Mutations
 
 ```typescript
-await userModel.trash(123)    // Sets trashed_at = now
-await userModel.restore(123)  // Sets trashed_at = null
-await userModel.hide(123)     // Sets hidden_at = now
-await userModel.unhide(123)   // Sets hidden_at = null
-await userModel.flag(123)     // Sets flagged_at = now
-await userModel.unflag(123)   // Sets flagged_at = null
-await userModel.retire(123)   // Sets retired_at = now
-await userModel.unretire(123) // Sets retired_at = null
-await userModel.purge(123)    // Hard delete
+await userModel.trash(123); // Sets trashed_at = now
+await userModel.restore(123); // Sets trashed_at = null
+await userModel.hide(123); // Sets hidden_at = now
+await userModel.unhide(123); // Sets hidden_at = null
+await userModel.flag(123); // Sets flagged_at = now
+await userModel.unflag(123); // Sets flagged_at = null
+await userModel.retire(123); // Sets retired_at = now
+await userModel.unretire(123); // Sets retired_at = null
+await userModel.purge(123); // Hard delete
 ```
 
 ---
@@ -661,11 +693,11 @@ Define lifecycle hooks in your model:
 class User extends BaseModel<typeof users> {
   constructor(...) {
     super(...arguments);
-    
+
     this.beforeValidation((data) => {
       if (!data.email) throw new Error("Email required");
     });
-    
+
     this.afterCreate((record) => {
       console.log(`Created user ${record.id}`);
     });
@@ -674,6 +706,7 @@ class User extends BaseModel<typeof users> {
 ```
 
 **Available Callbacks**:
+
 - `beforeValidation` / `afterValidation`
 - `beforeSave` / `afterSave`
 - `beforeCreate` / `afterCreate`
@@ -682,6 +715,7 @@ class User extends BaseModel<typeof users> {
 - `afterCommit` / `afterRollback`
 
 **Callback Options**:
+
 ```typescript
 this.beforeUpdate(function, { on: "create" });  // Only on create
 this.beforeValidation(fn, { if: "isAdmin" });  // Conditional
@@ -697,27 +731,25 @@ this.beforeDelete(fn, { unless: "isProtected" });
 ```typescript
 const result = await userModel
   .query()
-  .select("id", "email", "name")
-  .where({ active: true, role: "admin" })
-  .orderBy("created_at", "DESC")
+  .select('id', 'email', 'name')
+  .where({ active: true, role: 'admin' })
+  .orderBy('created_at', 'DESC')
   .limit(10)
-  .with("profile")  // Eager load profile
+  .with('profile') // Eager load profile
   .all();
 ```
 
 ### 2. Debug SQL with `toSql()`
 
 ```typescript
-const sql = userModel
-  .query()
-  .where({ role: "admin" })
-  .toSql();
+const sql = userModel.query().where({ role: 'admin' }).toSql();
 // "SELECT * FROM users WHERE role = 'admin'"
 ```
 
 ### 3. Handle Database Errors
 
 The `queryExec` method automatically converts common database errors to typed exceptions:
+
 - `ConflictError` - Unique constraint violation
 - `ConstraintError` - Foreign key, NOT NULL, CHECK violations
 - `BadRequestError` - Datatype mismatches
@@ -727,7 +759,7 @@ The `queryExec` method automatically converts common database errors to typed ex
 ```typescript
 await userModel.transaction(async (model) => {
   await model.update(userId, { points: 0 });
-  await model.create({ userId, action: "reset", points: 0 });
+  await model.create({ userId, action: 'reset', points: 0 });
 });
 ```
 
@@ -735,22 +767,22 @@ await userModel.transaction(async (model) => {
 
 ```typescript
 // Get all user IDs for a role, then batch query
-const userIds = await userModel.pluck("id", { role: "vip" });
+const userIds = await userModel.pluck('id', { role: 'vip' });
 const profiles = await profileModel.where({ user_id: { in: userIds } }).all();
 ```
 
 ### 6. Relationship Loading Strategies
 
-| Method | Use When |
-|--------|----------|
-| `with()` | General use - auto-selects best approach |
-| `withJoins()` | Need WHERE on related tables, small datasets |
-| `withSeparateQueries()` | Large datasets, has_many relations |
+| Method                  | Use When                                     |
+| ----------------------- | -------------------------------------------- |
+| `with()`                | General use - auto-selects best approach     |
+| `withJoins()`           | Need WHERE on related tables, small datasets |
+| `withSeparateQueries()` | Large datasets, has_many relations           |
 
 ### 7. Custom Dialect Support
 
 ```typescript
-const query = new FluentQuery(db, table, logger, "postgres");
+const query = new FluentQuery(db, table, logger, 'postgres');
 ```
 
 Supports: `sqlite` (default), `postgres`, `mysql`.
@@ -779,11 +811,7 @@ await userModel.update(123, { trashed_at: new Date().toISOString() });
 For complex queries, fall back to Drizzle directly:
 
 ```typescript
-const users = await db
-  .select()
-  .from(usersTable)
-  .where(eq(usersTable.role, "admin"))
-  .limit(10);
+const users = await db.select().from(usersTable).where(eq(usersTable.role, 'admin')).limit(10);
 ```
 
 ---
@@ -797,60 +825,70 @@ Here are common patterns that combine these methods:
 const users = await userModel.findAllBy({ id: { in: [1, 2, 3] } });
 
 // 2. Find first by condition, get single column
-const firstAdminEmail = await userModel.where({ role: "admin" }).first().then(u => u?.email);
+const firstAdminEmail = await userModel
+  .where({ role: 'admin' })
+  .first()
+  .then((u) => u?.email);
 
 // 3. Get all IDs for a list of values (for batch operations)
-const userIds = await userModel.pluck("id", { role: { in: ["vip", "premium"] } });
+const userIds = await userModel.pluck('id', { role: { in: ['vip', 'premium'] } });
 
 // 4. Find by IDs with relations + pagination
 const posts = await postModel.findAllWith(
   { id: { in: [1, 2, 3] } },
-  { author: { model: "User", foreignKey: "author_id" } },
-  { orderBy: { column: "created_at", direction: "DESC" }, limit: 20, offset: 0 }
+  { author: { model: 'User', foreignKey: 'author_id' } },
+  { orderBy: { column: 'created_at', direction: 'DESC' }, limit: 20, offset: 0 }
 );
 // Returns: Array of posts with id 1, 2, or 3, each with an `author` array containing matching User records
 
 // 5. Find with relations + pagination
 const posts2 = await postModel.findAllWith(
   { published: true },
-  { author: { model: "User", foreignKey: "author_id" } },
-  { orderBy: { column: "created_at", direction: "DESC" }, limit: 20, offset: 0 }
+  { author: { model: 'User', foreignKey: 'author_id' } },
+  { orderBy: { column: 'created_at', direction: 'DESC' }, limit: 20, offset: 0 }
 );
 
 // 6. Count by condition
-const adminCount = await userModel.where({ role: "admin" }).count();
+const adminCount = await userModel.where({ role: 'admin' }).count();
 
 // 7. Find by unique field (slug, email, etc)
-const user = await userModel.findBy({ email: "john@example.com" });
+const user = await userModel.findBy({ email: 'john@example.com' });
 
 // 8. Pluck with ordering
-const recentNames = await userModel.pluck("name", { active: true }, { 
-  orderBy: { column: "created_at", direction: "DESC" }, 
-  limit: 10 
-});
+const recentNames = await userModel.pluck(
+  'name',
+  { active: true },
+  {
+    orderBy: { column: 'created_at', direction: 'DESC' },
+    limit: 10,
+  }
+);
 
 // 9. Find single with relations
-const postWithAuthor = await postModel.findWith({ id: 123 }, { author: { model: "User", foreignKey: "author_id" } });
+const postWithAuthor = await postModel.findWith(
+  { id: 123 },
+  { author: { model: 'User', foreignKey: 'author_id' } }
+);
 
 // 10. Chain: where -> with -> select -> orderBy -> limit -> all
 const authors = await postModel
   .where({ published: true })
-  .with("author")
-  .select("id", "title", "author_id")
-  .orderBy("created_at", "DESC")
+  .with('author')
+  .select('id', 'title', 'author_id')
+  .orderBy('created_at', 'DESC')
   .limit(10)
   .all();
 ```
 
 ## Error Reference
 
-| Error Type | Cause | Solution |
-|------------|-------|----------|
-| `ConflictError` | Duplicate unique value | Check for existing records |
+| Error Type                      | Cause                           | Solution                   |
+| ------------------------------- | ------------------------------- | -------------------------- |
+| `ConflictError`                 | Duplicate unique value          | Check for existing records |
 | `ConstraintError` (FOREIGN_KEY) | Referenced record doesn't exist | Insert parent record first |
-| `ConstraintError` (NOT_NULL) | Required field is null | Provide value |
-| `ConstraintError` (CHECK) | Value violates check constraint | Fix value |
-| `BadRequestError` | Type mismatch | Check data types |
+| `ConstraintError` (NOT_NULL)    | Required field is null          | Provide value              |
+| `ConstraintError` (CHECK)       | Value violates check constraint | Fix value                  |
+| `BadRequestError`               | Type mismatch                   | Check data types           |
 
 ---
 

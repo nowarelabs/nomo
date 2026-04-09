@@ -1,11 +1,6 @@
-import { type Result, ok } from "nomo/result";
-import {
-  Dialect,
-  Statement,
-  DialectStrategy,
-  getDialectStrategy,
-} from "nomo/sql";
-import { HandlerFunc, STANDARD_HANDLERS } from "./handlers";
+import { type Result, ok } from 'nomo/result';
+import { Dialect, Statement, DialectStrategy, getDialectStrategy } from 'nomo/sql';
+import { HandlerFunc, STANDARD_HANDLERS } from './handlers';
 
 /**
  * Generates SQL for migration commands.
@@ -16,7 +11,7 @@ export class SqlGenerator {
   private handlers: Map<string, HandlerFunc> = new Map();
   public strategy: DialectStrategy;
 
-  constructor(dialect: Dialect = "sqlite") {
+  constructor(dialect: Dialect = 'sqlite') {
     this.strategy = getDialectStrategy(dialect);
     this.registerDefaultHandlers();
   }
@@ -32,7 +27,7 @@ export class SqlGenerator {
    * Register or override a type mapping.
    */
   registerType(type: string, dbType: string) {
-    if ("registerType" in this.strategy) {
+    if ('registerType' in this.strategy) {
       (this.strategy as any).registerType(type, dbType);
     }
   }
@@ -41,12 +36,12 @@ export class SqlGenerator {
     const res = this.generateStatement(action);
     if (!res.success) return res as Result<never>;
     const statement = res.data;
-    if (!statement) return ok("");
+    if (!statement) return ok('');
 
     return statement.toSql(this.strategy).transform((output) => {
       let sql = output.value;
-      if (!sql.endsWith(";")) {
-        sql += ";";
+      if (!sql.endsWith(';')) {
+        sql += ';';
       }
       return sql;
     });
@@ -57,9 +52,7 @@ export class SqlGenerator {
     const handler = this.handlers.get(type);
 
     if (!handler) {
-      console.warn(
-        `SQL generation for ${type} not implemented (no handler registered).`,
-      );
+      console.warn(`SQL generation for ${type} not implemented (no handler registered).`);
       return ok(null);
     }
 

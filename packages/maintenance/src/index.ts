@@ -1,20 +1,18 @@
-import { z } from "zod";
-
 /**
  * Interface for tracking task progress
  */
 export interface TaskProgress {
   current: number;
   total?: number;
-  status: "pending" | "running" | "completed" | "failed" | "interrupted";
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'interrupted';
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Base class for all maintenance tasks
  */
-export abstract class MaintenanceTask<TParams = any> {
+export abstract class MaintenanceTask<TParams = Record<string, unknown>> {
   abstract readonly name: string;
   abstract readonly description: string;
 
@@ -25,7 +23,7 @@ export abstract class MaintenanceTask<TParams = any> {
    */
   abstract run(
     params: TParams,
-    onProgress: (progress: TaskProgress) => void | Promise<void>,
+    onProgress: (progress: TaskProgress) => void | Promise<void>
   ): Promise<void>;
 
   /**
@@ -34,7 +32,7 @@ export abstract class MaintenanceTask<TParams = any> {
   async resume(
     params: TParams,
     progress: TaskProgress,
-    onProgress: (progress: TaskProgress) => void | Promise<void>,
+    onProgress: (progress: TaskProgress) => void | Promise<void>
   ): Promise<void> {
     return this.run(params, onProgress);
   }

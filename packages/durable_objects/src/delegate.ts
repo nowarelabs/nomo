@@ -1,4 +1,4 @@
-import { BaseDurableObject } from "./index";
+import { BaseDurableObject } from './index';
 
 export abstract class DurableObjectBaseDelegate<Config = any> {
   constructor(
@@ -13,7 +13,7 @@ export abstract class DurableObjectBaseDelegate<Config = any> {
 
   /**
    * Optional fetch hook to handle specific requests
-    */
+   */
   async onFetch?(request: Request): Promise<Response | undefined>;
 
   /**

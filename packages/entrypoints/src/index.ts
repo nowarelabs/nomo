@@ -4,9 +4,9 @@ import {
   WorkflowEntrypoint,
   WorkflowEvent,
   WorkflowStep,
-} from "cloudflare:workers";
-import { IRouter } from "nomo/router";
-import { IJobDispatcher } from "nomo/jobs";
+} from 'cloudflare:workers';
+import { IRouter } from 'nomo/router';
+import { IJobDispatcher } from 'nomo/jobs';
 
 export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<Env> {
   router?: IRouter<Env, ExecutionContext>;
@@ -15,40 +15,27 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
   /**
    * Standard HTTP fetch handler.
    */
-  async fetch(
-    request: Request,
-    env?: Env,
-    ctx?: ExecutionContext,
-  ): Promise<Response> {
+  async fetch(request: Request, env?: Env, ctx?: ExecutionContext): Promise<Response> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
     if (this.router) {
       return this.router.handle(request, runtimeEnv, runtimeCtx);
     }
-    throw new Error("fetch() not implemented and no router provided");
+    throw new Error('fetch() not implemented and no router provided');
   }
 
   /**
    * Service Binding (RPC) handle method.
    * Alias for fetch to support modern RPC-style invocation.
    */
-  async handle(
-    request: Request,
-    env?: Env,
-    ctx?: ExecutionContext,
-  ): Promise<Response> {
+  async handle(request: Request, env?: Env, ctx?: ExecutionContext): Promise<Response> {
     return this.fetch(request, env, ctx);
   }
 
   /**
    * Service Binding (RPC) job execution.
    */
-  async runJob(
-    jobName: string,
-    params: any,
-    env?: Env,
-    ctx?: ExecutionContext,
-  ): Promise<void> {
+  async runJob(jobName: string, params: any, env?: Env, ctx?: ExecutionContext): Promise<void> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
     if (this.dispatcher) {
@@ -58,11 +45,7 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
     }
   }
 
-  async queue(
-    batch: MessageBatch<any>,
-    env?: Env,
-    ctx?: ExecutionContext,
-  ): Promise<void> {
+  async queue(batch: MessageBatch<any>, env?: Env, ctx?: ExecutionContext): Promise<void> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
     if (this.dispatcher) {
@@ -77,7 +60,7 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
     method: string,
     args: any[],
     env?: Env,
-    ctx?: ExecutionContext,
+    ctx?: ExecutionContext
   ): Promise<any> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
@@ -94,9 +77,6 @@ export abstract class BaseDurableObject<Env = any> extends DurableObject<Env> {
   }
 }
 
-export abstract class BaseWorkflow<
-  Env = any,
-  T = any,
-> extends WorkflowEntrypoint<Env, T> {
+export abstract class BaseWorkflow<Env = any, T = any> extends WorkflowEntrypoint<Env, T> {
   abstract run(event: WorkflowEvent<T>, step: WorkflowStep): Promise<void>;
 }
