@@ -1,0 +1,21 @@
+{
+  "name": "@noblackbox/services",
+  "version": "1.0.0",
+  "description": "Rails-adjacent services for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --watch --format esm,cjs"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20260219.0",
+    "@noblackbox/logger": "workspace:*",
+    "@noblackbox/router": "workspace:*"
+  }
+}

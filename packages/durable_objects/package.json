@@ -1,0 +1,22 @@
+{
+  "name": "@noblackbox/durable-objects",
+  "version": "1.0.0",
+  "description": "Traceable Durable Objects for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external cloudflare:workers",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --external cloudflare:workers"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "@noblackbox/logger": "workspace:*",
+    "@noblackbox/router": "workspace:*",
+    "drizzle-orm": "^0.45.1",
+    "typescript": "^5.9.3"
+  }
+}

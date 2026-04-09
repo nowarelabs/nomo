@@ -137,3 +137,11 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Bootstrap marker
+.bootstrap-complete
+.direnv/*
+node_modules
+.wrangler/
+dist/*
+.noblackbox/

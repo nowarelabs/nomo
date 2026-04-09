@@ -1,0 +1,18 @@
+{
+  "name": "nomo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "nomo framework",
+  "scripts": {
+    "dev": "pnpm --filter '*' dev",
+    "build": "pnpm --filter '*' build",
+    "cf-typegen": "pnpm --filter '*' cf-typegen",
+    "lint": "pnpm --filter '*' lint",
+    "typecheck": "pnpm --filter '*' typecheck"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.5.2"
+  },
+  "packageManager": "pnpm@10.15.1"
+}

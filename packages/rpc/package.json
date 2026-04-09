@@ -1,0 +1,30 @@
+{
+  "name": "@noblackbox/rpc",
+  "version": "1.0.0",
+  "description": "RPC for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --external capnweb --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --external capnweb",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "capnweb": "^0.5.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "@noblackbox/result": "workspace:*",
+    "@noblackbox/logger": "workspace:*",
+    "@noblackbox/router": "workspace:*",
+    "@noblackbox/controllers": "workspace:*"
+  },
+  "peerDependencies": {
+    "capnweb": "^0.5.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@noblackbox/entrypoints",
+  "version": "1.0.0",
+  "description": "Rails-adjacent entrypoints for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external cloudflare:workers",
+    "dev": "tsup src/index.ts --format cjs,esm --external cloudflare:workers --watch"
+  },
+  "dependencies": {
+    "@noblackbox/jobs": "workspace:*",
+    "@noblackbox/router": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  }
+}

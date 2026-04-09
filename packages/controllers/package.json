@@ -1,0 +1,26 @@
+{
+  "name": "@noblackbox/controllers",
+  "version": "1.0.0",
+  "description": "Rails-adjacent controllers for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external @noblackbox/views",
+    "dev": "tsup src/index.ts --watch --format esm,cjs --external @noblackbox/views"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "@types/http-status": "^1.1.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@noblackbox/assets": "workspace:*",
+    "@noblackbox/logger": "workspace:*",
+    "@noblackbox/models": "workspace:*",
+    "@noblackbox/router": "workspace:*",
+    "@noblackbox/views": "workspace:*",
+    "http-status": "^2.1.0"
+  }
+}

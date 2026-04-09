@@ -1,0 +1,20 @@
+{
+  "name": "@noblackbox/scripts",
+  "version": "1.0.0",
+  "description": "Scripts for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "@types/node": "^25.2.0",
+    "commander": "^13.1.0",
+    "pathe": "^2.0.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  }
+}

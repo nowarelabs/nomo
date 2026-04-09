@@ -1,0 +1,21 @@
+{
+  "name": "@noblackbox/jobs",
+  "version": "1.0.0",
+  "description": "Rails-adjacent jobs (Queues) for Noblackbox applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --watch"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@noblackbox/logger": "workspace:*",
+    "@opentelemetry/api": "^1.9.0"
+  }
+}
