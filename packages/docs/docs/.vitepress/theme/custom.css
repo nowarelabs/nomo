@@ -1,0 +1,29 @@
+:root {
+  --vp-font-family-base: 'Nunito Sans', sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', monospace;
+}
+
+html, body {
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.vp-doc h1, .vp-doc h2, .vp-doc h3, .vp-doc h4, .vp-doc h5, .vp-doc h6 {
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: 700;
+}
+
+.VPNavBar {
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.VPSidebar {
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.VPNavBar .logo img,
+.VPImage.light.logo,
+.VPImage.dark.logo {
+  height: inherit !important;
+  width: auto !important;
+  max-height: 60px;
+}

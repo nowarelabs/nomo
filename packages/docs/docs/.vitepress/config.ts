@@ -1,0 +1,72 @@
+import { defineConfig } from 'vitepress'
+
+export default defineConfig({
+  description: "Nomo framework documentation",
+  themeConfig: {
+    siteTitle: "",
+    logo: { light: '/assets/nomo.png', dark: '/assets/nomo-dark.png' },
+    nav: [
+      { text: 'Home', link: '/' },
+      { text: 'Guide', link: '/packages/overview' },
+      { text: 'API', link: '/packages/controllers' }
+    ],
+    sidebar: [
+      {
+        text: 'Getting Started',
+        items: [
+          { text: 'Overview', link: '/packages/overview' }
+        ]
+      },
+      {
+        text: 'Core',
+        items: [
+          { text: 'Controllers', link: '/packages/controllers' },
+          { text: 'Router', link: '/packages/router' },
+          { text: 'Services', link: '/packages/services' },
+          { text: 'Models', link: '/packages/models' },
+          { text: 'Logger', link: '/packages/logger' },
+          { text: 'Domains', link: '/packages/domains' }
+        ]
+      },
+      {
+        text: 'HTTP & Views',
+        items: [
+          { text: 'Entrypoints', link: '/packages/entrypoints' },
+          { text: 'Views', link: '/packages/views' },
+          { text: 'Assets', link: '/packages/assets' },
+          { text: 'NoFo', link: '/packages/nofo' }
+        ]
+      },
+      {
+        text: 'Serverless',
+        items: [
+          { text: 'Durable Objects', link: '/packages/durable-objects' },
+          { text: 'Jobs', link: '/packages/jobs' },
+          { text: 'RPC', link: '/packages/rpc' }
+        ]
+      },
+      {
+        text: 'Data',
+        items: [
+          { text: 'SQL', link: '/packages/sql' },
+          { text: 'Migrations', link: '/packages/migrations' }
+        ]
+      },
+      {
+        text: 'Utilities',
+        items: [
+          { text: 'Validators', link: '/packages/validators' },
+          { text: 'Normalizers', link: '/packages/normalizers' },
+          { text: 'Formatters', link: '/packages/formatters' },
+          { text: 'Result', link: '/packages/result' },
+          { text: 'Shared', link: '/packages/shared' }
+        ]
+      }
+    ]
+  },
+  head: [
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', { href: 'https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=JetBrains+Mono:wght@400;500;600&display=swap', rel: 'stylesheet' }]
+  ]
+})
