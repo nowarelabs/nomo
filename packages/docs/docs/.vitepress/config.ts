@@ -42,13 +42,15 @@ export default defineConfig({
       {
         text: 'Getting Started',
         items: [
-          { text: 'Overview', link: '/packages/overview' },
-          { text: 'Architecture', link: '/packages/architecture' }
+          { text: 'Quick Start', link: '/packages/getting-started' },
+          { text: 'Architecture', link: '/packages/architecture' },
+          { text: 'Examples', link: '/packages/examples' }
         ]
       },
       {
         text: 'Core',
         items: [
+          { text: 'Overview', link: '/packages/overview' },
           { text: 'Controllers', link: '/packages/controllers' },
           { text: 'Router', link: '/packages/router' },
           { text: 'Services', link: '/packages/services' },
