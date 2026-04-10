@@ -11,7 +11,7 @@ class ReversibleMigration extends Migration {
     });
     await this.addColumn("users", "tag_id", "integer");
 
-    await (this as any).reversible({
+    await (this as unknown).reversible({
       up: async () => {
         await this.execute("CREATE VIEW user_tags AS SELECT * FROM users");
       },
@@ -43,7 +43,7 @@ describe("Migration Reversibility", () => {
       run: vi.fn().mockResolvedValue(ok({})),
       all: vi.fn().mockResolvedValue(ok([])),
     };
-    const migration = new ReversibleMigration(mockDb as any);
+    const migration = new ReversibleMigration(mockDb as unknown);
 
     // Test UP
     const upRes = await migration.up();
@@ -98,7 +98,7 @@ describe("Migration Reversibility", () => {
       run: vi.fn().mockResolvedValue(ok({})),
       all: vi.fn().mockResolvedValue(ok([])),
     };
-    const migration = new ExplicitMigration(mockDb as any);
+    const migration = new ExplicitMigration(mockDb as unknown);
 
     const upRes = await migration.up();
     expect(upRes.success).toBe(true);

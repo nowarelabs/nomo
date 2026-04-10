@@ -8,7 +8,7 @@ export interface MigrationEntry {
 
 export interface WranglerConfig {
   migrations?: MigrationEntry[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export class WranglerConfigUpdater {
@@ -140,7 +140,7 @@ export class WranglerConfigUpdater {
     this.content =
       this.content.substring(0, start) + newMigrationsBlock + this.content.substring(end);
 
-    // Re-parse to update ranges for any subsequent updates (though unlikely in current flow)
+    // Re-parse to update ranges for unknown subsequent updates (though unlikely in current flow)
     this.parseMigrations();
   }
 

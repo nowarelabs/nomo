@@ -2,7 +2,7 @@ import { DurableObjectBaseDelegate } from "../delegate";
 
 export interface LockConfig {
   type: "status" | "callback";
-  onTimeout?: (owner: any) => Promise<void>;
+  onTimeout?: (owner: unknown) => Promise<void>;
   timeoutMs?: number;
 }
 

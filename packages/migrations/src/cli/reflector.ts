@@ -6,7 +6,7 @@ import * as templates from "./templates";
 
 export interface ReflectorOptions {
   outDir: string;
-  metadata?: Record<string, any[]>;
+  metadata?: Record<string, unknown[]>;
 }
 
 export class SchemaReflector {
@@ -15,7 +15,7 @@ export class SchemaReflector {
   private tempDbPath = path.resolve(process.cwd(), "temp_reflect.db");
   private tables: { name: string; sql: string }[] = [];
   private outDir: string;
-  private metadata: Record<string, any[]>;
+  private metadata: Record<string, unknown[]>;
 
   constructor(options: ReflectorOptions) {
     this.outDir = path.resolve(process.cwd(), options.outDir);
@@ -116,7 +116,7 @@ export class SchemaReflector {
         name: string;
         type: string;
         notnull: number;
-        dflt_value: any;
+        dflt_value: unknown;
         pk: number;
       }[] = JSON.parse(columnsJson);
 

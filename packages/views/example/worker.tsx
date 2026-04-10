@@ -51,7 +51,7 @@ export class ContentRegistry {
     // NOTE: We intentionally do NOT delete after yield.
     // In the original implementation, yield was destructive, which caused
     // silent failures if yield_content was called twice (e.g. in debug renders).
-    // Read-only is safer. The registry is per-request so it's GC'd anyway.
+    // Read-only is safer. The registry is per-request so it's GC'd unknownway.
     return this.blocks.get(name) ?? [];
   }
 
@@ -184,7 +184,7 @@ export abstract class BaseLayout<P = Record<string, unknown>> {
 
   /**
    * Returns the import map script tag for all vendored packages.
-   * Place this as the FIRST thing in <head>, before any module scripts.
+   * Place this as the FIRST thing in <head>, before unknown module scripts.
    *
    * @example
    * <head>
@@ -212,10 +212,10 @@ export abstract class BaseLayout<P = Record<string, unknown>> {
     };
 
     // Render the view first (populates the registry via content_for calls)
-    const content = (ViewClass as any)._render(props, ctx);
+    const content = (ViewClass as unknown)._render(props, ctx);
 
     // Then render the layout (reads from registry via yield_content)
-    const layout = new (LayoutClass as any)(content, props);
+    const layout = new (LayoutClass as unknown)(content, props);
     layout.ctx = ctx;
     const element = layout.render();
 

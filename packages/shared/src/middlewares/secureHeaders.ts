@@ -1,7 +1,7 @@
 import { Middleware, Next, RouterContext } from "../router";
 
 export const secureHeaders = (): Middleware => {
-  return async (req: Request, env: any, ctx: RouterContext, next: Next) => {
+  return async (req: Request, env: unknown, ctx: RouterContext, next: Next) => {
     const res = await next();
     res.headers.set("X-Content-Type-Options", "nosniff");
     res.headers.set("X-Frame-Options", "DENY");

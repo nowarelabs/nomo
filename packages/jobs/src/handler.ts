@@ -3,15 +3,15 @@ import { BaseJob } from "./index";
 import { Logger, LogLevel } from "nomo/logger";
 import { trace, context, propagation, SpanStatusCode } from "@opentelemetry/api";
 
-export type JobConstructor<T = any> = new (params: T) => BaseJob<T>;
+export type JobConstructor<T = unknown> = new (params: T) => BaseJob<T>;
 
 export interface IJobRegistry {
   [jobName: string]: JobConstructor;
 }
 
-export interface IJobDispatcher<Env = any> {
-  handleQueue(batch: any, env?: Env, ctx?: ExecutionContext): Promise<void>;
-  runJob(jobName: string, params: any, env?: Env, ctx?: ExecutionContext): Promise<void>;
+export interface IJobDispatcher<Env = unknown> {
+  handleQueue(batch: unknown, env?: Env, ctx?: ExecutionContext): Promise<void>;
+  runJob(jobName: string, params: unknown, env?: Env, ctx?: ExecutionContext): Promise<void>;
 }
 
 export class JobDispatcher implements IJobDispatcher {
@@ -21,7 +21,7 @@ export class JobDispatcher implements IJobDispatcher {
   });
   constructor(private jobRegistry: IJobRegistry) {}
 
-  async handleQueue(batch: any, env?: any, ctx?: any) {
+  async handleQueue(batch: unknown, env?: unknown, ctx?: unknown) {
     if (env?.ENVIRONMENT) {
       Logger.ENVIRONMENT = env.ENVIRONMENT;
     }
@@ -43,7 +43,7 @@ export class JobDispatcher implements IJobDispatcher {
     }
   }
 
-  async runJob(jobName: string, params: any, env?: any, ctx?: any, traceContext?: any) {
+  async runJob(jobName: string, params: unknown, env?: unknown, ctx?: unknown, traceContext?: unknown) {
     const parentContext = traceContext
       ? propagation.extract(context.active(), traceContext)
       : context.active();
@@ -66,7 +66,7 @@ export class JobDispatcher implements IJobDispatcher {
             await job.perform({ env, ctx });
             contextualLogger.info(`Job ${jobName} completed successfully`);
             span.setStatus({ code: SpanStatusCode.OK });
-          } catch (err: any) {
+          } catch (err: unknown) {
             contextualLogger.error(`Job ${jobName} failed`, { params }, err as Error);
             span.recordException(err as Error);
             span.setStatus({
@@ -89,7 +89,7 @@ export class JobDispatcher implements IJobDispatcher {
     });
   }
 
-  async handleWorkflow(event: any, step: any) {
+  async handleWorkflow(event: unknown, step: unknown) {
     // Note: workflows might not have direct env access here,
     // but the global Logger.ENVIRONMENT should have been set
     // if it ran in the same isolate as a request or queue handler.
@@ -120,7 +120,7 @@ export class JobDispatcher implements IJobDispatcher {
             await job.perform({ step });
             contextualLogger.info(`Workflow job ${jobName} completed successfully`);
             span.setStatus({ code: SpanStatusCode.OK });
-          } catch (err: any) {
+          } catch (err: unknown) {
             contextualLogger.error(`Workflow job ${jobName} failed`, { params }, err as Error);
             span.recordException(err as Error);
             span.setStatus({

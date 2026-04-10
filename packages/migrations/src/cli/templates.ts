@@ -65,7 +65,7 @@ export type Update{{typeName}}Payload = Partial<New{{typeName}}>;
 export type Patch{{typeName}}Payload = Update{{typeName}}Payload;
 
 /** Operation Payloads */
-export type CreateMany{{typeName}}Payload = New{{typeName}}[];
+export type CreateMunknown{{typeName}}Payload = New{{typeName}}[];
 export type {{typeName}}Filter = Partial<{{typeName}}>;
 export type {{typeName}}Where = {{typeName}}Filter;
 

@@ -28,11 +28,11 @@ export class SqlGenerator {
    */
   registerType(type: string, dbType: string) {
     if ("registerType" in this.strategy) {
-      (this.strategy as any).registerType(type, dbType);
+      (this.strategy as unknown).registerType(type, dbType);
     }
   }
 
-  generate(action: any): Result<string> {
+  generate(action: unknown): Result<string> {
     const res = this.generateStatement(action);
     if (!res.success) return res as Result<never>;
     const statement = res.data;
@@ -47,7 +47,7 @@ export class SqlGenerator {
     });
   }
 
-  generateStatement(action: any): Result<Statement | null> {
+  generateStatement(action: unknown): Result<Statement | null> {
     const { type } = action;
     const handler = this.handlers.get(type);
 

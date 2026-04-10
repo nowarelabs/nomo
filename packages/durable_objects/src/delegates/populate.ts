@@ -1,15 +1,15 @@
 import { DurableObjectBaseDelegate } from "../delegate";
 import { BaseDurableObject } from "../index";
 
-export interface PopulateConfig<T = any> {
-  from: (owner: BaseDurableObject, ...args: any[]) => Promise<T[]>;
-  into: any; // Drizzle table or table name
+export interface PopulateConfig<T = unknown> {
+  from: (owner: BaseDurableObject, ...args: unknown[]) => Promise<T[]>;
+  into: unknown; // Drizzle table or table name
   onBeforePopulate?: (owner: BaseDurableObject) => Promise<void>;
   onAfterPopulate?: (owner: BaseDurableObject, count: number) => Promise<void>;
 }
 
 export class PopulateDelegate extends DurableObjectBaseDelegate<PopulateConfig> {
-  async handle(...args: any[]): Promise<{ status: string; count: number }> {
+  async handle(...args: unknown[]): Promise<{ status: string; count: number }> {
     const { from, into, onBeforePopulate, onAfterPopulate } = this.config;
 
     if (onBeforePopulate) {

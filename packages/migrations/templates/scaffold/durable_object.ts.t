@@ -29,7 +29,7 @@ export class {{doClassName}} extends BaseDurableObject {
 
 	async _migrate() {
 		const res = await migrateDO(
-			this.storage.sql as any,
+			this.storage.sql as unknown,
 			migrations,
 			{ className: '{{doClassName}}' }
 		);
@@ -48,7 +48,7 @@ export class {{doClassName}} extends BaseDurableObject {
 		await this.db.insert({{tableName}}).values(record).execute();
 	}
 
-	async all(): Promise<any[]> {
+	async all(): Promise<unknown[]> {
 		return this.db.select().from({{tableName}}).all();
 	}
 {{#if populateFrom}}
@@ -57,8 +57,8 @@ export class {{doClassName}} extends BaseDurableObject {
 		tournamentId: string,
 		request: Request,
 		env: Env,
-		ctx: any,
-	): Promise<any> {
+		ctx: unknown,
+	): Promise<unknown> {
 		const logger = new Logger({ service: '{{doClassName}}' });
 
 {{#each populateFrom}}

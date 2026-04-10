@@ -4,7 +4,7 @@ import { {{pluralTypeName}}Controller } from '../../controllers/{{tableName}}_co
 
 export class {{pluralTypeName}}RpcInstance extends BaseResourceInstanceRpcTarget<
 	Env,
-	RouterContext<Env, any>,
+	RouterContext<Env, unknown>,
 	{{pluralTypeName}}Controller
 > {
 	protected controllerClass = {{pluralTypeName}}Controller;

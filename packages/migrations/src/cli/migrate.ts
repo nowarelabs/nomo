@@ -54,7 +54,7 @@ export const migrateCommand = defineCommand({
         stdio: "inherit",
       });
       consola.success("Migrations applied successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       consola.error(`Failed to execute wrangler command: ${err.message}`);
       process.exit(1);
     }

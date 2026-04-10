@@ -7,10 +7,10 @@ import { ConflictError, ConstraintError, BadRequestError, RouterContext } from "
 import type { ExecutionContext, D1Database, DurableObjectStorage } from "@cloudflare/workers-types";
 
 // The unified generic type for `this.db`
-export type DatabaseInstance = D1Database | DurableObjectStorage | any;
+export type DatabaseInstance = D1Database | DurableObjectStorage | unknown;
 
 export class FluentQuery<
-  TTable extends SQLiteTableWithColumns<any>,
+  TTable extends SQLiteTableWithColumns<unknown>,
   TSelect = TTable["$inferSelect"],
 > {
   private stmt: Statement;
@@ -49,7 +49,7 @@ export class FluentQuery<
     return this;
   }
 
-  join(table: any, on: string): this {
+  join(table: unknown, on: string): this {
     const tableName = getTableName(table);
     this.joinClauses.push(
       sql.composite(sql.key(" JOIN "), sql.id(tableName), sql.key(" ON "), sql.raw(on)),
@@ -57,7 +57,7 @@ export class FluentQuery<
     return this;
   }
 
-  where(conditions: Record<string, any> | SqlPart): this {
+  where(conditions: Record<string, unknown> | SqlPart): this {
     if (conditions instanceof SqlPart) {
       this.whereClauses.push(conditions);
     } else {
@@ -85,7 +85,7 @@ export class FluentQuery<
         }
         if (v !== null && typeof v === "object" && "in" in v && Array.isArray(v.in)) {
           const values = v.in
-            .map((val: any) => {
+            .map((val: unknown) => {
               if (typeof val === "string") return `'${val.replace(/'/g, "''")}'`;
               if (val === null || val === undefined) return "NULL";
               return String(val);
@@ -95,7 +95,7 @@ export class FluentQuery<
         }
         if (v !== null && typeof v === "object" && "nin" in v && Array.isArray(v.nin)) {
           const values = v.nin
-            .map((val: any) => {
+            .map((val: unknown) => {
               if (typeof val === "string") return `'${val.replace(/'/g, "''")}'`;
               if (val === null || val === undefined) return "NULL";
               return String(val);
@@ -290,23 +290,23 @@ export class FluentQuery<
       if (this.loadStrategy === "joins") {
         // Results are already joined - group by the parent record's id
         // Each row may have related data in columns prefixed with relation name
-        const grouped = new Map<any, any[]>();
+        const grouped = new Map<unknown, unknown[]>();
         const relTableName = rel.model;
         const pk = rel.type === "belongs_to" ? `${relTableName}_id` : "id";
 
         for (const row of results) {
-          const rowAny = row as any;
-          const parentId = rowAny.id;
+          const rowunknown = row as unknown;
+          const parentId = rowunknown.id;
 
           // Find the related row by checking for prefixed columns
-          const relColumns: any = {};
+          const relColumns: unknown = {};
           let hasRelatedData = false;
 
-          for (const key of Object.keys(rowAny)) {
+          for (const key of Object.keys(rowunknown)) {
             if (key.startsWith(`${relTableName}_`)) {
               const originalKey = key.substring(relTableName.length + 1);
-              relColumns[originalKey] = rowAny[key];
-              if (rowAny[key] !== null && rowAny[key] !== undefined) {
+              relColumns[originalKey] = rowunknown[key];
+              if (rowunknown[key] !== null && rowunknown[key] !== undefined) {
                 hasRelatedData = true;
               }
             }
@@ -320,15 +320,15 @@ export class FluentQuery<
 
         // Attach to results
         for (const item of results) {
-          const parentId = (item as any).id;
-          (item as any)[relationName] = grouped.get(parentId) || [];
+          const parentId = (item as unknown).id;
+          (item as unknown)[relationName] = grouped.get(parentId) || [];
         }
 
         this.logger?.debug(`[LOAD JOIN] ${relationName}`);
       } else {
         // Separate queries - collect all foreign key values
         const foreignKeys = [
-          ...new Set(results.map((r) => (r as any)[foreignKey]).filter(Boolean)),
+          ...new Set(results.map((r) => (r as unknown)[foreignKey]).filter(Boolean)),
         ];
 
         if (foreignKeys.length === 0) continue;
@@ -340,7 +340,7 @@ export class FluentQuery<
           continue;
         }
 
-        let relatedResults: any[] = [];
+        let relatedResults: unknown[] = [];
         const relQuery = relTable.where?.({ [foreignKey]: { in: foreignKeys } });
 
         if (relQuery?.all) {
@@ -350,7 +350,7 @@ export class FluentQuery<
         }
 
         // Group by foreign key
-        const grouped = new Map<any, any[]>();
+        const grouped = new Map<unknown, unknown[]>();
         for (const item of relatedResults) {
           const fk = item[foreignKey];
           if (!grouped.has(fk)) grouped.set(fk, []);
@@ -359,8 +359,8 @@ export class FluentQuery<
 
         // Attach to results
         for (const item of results) {
-          const fk = (item as any)[foreignKey];
-          (item as any)[relationName] = grouped.get(fk) || [];
+          const fk = (item as unknown)[foreignKey];
+          (item as unknown)[relationName] = grouped.get(fk) || [];
         }
 
         this.logger?.debug(`[LOAD PRELOAD] ${relationName} count=${relatedResults.length}`);
@@ -385,7 +385,7 @@ export class FluentQuery<
   }
 
   async findBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       offset?: number;
     },
@@ -403,7 +403,7 @@ export class FluentQuery<
   }
 
   async findAllBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       orderBy?: { column: keyof TSelect; direction?: "ASC" | "DESC" };
       limit?: number;
@@ -442,7 +442,7 @@ export class FluentQuery<
     const sqlRes = s.toSql(this.strategy);
     if (!sqlRes.success) throw new Error(sqlRes.message);
 
-    let res: any;
+    let res: unknown;
     if (this.db.execSql) {
       res = await this.db.execSql(sqlRes.data.value);
     } else if (this.db.prepare) {
@@ -462,7 +462,7 @@ export class FluentQuery<
     return (res?.[0]?.count || 0) as number;
   }
 
-  async countBy(conditions: Record<string, any>): Promise<number> {
+  async countBy(conditions: Record<string, unknown>): Promise<number> {
     return this.where(conditions).count();
   }
 
@@ -471,7 +471,7 @@ export class FluentQuery<
     return this.where({ id: { in: ids } }).all();
   }
 
-  async firstBy(conditions: Record<string, any>): Promise<TSelect | null> {
+  async firstBy(conditions: Record<string, unknown>): Promise<TSelect | null> {
     return this.where(conditions).first();
   }
 
@@ -505,7 +505,7 @@ export class FluentQuery<
     const sqlRes = s.toSql(this.strategy);
     if (!sqlRes.success) throw new Error(sqlRes.message);
 
-    let res: any;
+    let res: unknown;
     if (this.db.execSql) {
       res = await this.db.execSql(sqlRes.data.value);
     } else if (this.db.prepare) {
@@ -522,7 +522,7 @@ export class FluentQuery<
       res = this.db.exec(sqlRes.data.value).toArray();
     }
 
-    return res.map((row: any) => row[String(column)]) as TSelect[K][];
+    return res.map((row: unknown) => row[String(column)]) as TSelect[K][];
   }
 
   toSql(): string {
@@ -567,10 +567,10 @@ export class FluentQuery<
 export type RelationshipType =
   | "belongs_to"
   | "has_one"
-  | "has_many"
-  | "has_many_through"
+  | "has_munknown"
+  | "has_munknown_through"
   | "has_one_through"
-  | "has_and_belongs_to_many";
+  | "has_and_belongs_to_munknown";
 
 export interface RelationshipMetadata {
   type: RelationshipType;
@@ -601,12 +601,12 @@ export type CallbackEvent =
 
 export interface CallbackOptions {
   on?: "create" | "update" | "destroy" | Array<"create" | "update" | "destroy">;
-  if?: string | ((record: any) => boolean | Promise<boolean>);
-  unless?: string | ((record: any) => boolean | Promise<boolean>);
+  if?: string | ((record: unknown) => boolean | Promise<boolean>);
+  unless?: string | ((record: unknown) => boolean | Promise<boolean>);
 }
 
 interface CallbackEntry {
-  fn: string | ((this: any, data: any) => void | Promise<void>);
+  fn: string | ((this: unknown, data: unknown) => void | Promise<void>);
   options?: CallbackOptions;
 }
 
@@ -620,7 +620,7 @@ export class CallbackAbortError extends Error {
 }
 
 export abstract class BaseModel<
-  TTable extends SQLiteTableWithColumns<any>,
+  TTable extends SQLiteTableWithColumns<unknown>,
   TSelect = TTable["$inferSelect"],
   TInsert = TTable["$inferInsert"],
   Env = unknown,
@@ -679,7 +679,7 @@ export abstract class BaseModel<
     this.relationships[name] = { type: "has_one", ...options };
   }
 
-  protected hasMany(
+  protected hasMunknown(
     name: string,
     options: {
       model: string;
@@ -688,113 +688,113 @@ export abstract class BaseModel<
       source?: string;
     },
   ) {
-    this.relationships[name] = { type: "has_many", ...options };
+    this.relationships[name] = { type: "has_munknown", ...options };
   }
 
-  protected hasAndBelongsToMany(
+  protected hasAndBelongsToMunknown(
     name: string,
     options: { model: string; through: string; foreignKey?: string },
   ) {
-    this.relationships[name] = { type: "has_and_belongs_to_many", ...options };
+    this.relationships[name] = { type: "has_and_belongs_to_munknown", ...options };
   }
 
   protected beforeValidation(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("beforeValidation", fn, options);
   }
 
   protected afterValidation(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("afterValidation", fn, options);
   }
 
   protected beforeSave(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("beforeSave", fn, options);
   }
 
   protected afterSave(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("afterSave", fn, options);
   }
 
   protected beforeCreate(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("beforeCreate", fn, options);
   }
 
   protected afterCreate(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("afterCreate", fn, options);
   }
 
   protected beforeUpdate(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("beforeUpdate", fn, options);
   }
 
   protected afterUpdate(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("afterUpdate", fn, options);
   }
 
   protected beforeDestroy(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("beforeDestroy", fn, options);
   }
 
   protected afterDestroy(
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.registerCallback("afterDestroy", fn, options);
   }
 
-  protected afterCreateCommit(fn: (this: any, data: any) => void | Promise<void>) {
+  protected afterCreateCommit(fn: (this: unknown, data: unknown) => void | Promise<void>) {
     this.registerCallback("afterCreateCommit", fn);
   }
 
-  protected afterUpdateCommit(fn: (this: any, data: any) => void | Promise<void>) {
+  protected afterUpdateCommit(fn: (this: unknown, data: unknown) => void | Promise<void>) {
     this.registerCallback("afterUpdateCommit", fn);
   }
 
-  protected afterSaveCommit(fn: (this: any, data: any) => void | Promise<void>) {
+  protected afterSaveCommit(fn: (this: unknown, data: unknown) => void | Promise<void>) {
     this.registerCallback("afterSaveCommit", fn);
   }
 
-  protected afterDestroyCommit(fn: (this: any, data: any) => void | Promise<void>) {
+  protected afterDestroyCommit(fn: (this: unknown, data: unknown) => void | Promise<void>) {
     this.registerCallback("afterDestroyCommit", fn);
   }
 
-  protected afterCommit(fn: (this: any, data: any) => void | Promise<void>) {
+  protected afterCommit(fn: (this: unknown, data: unknown) => void | Promise<void>) {
     this.registerCallback("afterCommit", fn);
   }
 
-  protected afterRollback(fn: (this: any, data: any) => void | Promise<void>) {
+  protected afterRollback(fn: (this: unknown, data: unknown) => void | Promise<void>) {
     this.registerCallback("afterRollback", fn);
   }
 
   private registerCallback(
     event: CallbackEvent,
-    fn: (this: any, data: any) => void | Promise<void>,
+    fn: (this: unknown, data: unknown) => void | Promise<void>,
     options?: CallbackOptions,
   ) {
     this.callbacks[event].push({
@@ -806,7 +806,7 @@ export abstract class BaseModel<
   private async runCallbacks(
     event: CallbackEvent,
     context: "create" | "update" | "destroy",
-    data: any,
+    data: unknown,
   ): Promise<void> {
     for (const { fn, options } of this.callbacks[event]) {
       if (options?.on) {
@@ -816,26 +816,26 @@ export abstract class BaseModel<
 
       if (options?.if) {
         const condition =
-          typeof options.if === "string" ? (this as any)[options.if]?.bind(this) : options.if;
+          typeof options.if === "string" ? (this as unknown)[options.if]?.bind(this) : options.if;
         if (condition && !(await condition.call(this, data))) continue;
       }
 
       if (options?.unless) {
         const condition =
           typeof options.unless === "string"
-            ? (this as any)[options.unless]?.bind(this)
+            ? (this as unknown)[options.unless]?.bind(this)
             : options.unless;
         if (condition && (await condition.call(this, data))) continue;
       }
 
       try {
-        const callback = typeof fn === "string" ? (this as any)[fn] : fn;
+        const callback = typeof fn === "string" ? (this as unknown)[fn] : fn;
         const result = await callback.call(data, data);
 
         if (result === ABORT) {
           throw new CallbackAbortError(`Callback aborted: ${event}`);
         }
-      } catch (err: any) {
+} catch (err: unknown) {
         if (err instanceof CallbackAbortError) {
           throw err;
         }
@@ -863,7 +863,7 @@ export abstract class BaseModel<
     );
   }
 
-  where(conditions: Record<string, any>): FluentQuery<TTable, TSelect> {
+  where(conditions: Record<string, unknown>): FluentQuery<TTable, TSelect> {
     return this.query().where(conditions);
   }
 
@@ -885,13 +885,13 @@ export abstract class BaseModel<
 
   selectColumnValues(
     columns: keyof TSelect | keyof TSelect[],
-    conditions?: Record<string, any>,
+    conditions?: Record<string, unknown>,
     options?: {
       orderBy?: { column: keyof TSelect; direction?: "ASC" | "DESC" };
       limit?: number;
       offset?: number;
     },
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     return this.pluck(columns, conditions, options);
   }
 
@@ -908,7 +908,7 @@ export abstract class BaseModel<
   }
 
   async findBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       offset?: number;
     },
@@ -917,7 +917,7 @@ export abstract class BaseModel<
   }
 
   async findAllBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       orderBy?: { column: keyof TSelect; direction?: "ASC" | "DESC" };
       limit?: number;
@@ -931,7 +931,7 @@ export abstract class BaseModel<
     return this.query().count();
   }
 
-  async countBy(conditions: Record<string, any>): Promise<number> {
+  async countBy(conditions: Record<string, unknown>): Promise<number> {
     return this.query().where(conditions).count();
   }
 
@@ -943,7 +943,7 @@ export abstract class BaseModel<
   }
 
   async firstBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       offset?: number;
     },
@@ -953,13 +953,13 @@ export abstract class BaseModel<
 
   async pluck(
     columns: keyof TSelect | keyof TSelect[],
-    conditions?: Record<string, any>,
+    conditions?: Record<string, unknown>,
     options?: {
       orderBy?: { column: keyof TSelect; direction?: "ASC" | "DESC" };
       limit?: number;
       offset?: number;
     },
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     const cols = Array.isArray(columns) ? columns : [columns];
 
     let query = this.query().where(conditions || {});
@@ -977,19 +977,19 @@ export abstract class BaseModel<
     }
 
     if (cols.length === 1) {
-      return query.pluck(cols[0] as any) as Promise<any[]>;
+      return query.pluck(cols[0] as unknown) as Promise<unknown[]>;
     }
 
-    return query.select(...(cols as any)).all() as Promise<any[]>;
+    return query.select(...(cols as unknown)).all() as Promise<unknown[]>;
   }
 
   // ===== Mixin-style Query Helpers =====
 
-  async paginate(params: { page?: number; perPage?: number; filters?: Record<string, any> } = {}) {
+  async paginate(params: { page?: number; perPage?: number; filters?: Record<string, unknown> } = {}) {
     let query = this.query();
     const { filters, ...paginationParams } = params;
     if (filters) {
-      const allowed = (this.constructor as any).filterableBy || [];
+      const allowed = (this.constructor as unknown).filterableBy || [];
       for (const [key, value] of Object.entries(filters)) {
         if (!allowed.includes(key)) continue;
         if (value === undefined || value === null || value === "") continue;
@@ -1001,9 +1001,9 @@ export abstract class BaseModel<
 
   async search(term: string, columns?: string[]) {
     if (!term) return this.query();
-    const cols = columns || (this.constructor as any).searchableBy || [];
+    const cols = columns || (this.constructor as unknown).searchableBy || [];
     if (cols.length === 0) return this.query();
-    return this.query().where((q: any) => {
+    return this.query().where((q: unknown) => {
       cols.forEach((col: string, i: number) => {
         if (i === 0) q.where({ [col]: { like: `%${term}%` } });
         else q.orWhere({ [col]: { like: `%${term}%` } });
@@ -1057,35 +1057,35 @@ export abstract class BaseModel<
   // ===== Lifecycle Mutations =====
 
   async trash(id: number | string): Promise<TSelect> {
-    return this.update(id, { trashed_at: new Date().toISOString() } as any);
+    return this.update(id, { trashed_at: new Date().toISOString() } as unknown);
   }
 
   async restore(id: number | string): Promise<TSelect> {
-    return this.update(id, { trashed_at: null } as any);
+    return this.update(id, { trashed_at: null } as unknown);
   }
 
   async hide(id: number | string): Promise<TSelect> {
-    return this.update(id, { hidden_at: new Date().toISOString() } as any);
+    return this.update(id, { hidden_at: new Date().toISOString() } as unknown);
   }
 
   async unhide(id: number | string): Promise<TSelect> {
-    return this.update(id, { hidden_at: null } as any);
+    return this.update(id, { hidden_at: null } as unknown);
   }
 
   async flag(id: number | string): Promise<TSelect> {
-    return this.update(id, { flagged_at: new Date().toISOString() } as any);
+    return this.update(id, { flagged_at: new Date().toISOString() } as unknown);
   }
 
   async unflag(id: number | string): Promise<TSelect> {
-    return this.update(id, { flagged_at: null } as any);
+    return this.update(id, { flagged_at: null } as unknown);
   }
 
   async retire(id: number | string): Promise<TSelect> {
-    return this.update(id, { retired_at: new Date().toISOString() } as any);
+    return this.update(id, { retired_at: new Date().toISOString() } as unknown);
   }
 
   async unretire(id: number | string): Promise<TSelect> {
-    return this.update(id, { retired_at: null } as any);
+    return this.update(id, { retired_at: null } as unknown);
   }
 
   async purge(id: number | string): Promise<boolean> {
@@ -1120,7 +1120,7 @@ export abstract class BaseModel<
 
   async add(id: number | string, relation: string, relatedId: number | string): Promise<TSelect> {
     this.logger?.info(`[ADD] ${getTableName(this.table)}#${id} to ${relation}`);
-    return this.findBy({ id } as any) as Promise<TSelect>;
+    return this.findBy({ id } as unknown) as Promise<TSelect>;
   }
 
   async remove(
@@ -1129,7 +1129,7 @@ export abstract class BaseModel<
     relatedId: number | string,
   ): Promise<TSelect> {
     this.logger?.info(`[REMOVE] ${relatedId} from ${getTableName(this.table)}#${id}`);
-    return this.findBy({ id } as any) as Promise<TSelect>;
+    return this.findBy({ id } as unknown) as Promise<TSelect>;
   }
 
   async assign(
@@ -1138,7 +1138,7 @@ export abstract class BaseModel<
     relatedId: number | string,
   ): Promise<TSelect> {
     this.logger?.info(`[ASSIGN] ${relation}#${relatedId} to ${getTableName(this.table)}#${id}`);
-    return this.findBy({ id } as any) as Promise<TSelect>;
+    return this.findBy({ id } as unknown) as Promise<TSelect>;
   }
 
   async unassign(
@@ -1147,14 +1147,14 @@ export abstract class BaseModel<
     relatedId: number | string,
   ): Promise<TSelect> {
     this.logger?.info(`[UNASSIGN] ${relation}#${relatedId} from ${getTableName(this.table)}#${id}`);
-    return this.findBy({ id } as any) as Promise<TSelect>;
+    return this.findBy({ id } as unknown) as Promise<TSelect>;
   }
 
   // ===== Relationship Traversal =====
 
   async listChildIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
-    if (!rel || rel.type !== "has_many" || !rel.foreignKey) return [];
+    if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
     const relatedModel = this.db.query(rel.model);
     return relatedModel.where({ [rel.foreignKey]: id }).pluck("id");
@@ -1164,21 +1164,21 @@ export abstract class BaseModel<
     const rel = this.relationships[relationName];
     if (!rel || rel.type !== "belongs_to" || !rel.foreignKey) return [];
 
-    const item = await this.findBy({ id } as any);
+    const item = await this.findBy({ id } as unknown);
     if (!item) return [];
 
-    const parentId = (item as any)[rel.foreignKey];
+    const parentId = (item as unknown)[rel.foreignKey];
     return parentId ? [parentId] : [];
   }
 
   async listSiblingIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
-    if (!rel || rel.type !== "has_many" || !rel.foreignKey) return [];
+    if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
-    const item = await this.findBy({ id } as any);
+    const item = await this.findBy({ id } as unknown);
     if (!item) return [];
 
-    const parentId = (item as any)[rel.foreignKey];
+    const parentId = (item as unknown)[rel.foreignKey];
     if (!parentId) return [];
 
     const foreignKey = rel.foreignKey;
@@ -1188,12 +1188,12 @@ export abstract class BaseModel<
 
   async listCousinIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
-    if (!rel || rel.type !== "has_many" || !rel.foreignKey) return [];
+    if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
-    const item = await this.findBy({ id } as any);
+    const item = await this.findBy({ id } as unknown);
     if (!item) return [];
 
-    const parentId = (item as any)[rel.foreignKey];
+    const parentId = (item as unknown)[rel.foreignKey];
     if (!parentId) return [];
 
     const parentRel = Object.values(this.relationships).find(
@@ -1201,17 +1201,17 @@ export abstract class BaseModel<
     ) as RelationshipMetadata | undefined;
     if (!parentRel || !parentRel.foreignKey) return [];
 
-    const parent = await this.findBy({ id: parentId } as any);
+    const parent = await this.findBy({ id: parentId } as unknown);
     if (!parent) return [];
 
-    const grandparentId = (parent as any)[parentRel.foreignKey];
+    const grandparentId = (parent as unknown)[parentRel.foreignKey];
     if (!grandparentId) return [];
 
     const cousins: (string | number)[] = [];
     for (const [siblingRelName, siblingRel] of Object.entries(this.relationships)) {
       if (
         typeof siblingRelName === "string" &&
-        siblingRel.type === "has_many" &&
+        siblingRel.type === "has_munknown" &&
         siblingRelName !== relationName &&
         siblingRel.foreignKey
       ) {
@@ -1234,10 +1234,10 @@ export abstract class BaseModel<
     let currentId: string | number | null = id;
 
     while (currentId) {
-      const item = await this.findBy({ id: currentId } as any);
+      const item = await this.findBy({ id: currentId } as unknown);
       if (!item) break;
 
-      currentId = (item as any)[rel.foreignKey];
+      currentId = (item as unknown)[rel.foreignKey];
       if (currentId) {
         ancestors.push(currentId);
       }
@@ -1248,7 +1248,7 @@ export abstract class BaseModel<
 
   async listDescendantIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
-    if (!rel || rel.type !== "has_many" || !rel.foreignKey) return [];
+    if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
     const descendants: (string | number)[] = [];
     const foreignKey = rel.foreignKey;
@@ -1275,26 +1275,26 @@ export abstract class BaseModel<
     const rel = this.relationships[relationName];
     if (!rel || !rel.foreignKey) return [];
 
-    const dbWithSelect = this.db as any;
+    const dbWithSelect = this.db as unknown;
     const through = dbWithSelect.select().from(throughTable);
     const junctionItems = await through.where({ [rel.foreignKey]: id });
 
-    return junctionItems.map((item: any) => item.id as string | number);
+    return junctionItems.map((item: unknown) => item.id as string | number);
   }
 
   async listRelatedIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
     if (!rel) return [];
 
-    if (rel.type === "has_many") {
+    if (rel.type === "has_munknown") {
       return this.listChildIds(relationName, id);
     }
 
     if (rel.type === "has_one") {
       if (!rel.foreignKey) return [];
-      const item = await this.findBy({ id } as any);
+      const item = await this.findBy({ id } as unknown);
       if (!item) return [];
-      const childId = (item as any)[rel.foreignKey];
+      const childId = (item as unknown)[rel.foreignKey];
       return childId ? [childId] : [];
     }
 
@@ -1309,15 +1309,15 @@ export abstract class BaseModel<
   // ===== Include/Eager Loading Methods =====
 
   async findAllWith(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     includes: Record<string, { model: string; foreignKey: string }>,
     options?: {
       orderBy?: { column: string; direction?: "ASC" | "DESC" };
       limit?: number;
       offset?: number;
     },
-  ): Promise<any[]> {
-    const items = await this.findAllBy(conditions, options as any);
+  ): Promise<unknown[]> {
+    const items = await this.findAllBy(conditions, options as unknown);
     if (!items?.length || !includes || Object.keys(includes).length === 0) {
       return items;
     }
@@ -1328,20 +1328,20 @@ export abstract class BaseModel<
         const enriched = { ...item };
         for (const [includeKey, includeConfig] of includeEntries) {
           const rel = this.relationships[includeKey];
-          const foreignKeyValue = (item as any)[includeConfig.foreignKey];
+          const foreignKeyValue = (item as unknown)[includeConfig.foreignKey];
 
-          if (rel?.type === "has_many") {
+          if (rel?.type === "has_munknown") {
             const relatedModel = this.db.query(includeConfig.model);
             const relatedItems = await relatedModel
-              .where({ [includeConfig.foreignKey]: (item as any).id })
+              .where({ [includeConfig.foreignKey]: (item as unknown).id })
               .all();
-            (enriched as any)[includeKey] = relatedItems;
+            (enriched as unknown)[includeKey] = relatedItems;
           } else if (foreignKeyValue) {
             const relatedModel = this.db.query(includeConfig.model);
             const relatedItems = await relatedModel.where({ id: foreignKeyValue }).all();
-            (enriched as any)[includeKey] = relatedItems;
+            (enriched as unknown)[includeKey] = relatedItems;
           } else {
-            (enriched as any)[includeKey] = [];
+            (enriched as unknown)[includeKey] = [];
           }
         }
         return enriched;
@@ -1352,9 +1352,9 @@ export abstract class BaseModel<
   }
 
   async findWith(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     includes: Record<string, { model: string; foreignKey: string }>,
-  ): Promise<any> {
+  ): Promise<unknown> {
     const item = await this.findBy(conditions);
     if (!item || !includes || Object.keys(includes).length === 0) {
       return item;
@@ -1362,13 +1362,13 @@ export abstract class BaseModel<
 
     const enriched = { ...item };
     for (const [includeKey, includeConfig] of Object.entries(includes)) {
-      const foreignKeyValue = (item as any)[includeConfig.foreignKey];
+      const foreignKeyValue = (item as unknown)[includeConfig.foreignKey];
       if (foreignKeyValue) {
         const relatedModel = this.db.query(includeConfig.model);
         const relatedItems = await relatedModel.where({ id: foreignKeyValue }).all();
-        (enriched as any)[includeKey] = relatedItems;
+        (enriched as unknown)[includeKey] = relatedItems;
       } else {
-        (enriched as any)[includeKey] = [];
+        (enriched as unknown)[includeKey] = [];
       }
     }
 
@@ -1379,12 +1379,12 @@ export abstract class BaseModel<
   protected async _beforeValidation(
     data: TInsert | Partial<TInsert>,
   ): Promise<TInsert | Partial<TInsert>> {
-    await this.runCallbacks("beforeValidation", (data as any).id ? "update" : "create", data);
+    await this.runCallbacks("beforeValidation", (data as unknown).id ? "update" : "create", data);
     return data;
   }
 
   protected async _afterValidation(data: TInsert | Partial<TInsert>): Promise<void> {
-    await this.runCallbacks("afterValidation", (data as any).id ? "update" : "create", data);
+    await this.runCallbacks("afterValidation", (data as unknown).id ? "update" : "create", data);
   }
 
   protected async _beforeCreate(data: TInsert): Promise<TInsert> {
@@ -1392,18 +1392,18 @@ export abstract class BaseModel<
     this.logger?.debug(`[BEFORE CREATE] ${tableName}`, { data });
     await this.runCallbacks("beforeCreate", "create", data);
 
-    const idColumn = (this.table as any).id;
+    const idColumn = (this.table as unknown).id;
     const hasAutoIncrement = idColumn?.autoIncrement;
 
-    if (!(data as any).id && !hasAutoIncrement) {
-      (data as any).id = crypto.randomUUID();
+    if (!(data as unknown).id && !hasAutoIncrement) {
+      (data as unknown).id = crypto.randomUUID();
     }
     return data;
   }
 
   protected async _afterCreate(record: TSelect): Promise<void> {
     const tableName = getTableName(this.table);
-    this.logger?.debug(`[AFTER CREATE] ${tableName}#${(record as any).id}`, {
+    this.logger?.debug(`[AFTER CREATE] ${tableName}#${(record as unknown).id}`, {
       record,
     });
     await this.runCallbacks("afterCreate", "create", record);
@@ -1418,7 +1418,7 @@ export abstract class BaseModel<
 
   protected async _afterUpdate(record: TSelect): Promise<void> {
     const tableName = getTableName(this.table);
-    this.logger?.debug(`[AFTER UPDATE] ${tableName}#${(record as any).id}`, {
+    this.logger?.debug(`[AFTER UPDATE] ${tableName}#${(record as unknown).id}`, {
       record,
     });
     await this.runCallbacks("afterUpdate", "update", record);
@@ -1429,17 +1429,17 @@ export abstract class BaseModel<
   ): Promise<TInsert | Partial<TInsert>> {
     const tableName = getTableName(this.table);
     this.logger?.debug(`[BEFORE SAVE] ${tableName}`, { data });
-    const context = (data as any).id ? "update" : "create";
+    const context = (data as unknown).id ? "update" : "create";
     await this.runCallbacks("beforeSave", context, data);
     return data;
   }
 
   protected async _afterSave(record: TSelect): Promise<void> {
     const tableName = getTableName(this.table);
-    this.logger?.debug(`[AFTER SAVE] ${tableName}#${(record as any).id}`, {
+    this.logger?.debug(`[AFTER SAVE] ${tableName}#${(record as unknown).id}`, {
       record,
     });
-    const context = (record as any).id ? "update" : "create";
+    const context = (record as unknown).id ? "update" : "create";
     await this.runCallbacks("afterSave", context, record);
   }
 
@@ -1464,7 +1464,7 @@ export abstract class BaseModel<
 
     let record: TSelect;
 
-    const filtered: any = {};
+    const filtered: unknown = {};
     for (const k in finalData) {
       if (k in this.table && finalData[k] !== undefined && finalData[k] !== null) {
         filtered[k] = finalData[k];
@@ -1497,7 +1497,7 @@ export abstract class BaseModel<
     await this.runCallbacks("afterCommit", "create", record);
     await this.runCallbacks("afterCreateCommit", "create", record);
     await this.runCallbacks("afterSaveCommit", "create", record);
-    this.logger?.info(`[CREATED] ${tableName}#${(record as any).id}`);
+    this.logger?.info(`[CREATED] ${tableName}#${(record as unknown).id}`);
     return record;
   }
 
@@ -1510,14 +1510,14 @@ export abstract class BaseModel<
 
     let record: TSelect;
 
-    const filtered: any = {};
+    const filtered: unknown = {};
     for (const k in finalData) {
       if (
         k in this.table &&
-        (finalData as any)[k] !== undefined &&
-        (finalData as any)[k] !== null
+        (finalData as unknown)[k] !== undefined &&
+        (finalData as unknown)[k] !== null
       ) {
-        filtered[k] = (finalData as any)[k];
+        filtered[k] = (finalData as unknown)[k];
       }
     }
 
@@ -1594,7 +1594,7 @@ export abstract class BaseModel<
       const result = await this.db
         .select()
         .from(this.table)
-        .where(eq((this.table as any).id, id))
+        .where(eq((this.table as unknown).id, id))
         .limit(1);
       record = (result[0] as TSelect) || null;
     } else {
@@ -1626,7 +1626,7 @@ export abstract class BaseModel<
     return records;
   }
 
-  private async queryExec(s: Statement): Promise<any[]> {
+  private async queryExec(s: Statement): Promise<unknown[]> {
     const strategy = getDialectStrategy("sqlite");
     const sqlRes = s.toSql(strategy);
     if (!sqlRes.success) throw new Error(sqlRes.message);
@@ -1645,9 +1645,9 @@ export abstract class BaseModel<
       }
       if (this.db.prepare) {
         const res = await this.db.prepare(sqlText).all();
-        return (res.results || res) as any[];
+        return (res.results || res) as unknown[];
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger?.error(`[SQL ERROR]`, { sql: sqlText, error: err.message });
 
       const errorMsg = err.message || "";
@@ -1690,7 +1690,7 @@ export abstract class BaseModel<
       await this.runCallbacks("afterSaveCommit", "create", result);
       this.logger?.info(`[TRANSACTION COMMIT] ${tableName}`);
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       await this.runCallbacks("afterRollback", "create", { error: err.message });
       this.logger?.error(`[TRANSACTION ROLLBACK] ${tableName}`, { error: err.message });
       throw err;
@@ -1698,7 +1698,7 @@ export abstract class BaseModel<
   }
 }
 
-export function defineModel<TTableName extends string, TColumnsMap extends Record<string, any>>(
+export function defineModel<TTableName extends string, TColumnsMap extends Record<string, unknown>>(
   name: TTableName,
   columns: TColumnsMap,
 ) {

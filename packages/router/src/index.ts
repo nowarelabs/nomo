@@ -21,8 +21,8 @@ interface MiddlewareEntry<Env = unknown, Ctx = ExecutionContext> {
 export type AppExecutionContext =
   | ExecutionContext
   | DurableObjectState
-  | WorkflowEvent<any>
-  | MessageBatch<any>;
+  | WorkflowEvent<unknown>
+  | MessageBatch<unknown>;
 
 export function tryDecode(str: string): string {
   try {
@@ -126,11 +126,11 @@ export function parseNestedParams(params: Record<string, unknown>): Record<strin
   return result;
 }
 
-export function parseQuery(queryString: string): Record<string, any> {
+export function parseQuery(queryString: string): Record<string, unknown> {
   if (!queryString) return {};
   const search = queryString.startsWith("?") ? queryString.slice(1) : queryString;
   const params = new URLSearchParams(search);
-  const flat: Record<string, any> = {};
+  const flat: Record<string, unknown> = {};
 
   for (const [key, value] of params.entries()) {
     if (flat[key] !== undefined) {
@@ -172,25 +172,25 @@ export type RouterContextSource =
   | "service"
   | "model";
 
-export interface RouterContext<Env = any, Ctx = ExecutionContext> extends Record<string, any> {
+export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<string, unknown> {
   requestId: string;
   params: Record<string, string>;
-  query: Record<string, any>;
+  query: Record<string, unknown>;
   headers: Record<string, string>;
   env: Env;
   executionCtx: Ctx;
   logger: Logger;
   isCapnwebRpc: boolean;
   source: RouterContextSource;
-  sourceMetadata?: Record<string, any>;
-  json: <T = any>(data: T, init?: ResponseInit) => Response;
+  sourceMetadata?: Record<string, unknown>;
+  json: <T = unknown>(data: T, init?: ResponseInit) => Response;
   text: (data: string, init?: ResponseInit) => Response;
   html: (data: string, init?: ResponseInit) => Response;
   redirect: (url: string, status?: number) => Response;
   cache: (seconds: number) => void;
-  parseJson: <T = any>() => Promise<T | null>;
+  parseJson: <T = unknown>() => Promise<T | null>;
   fetch: (input: string | Request | URL, init?: RequestInit) => Promise<Response>;
-  rewrite: (response: Response, handlers: Record<string, any>) => Response;
+  rewrite: (response: Response, handlers: Record<string, unknown>) => Response;
   router: IRouter<Env, Ctx>;
 }
 
@@ -201,15 +201,15 @@ export interface RouteConfig {
     body?: {
       content: {
         "application/json": {
-          schema: z.ZodTypeAny;
+          schema: z.ZodTypeunknown;
         };
       };
       description?: string;
       required?: boolean;
     };
-    params?: z.ZodObject<any>;
-    query?: z.ZodObject<any>;
-    headers?: z.ZodObject<any>;
+    params?: z.ZodObject<unknown>;
+    query?: z.ZodObject<unknown>;
+    headers?: z.ZodObject<unknown>;
   };
   responses: Record<
     string,
@@ -217,14 +217,14 @@ export interface RouteConfig {
       description: string;
       content?: {
         "application/json": {
-          schema: z.ZodTypeAny;
+          schema: z.ZodTypeunknown;
         };
       };
     }
   >;
 }
 
-export type RouteHandler<Env = any, Ctx = ExecutionContext> = (
+export type RouteHandler<Env = unknown, Ctx = ExecutionContext> = (
   request: Request,
   env: Env,
   ctx: RouterContext<Env, Ctx>,
@@ -232,31 +232,31 @@ export type RouteHandler<Env = any, Ctx = ExecutionContext> = (
 
 export type Next = () => Promise<Response>;
 
-export type Middleware<Env = any, Ctx = ExecutionContext> = (
+export type Middleware<Env = unknown, Ctx = ExecutionContext> = (
   request: Request,
   env: Env,
   ctx: RouterContext<Env, Ctx>,
   next: Next,
 ) => Response | Promise<Response>;
 
-export interface IRouter<Env = any, Ctx = ExecutionContext> {
+export interface IRouter<Env = unknown, Ctx = ExecutionContext> {
   handle(request: Request, env: Env, executionCtx: Ctx): Response | Promise<Response>;
-  rpc(method: string, args: any[], env: Env, executionCtx: Ctx): Promise<any>;
+  rpc(method: string, args: unknown[], env: Env, executionCtx: Ctx): Promise<unknown>;
 }
 
-export interface IDrawableRouter<Env = any, Ctx = ExecutionContext> extends IRouter<Env, Ctx> {
+export interface IDrawableRouter<Env = unknown, Ctx = ExecutionContext> extends IRouter<Env, Ctx> {
   get(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   post(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   put(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   patch(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   delete(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   all(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
-  resources(path: string, controller: any): void;
-  resourceActions(path: string, controller: any): void;
-  provide(name: string, service: any): void;
-  inject<T = any>(name: string): T;
+  resources(path: string, controller: unknown): void;
+  resourceActions(path: string, controller: unknown): void;
+  provide(name: string, service: unknown): void;
+  inject<T = unknown>(name: string): T;
   use(middleware: Middleware<Env, Ctx>): void;
-  version(v: string, callback: (drawer: any) => void): void;
+  version(v: string, callback: (drawer: unknown) => void): void;
 }
 
 export interface RouterOptions<_Env = unknown, _Ctx = ExecutionContext> {
@@ -264,13 +264,13 @@ export interface RouterOptions<_Env = unknown, _Ctx = ExecutionContext> {
   drawer?: new (...args: unknown[]) => { draw: () => void };
 }
 
-export type Constructor<T> = new (...args: any[]) => T;
+export type Constructor<T> = new (...args: unknown[]) => T;
 
 export class HttpError extends Error {
   constructor(
     public message: string,
     public status: number,
-    public details?: any,
+    public details?: unknown,
   ) {
     super(message);
     this.name = "HttpError";
@@ -278,49 +278,49 @@ export class HttpError extends Error {
 }
 
 export class NotFoundError extends HttpError {
-  constructor(message: string = "Not Found", details?: any) {
+  constructor(message: string = "Not Found", details?: unknown) {
     super(message, 404, details);
     this.name = "NotFoundError";
   }
 }
 
 export class ConflictError extends HttpError {
-  constructor(message: string = "Conflict", details?: any) {
+  constructor(message: string = "Conflict", details?: unknown) {
     super(message, 409, details);
     this.name = "ConflictError";
   }
 }
 
 export class BadRequestError extends HttpError {
-  constructor(message: string = "Bad Request", details?: any) {
+  constructor(message: string = "Bad Request", details?: unknown) {
     super(message, 400, details);
     this.name = "BadRequestError";
   }
 }
 
 export class ConstraintError extends HttpError {
-  constructor(message: string = "Constraint Violation", constraintType: string, details?: any) {
+  constructor(message: string = "Constraint Violation", constraintType: string, details?: unknown) {
     super(message, 409, { constraintType, ...details });
     this.name = "ConstraintError";
   }
 }
 
 export class ValidationError extends HttpError {
-  constructor(message: string = "Validation Error", details?: any) {
+  constructor(message: string = "Validation Error", details?: unknown) {
     super(message, 422, details);
     this.name = "ValidationError";
   }
 }
 
 export class UnprocessableEntityError extends HttpError {
-  constructor(message: string = "Unprocessable Entity", details?: any) {
+  constructor(message: string = "Unprocessable Entity", details?: unknown) {
     super(message, 422, details);
     this.name = "UnprocessableEntityError";
   }
 }
 
-export abstract class RouteDrawer<Env = any, Ctx = any> {
-  protected providers: Map<string, any> = new Map();
+export abstract class RouteDrawer<Env = unknown, Ctx = unknown> {
+  protected providers: Map<string, unknown> = new Map();
 
   constructor(
     protected router: IDrawableRouter<Env, Ctx>,
@@ -355,7 +355,7 @@ export abstract class RouteDrawer<Env = any, Ctx = any> {
     this.router.all(this.join(path), ...handlers);
   }
 
-  resources(path: string, controller: any) {
+  resources(path: string, controller: unknown) {
     const resourcePath = path;
 
     this.get(resourcePath, controller.action("index"));
@@ -366,7 +366,7 @@ export abstract class RouteDrawer<Env = any, Ctx = any> {
     this.delete(`${resourcePath}/:id`, controller.action("destroy"));
   }
 
-  resourceActions(path: string, controller: any) {
+  resourceActions(path: string, controller: unknown) {
     const resourcePath = path;
 
     // Basic CRUD (collection)
@@ -414,16 +414,16 @@ export abstract class RouteDrawer<Env = any, Ctx = any> {
     this.get(`${resourcePath}/:id/related_ids`, controller.action("listRelatedIds"));
   }
 
-  provide(name: string, service: any) {
+  provide(name: string, service: unknown) {
     this.providers.set(name, service);
   }
 
-  inject<T = any>(name: string): T {
+  inject<T = unknown>(name: string): T {
     return this.providers.get(name);
   }
 
   scope(path: string, callback: (drawer: this) => void) {
-    const scopedDrawer = new (this.constructor as any)(this.router, this.join(path));
+    const scopedDrawer = new (this.constructor as unknown)(this.router, this.join(path));
     this.providers.forEach((val, key) => scopedDrawer.provide(key, val));
     callback(scopedDrawer);
   }
@@ -460,7 +460,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   private root: RouterTrieNode;
   private middlewares: MiddlewareEntry<Env, Ctx>[];
   private errorHandler?: (
-    err: any,
+    err: unknown,
     request: Request,
     env: Env,
     ctx: RouterContext<Env, Ctx>,
@@ -499,7 +499,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     } catch (_e) {}
   }
 
-  draw(DrawerClass: new (router: any, prefix: string) => { draw: () => void }) {
+  draw(DrawerClass: new (router: unknown, prefix: string) => { draw: () => void }) {
     const drawer = new DrawerClass(this, "");
     drawer.draw();
     return this;
@@ -559,7 +559,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
 
   private rpcHandlers = new Map<string, Function>();
 
-  rpc(method: string, args: any[], env: Env, executionCtx: Ctx): Promise<any> {
+  rpc(method: string, args: unknown[], env: Env, executionCtx: Ctx): Promise<unknown> {
     const handler = this.rpcHandlers.get(method);
     if (!handler) {
       throw new Error(`RPC method ${method} not found`);
@@ -569,8 +569,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     return tracer.startActiveSpan(`rpc ${method}`, async (span) => {
       try {
         return await handler(args, { env, executionCtx });
-      } catch (err: any) {
-        span.recordException(err);
+      } catch (err: unknown) {
+        span.recordException(err as Error);
         throw err;
       } finally {
         span.end();
@@ -590,12 +590,12 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     }
   }
 
-  static zValidator<S extends z.ZodTypeAny, Env = unknown, Ctx = ExecutionContext>(
+  static zValidator<S extends z.ZodTypeunknown, Env = unknown, Ctx = ExecutionContext>(
     target: "json" | "query" | "header" | "param",
     schema: S,
   ): Middleware<Env, Ctx> {
     return async (req, env, ctx, next) => {
-      let value: any;
+      let value: unknown;
       if (target === "json") {
         value = await ctx.parseJson();
       } else if (target === "query") {
@@ -622,7 +622,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
         );
       }
 
-      (ctx as any)[`valid${target.charAt(0).toUpperCase() + target.slice(1)}`] = result.data;
+      (ctx as unknown)[`valid${target.charAt(0).toUpperCase() + target.slice(1)}`] = result.data;
 
       ctx.logger.debug(`[VALIDATION PASSED] ${target}`);
       return await next();
@@ -730,7 +730,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     this.registerOpenApiRoute(config);
   }
 
-  resources(path: string, controller: any) {
+  resources(path: string, controller: unknown) {
     const resourcePath = path.startsWith("/") ? path : `/${path}`;
 
     this.get(resourcePath, controller.action("index"));
@@ -740,7 +740,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     this.delete(`${resourcePath}/:id`, controller.action("destroy"));
   }
 
-  resourceActions(path: string, controller: any) {
+  resourceActions(path: string, controller: unknown) {
     const resourcePath = path.startsWith("/") ? path : `/${path}`;
 
     // Basic CRUD (collection)
@@ -796,7 +796,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   }
 
   private registerOpenApiRoute(config: RouteConfig) {
-    const responses: any = {};
+    const responses: unknown = {};
     for (const [code, res] of Object.entries(config.responses)) {
       responses[code] = {
         description: res.description,
@@ -805,7 +805,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     }
 
     this.openAPIRegistry.registerPath({
-      method: config.method as any,
+      method: config.method as unknown,
       path: config.path,
       request: {
         params: config.request?.params,
@@ -817,7 +817,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     });
   }
 
-  getOpenApiDocument(info: { title: string; version: string; description?: string }): any {
+  getOpenApiDocument(info: { title: string; version: string; description?: string }): unknown {
     const generator = new OpenApiGeneratorV3(this.openAPIRegistry.definitions);
     return generator.generateDocument({
       openapi: "3.0.0",
@@ -827,7 +827,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
 
   onError(
     handler: (
-      err: any,
+      err: unknown,
       request: Request,
       env: Env,
       ctx: RouterContext<Env, Ctx>,
@@ -881,12 +881,12 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   }
 
   async handle(request: Request, env: Env, executionCtx: Ctx): Promise<Response> {
-    if ((env as any).ENVIRONMENT) {
-      Logger.ENVIRONMENT = (env as any).ENVIRONMENT;
+    if ((env as unknown).ENVIRONMENT) {
+      Logger.ENVIRONMENT = (env as unknown).ENVIRONMENT;
     }
 
-    if ((env as any).LOG_LEVEL) {
-      Logger.LEVEL = (env as any).LOG_LEVEL;
+    if ((env as unknown).LOG_LEVEL) {
+      Logger.LEVEL = (env as unknown).LOG_LEVEL;
     } else if (Logger.ENVIRONMENT === "development") {
       Logger.LEVEL = LogLevel.DEBUG;
     }
@@ -898,8 +898,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
 
     try {
       splitPath(decodedPath);
-    } catch (e: any) {
-      return new Response(e.message, { status: 414 });
+    } catch (e: unknown) {
+      return new Response((e as Error).message, { status: 414 });
     }
 
     if (!isValidPath(decodedPath)) {
@@ -919,8 +919,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       executionCtx,
       logger: new Logger({
         service: "router",
-        environment: (env as any).ENVIRONMENT || "production",
-        level: (env as any).LOG_LEVEL || LogLevel.DEBUG,
+        environment: (env as unknown).ENVIRONMENT || "production",
+        level: (env as unknown).LOG_LEVEL || LogLevel.DEBUG,
         context: {
           request_id: requestId,
           method: request.method,
@@ -953,7 +953,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
         responseHeaders.set("Cache-Control", `public, max-age=${seconds}`);
       },
       parseJson: async () => {
-        if ((ctx as any).validJson) return (ctx as any).validJson;
+        if ((ctx as unknown).validJson) return (ctx as unknown).validJson;
         try {
           return await request.json();
         } catch {
@@ -962,13 +962,13 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       },
       fetch: async (input: string | Request | URL, init?: RequestInit) => {
         const headers = new Headers(init?.headers);
-        propagation.inject(context.active(), headers as any);
+        propagation.inject(context.active(), headers as unknown);
         return await fetch(input, { ...init, headers });
       },
       router: this,
       isCapnwebRpc: !!request.headers.get("Capnweb-RPC"),
       source: "http" as RouterContextSource,
-      rewrite: (response: Response, handlers: any) => {
+      rewrite: (response: Response, handlers: unknown) => {
         // @ts-ignore - HTMLRewriter is available in Cloudflare Workers
         const rewriter = new HTMLRewriter();
         if (Array.isArray(handlers)) {
@@ -977,7 +977,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
           }
         } else {
           for (const [selector, handler] of Object.entries(handlers)) {
-            rewriter.on(selector, handler as any);
+            rewriter.on(selector, handler as unknown);
           }
         }
         const transformed = rewriter.transform(response);
@@ -1001,7 +1001,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     if (!isRpcEndpoint && ctx.headers["content-type"]?.includes("application/json")) {
       try {
         const body = await request.json();
-        (ctx as any).validJson = parseNestedParams(body as any);
+        (ctx as unknown).validJson = parseNestedParams(body as unknown);
       } catch (_e) {
         return new Response("Malformed JSON", { status: 400 });
       }
@@ -1073,7 +1073,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
             request_id: ctx.requestId,
           });
           return response;
-        } catch (err: any) {
+        } catch (err: unknown) {
           span.recordException(err as Error);
           span.setStatus({
             code: SpanStatusCode.ERROR,

@@ -50,7 +50,7 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as any).data;
+    const updater = (updaterRes as unknown).data;
 
     updater.addMigrations(["v2"]);
 
@@ -73,7 +73,7 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as any).data;
+    const updater = (updaterRes as unknown).data;
 
     const updateRes = updater.addMigrations(["v1"]);
     // It should return success but no changes in content (or at least no new entries)
@@ -95,7 +95,7 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as any).data;
+    const updater = (updaterRes as unknown).data;
 
     updater.addMigrations(["v1"]);
     await updater.save();
@@ -111,10 +111,10 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as any).data;
+    const updater = (updaterRes as unknown).data;
 
     const updateRes = updater.addMigrations(["v1"]);
     expect(updateRes.success).toBe(false);
-    expect((updateRes as any).error).toBe("Migrations array not found in configuration");
+    expect((updateRes as unknown).error).toBe("Migrations array not found in configuration");
   });
 });

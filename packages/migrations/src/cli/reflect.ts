@@ -35,7 +35,7 @@ export const reflectCommand = defineCommand({
     try {
       // Read metadata if it exists
       const metadataPath = path.resolve(process.cwd(), ".nomo/temp_metadata.json");
-      let metadata: Record<string, any[]> = {};
+      let metadata: Record<string, unknown[]> = {};
       try {
         const content = await fs.readFile(metadataPath, "utf-8");
         metadata = JSON.parse(content);
@@ -53,7 +53,7 @@ export const reflectCommand = defineCommand({
         .then((r) => r.generate());
 
       await fs.rm(metadataPath, { force: true }).catch(() => {});
-    } catch (err: any) {
+    } catch (err: unknown) {
       consola.error(`Failed to reflect schema: ${err.message}`);
       process.exit(1);
     }

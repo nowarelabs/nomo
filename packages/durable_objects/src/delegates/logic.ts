@@ -1,16 +1,16 @@
 import { DurableObjectBaseDelegate } from "../delegate";
 
 export interface LogicConfig {
-  onCalculate?: (owner: any, input: any) => Promise<any>;
-  onTrigger?: (owner: any, event: any) => Promise<void>;
-  onDecision?: (owner: any, matrix: any) => Promise<any>;
+  onCalculate?: (owner: unknown, input: unknown) => Promise<unknown>;
+  onTrigger?: (owner: unknown, event: unknown) => Promise<void>;
+  onDecision?: (owner: unknown, matrix: unknown) => Promise<unknown>;
 }
 
 export class LogicDelegate extends DurableObjectBaseDelegate<LogicConfig> {
   /**
    * Perform calculation logic
    */
-  async handle(input: any): Promise<any> {
+  async handle(input: unknown): Promise<unknown> {
     const { onCalculate } = this.config;
     if (onCalculate) {
       return await onCalculate(this.durableObject, input);
@@ -21,7 +21,7 @@ export class LogicDelegate extends DurableObjectBaseDelegate<LogicConfig> {
   /**
    * Handle triggers from external events
    */
-  async trigger(event: any): Promise<void> {
+  async trigger(event: unknown): Promise<void> {
     const { onTrigger } = this.config;
     if (onTrigger) {
       await onTrigger(this.durableObject, event);
@@ -31,7 +31,7 @@ export class LogicDelegate extends DurableObjectBaseDelegate<LogicConfig> {
   /**
    * Evaluate a decision matrix
    */
-  async decide(matrix: any): Promise<any> {
+  async decide(matrix: unknown): Promise<unknown> {
     const { onDecision } = this.config;
     if (onDecision) {
       return await onDecision(this.durableObject, matrix);

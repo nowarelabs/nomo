@@ -375,14 +375,14 @@ function tagged<TagValue extends string | number | boolean>(
   value: TagValue,
   tagName?: string,
 ): <T extends Record<string, unknown>>(data: T) => T & { tag: TagValue };
-function tagged(value: any, arg2?: any, arg3?: any): any {
+function tagged(value: unknown, arg2?: unknown, arg3?: unknown): unknown {
   if (typeof arg2 === "object" && arg2 !== null) {
     const data = arg2;
     const tagName = arg3 || "tag";
     return { ...data, [tagName]: value };
   }
   const tagName = arg2 || "tag";
-  return (data: any) => ({ ...data, [tagName]: value });
+  return (data: unknown) => ({ ...data, [tagName]: value });
 }
 
 function taggedWith<
@@ -394,12 +394,12 @@ function taggedWith<Tag extends string, TagValue extends string | number | boole
   tag: Tag,
   value: TagValue,
 ): <T extends Record<string, unknown>>(data: T) => T & { [K in Tag]: TagValue };
-function taggedWith(tag: any, value: any, arg3?: any): any {
+function taggedWith(tag: unknown, value: unknown, arg3?: unknown): unknown {
   if (typeof arg3 === "object" && arg3 !== null) {
     const data = arg3;
     return { ...data, [tag]: value };
   }
-  return (data: any) => ({ ...data, [tag]: value });
+  return (data: unknown) => ({ ...data, [tag]: value });
 }
 
 type MatchHandlers<
@@ -413,19 +413,19 @@ type MatchHandlers<
 } & {
   error?: (error: ErrorInfo) => R;
   default?: (payload: unknown) => R;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 const match = <
   T extends { [K in TagName]: string | number | boolean },
   TagName extends string = "tag",
-  Handlers extends MatchHandlers<T, any, TagName> = MatchHandlers<T, any, TagName>,
+  Handlers extends MatchHandlers<T, unknown, TagName> = MatchHandlers<T, unknown, TagName>,
 >(
   result: Result<T>,
   handlers: Handlers,
   tagName: TagName = "tag" as TagName,
-): Result<Handlers[keyof Handlers] extends (...args: any[]) => infer R ? R : never> => {
-  type ReturnVal = Handlers[keyof Handlers] extends (...args: any[]) => infer R ? R : never;
+): Result<Handlers[keyof Handlers] extends (...args: unknown[]) => infer R ? R : never> => {
+  type ReturnVal = Handlers[keyof Handlers] extends (...args: unknown[]) => infer R ? R : never;
 
   if (!result.success) {
     // 1. Try to match on tag value in error details
@@ -496,7 +496,7 @@ function isTagged<Tag extends string, TagValue extends string | number | boolean
   tag: Tag,
   tagValue: TagValue,
 ): value is { [K in Tag]: TagValue };
-function isTagged(value: unknown, tag?: string, tagValue?: any): boolean {
+function isTagged(value: unknown, tag?: string, tagValue?: unknown): boolean {
   const t = tag || "tag";
   const hasTag = typeof value === "object" && value !== null && t in value;
   if (!hasTag) return false;
@@ -673,8 +673,8 @@ export function jitterBackoff(attempt: number, baseDelayMs: number, maxDelayMs: 
 export function isErrorRetryable(err: unknown): boolean {
   const msg = String(err);
   return (
-    Boolean((err as any)?.retryable) &&
-    !(err as any)?.overloaded &&
+    Boolean((err as unknown)?.retryable) &&
+    !(err as unknown)?.overloaded &&
     !msg.includes("Durable Object is overloaded")
   );
 }

@@ -11,17 +11,17 @@ export type New{{typeName}} = z.infer<typeof Create{{typeName}}Schema>;
 export type Update{{typeName}}Payload = z.infer<typeof Update{{typeName}}Schema>;
 export type Patch{{typeName}}Payload = z.infer<typeof Update{{typeName}}Schema>;
 
-export type CreateMany{{typeName}}Payload = New{{typeName}}[];
+export type CreateMunknown{{typeName}}Payload = New{{typeName}}[];
 
 export type {{typeName}}Filter = {
   column: keyof {{typeName}};
-  value: any;
+  value: unknown;
 };
 
 export type {{typeName}}Where = Partial<{{typeName}}>;
 
 export type {{typeName}}Key = keyof {{typeName}};
-export type {{typeName}}KeyValue = { key: {{typeName}}Key; value: any };
+export type {{typeName}}KeyValue = { key: {{typeName}}Key; value: unknown };
 export type Get{{typeName}}ByKeyAndValue = {{typeName}}KeyValue;
 export type Update{{typeName}}ByKeyAndValue = {{typeName}}KeyValue & { data: Update{{typeName}}Payload };
 export type Patch{{typeName}}ByKeyAndValue = {{typeName}}KeyValue & { data: Patch{{typeName}}Payload };

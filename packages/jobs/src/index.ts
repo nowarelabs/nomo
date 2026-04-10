@@ -1,16 +1,16 @@
 import { Logger, LogLevel } from "nomo/logger";
 import { context, propagation } from "@opentelemetry/api";
 
-export abstract class BaseJob<T = any> {
+export abstract class BaseJob<T = unknown> {
   constructor(protected params: T) {}
-  abstract perform(ctx?: any): Promise<void>;
+  abstract perform(ctx?: unknown): Promise<void>;
 }
 
-export abstract class QueueJob<T = any> extends BaseJob<T> {
-  static async performLater<T extends { new (...args: any[]): any }>(
+export abstract class QueueJob<T = unknown> extends BaseJob<T> {
+  static async performLater<T extends { new (...args: unknown[]): unknown }>(
     this: T,
-    queue: any,
-    params: any,
+    queue: unknown,
+    params: unknown,
   ) {
     const logger = new Logger({ service: "jobs", level: LogLevel.DEBUG });
     logger.info(`Enqueuing job ${this.name}`, { params });
@@ -26,18 +26,18 @@ export abstract class QueueJob<T = any> extends BaseJob<T> {
     });
   }
 
-  static async performNow<T extends { new (...args: any[]): any }>(this: T, params: any) {
-    const job = new (this as any)(params);
+  static async performNow<T extends { new (...args: unknown[]): unknown }>(this: T, params: unknown) {
+    const job = new (this as unknown)(params);
     await job.perform();
   }
 }
 
-export abstract class WorkflowJob<T = any> extends BaseJob<T> {
-  static async performLater<T extends { new (...args: any[]): any }>(
+export abstract class WorkflowJob<T = unknown> extends BaseJob<T> {
+  static async performLater<T extends { new (...args: unknown[]): unknown }>(
     this: T,
-    workflow: any,
-    params: any,
-    options?: any,
+    workflow: unknown,
+    params: unknown,
+    options?: unknown,
   ) {
     const logger = new Logger({ service: "jobs", level: LogLevel.DEBUG });
     logger.info(`Creating workflow ${this.name}`, { params, options });
@@ -55,11 +55,11 @@ export abstract class WorkflowJob<T = any> extends BaseJob<T> {
     });
   }
 
-  async step<R>(name: string, callback: () => Promise<R>, ctx: any): Promise<R> {
+  async step<R>(name: string, callback: () => Promise<R>, ctx: unknown): Promise<R> {
     return await ctx.step.do(name, callback);
   }
 
-  async sleep(seconds: number, ctx: any): Promise<void> {
+  async sleep(seconds: number, ctx: unknown): Promise<void> {
     await ctx.step.sleep(`sleep_${seconds}s`, seconds);
   }
 }

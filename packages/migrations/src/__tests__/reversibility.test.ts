@@ -20,7 +20,7 @@ class ReversibleMigration extends Migration {
 }
 
 class MockReversibleMigration extends ReversibleMigration {
-  private _preservedCommands: any[] = [];
+  private _preservedCommands: unknown[] = [];
 
   async executeCommands(): Promise<Result<void>> {
     this._preservedCommands = [...this._commands];
@@ -40,15 +40,15 @@ describe("Reversible Migrations", () => {
       run: async () => ok({}),
       all: async () => ok([]),
     };
-    const migration = new MockReversibleMigration(mockDb as any);
+    const migration = new MockReversibleMigration(mockDb as unknown);
     const upRes = await migration.up();
     expect(upRes.success).toBe(true);
 
     const commands = migration.getPreservedCommands();
-    const queries = commands.map((c: any) => {
+    const queries = commands.map((c: unknown) => {
       const res = sql.generate(c.up);
       expect(res.success).toBe(true);
-      return (res as any).data;
+      return (res as unknown).data;
     });
 
     expect(queries.join("\n")).toContain('ALTER TABLE "users" ADD COLUMN "bio" TEXT;');
@@ -61,16 +61,16 @@ describe("Reversible Migrations", () => {
 
   it("generates correct reverse SQL for rollbacks", async () => {
     const mockDb = { run: async () => ok({}) };
-    const migration = new MockReversibleMigration(mockDb as any);
+    const migration = new MockReversibleMigration(mockDb as unknown);
     const upRes = await migration.up(); // Record them
     expect(upRes.success).toBe(true);
 
     const commands = migration.getPreservedCommands();
     // Reverse commands are processed in reverse order by the runner
-    const reverseQueries = [...commands].reverse().map((c: any) => {
+    const reverseQueries = [...commands].reverse().map((c: unknown) => {
       const res = sql.generate(c.down);
       expect(res.success).toBe(true);
-      return (res as any).data;
+      return (res as unknown).data;
     });
 
     // 1. Recreate temp_logs

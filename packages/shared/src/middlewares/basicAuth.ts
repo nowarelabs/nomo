@@ -7,7 +7,7 @@ export const basicAuth = (
     realm?: string;
   } = {},
 ): Middleware => {
-  return async (req: Request, env: any, ctx: RouterContext, next: Next) => {
+  return async (req: Request, env: unknown, ctx: RouterContext, next: Next) => {
     const authHeader = req.headers.get("Authorization");
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {

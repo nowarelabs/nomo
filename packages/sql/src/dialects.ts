@@ -3,7 +3,7 @@ export type Dialect = "sqlite" | "postgres" | "mysql";
 export interface DialectStrategy {
   dialect: Dialect;
   quoteIdentifier(name: string): string;
-  quoteLiteral(value: any): string;
+  quoteLiteral(value: unknown): string;
   mapType(type: string): string;
 }
 
@@ -20,7 +20,7 @@ export abstract class BaseDialectStrategy implements DialectStrategy {
     return `"${name.replace(/"/g, '""')}"`;
   }
 
-  quoteLiteral(value: any): string {
+  quoteLiteral(value: unknown): string {
     if (value === null || value === undefined) return "NULL";
     if (typeof value === "string") return `'${value.replace(/'/g, "''")}'`;
     if (typeof value === "boolean") return value ? "1" : "0";

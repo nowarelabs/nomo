@@ -15,10 +15,10 @@ import { ConfigDelegate, ConfigOptions } from "./delegates/config";
 
 export class BaseDurableObject extends DurableObject {
   storage: DurableObjectStorage;
-  db: DrizzleSqliteDODatabase<any>;
+  db: DrizzleSqliteDODatabase<unknown>;
   protected delegates: Map<string, DurableObjectBaseDelegate> = new Map();
 
-  constructor(ctx: DurableObjectState, env: any) {
+  constructor(ctx: DurableObjectState, env: unknown) {
     super(ctx, env);
     this.storage = ctx.storage;
     // @ts-ignore - Drizzle typed for DO storage
@@ -31,14 +31,14 @@ export class BaseDurableObject extends DurableObject {
    */
   protected use<T extends DurableObjectBaseDelegate>(
     name: string,
-    delegateClass: new (owner: BaseDurableObject, config: any) => T,
-    config: any,
+    delegateClass: new (owner: BaseDurableObject, config: unknown) => T,
+    config: unknown,
   ): T {
     const delegate = new delegateClass(this, config);
     this.delegates.set(name, delegate);
 
     // Bind the handle method to this[name] for RPC accessibility
-    (this as any)[name] = (...args: any[]) => delegate.handle(...args);
+    (this as unknown)[name] = (...args: unknown[]) => delegate.handle(...args);
 
     // Call onInit if it exists
     if (delegate.onInit) {
@@ -120,11 +120,11 @@ export class BaseDurableObject extends DurableObject {
     return await this.storage.sql.exec(sqlText).toArray();
   }
 
-  async clear(table: any): Promise<void> {
+  async clear(table: unknown): Promise<void> {
     await this.storage.sql.exec(`DELETE FROM ${table?.name || table}`);
   }
 
-  async insertBatch<T extends Record<string, any>>(table: any, records: T[]): Promise<number> {
+  async insertBatch<T extends Record<string, unknown>>(table: unknown, records: T[]): Promise<number> {
     if (!records?.length) return 0;
 
     const tableName = table?.name || table;

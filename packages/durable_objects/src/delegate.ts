@@ -1,6 +1,6 @@
 import { BaseDurableObject } from "./index";
 
-export abstract class DurableObjectBaseDelegate<Config = any> {
+export abstract class DurableObjectBaseDelegate<Config = unknown> {
   constructor(
     protected durableObject: BaseDurableObject,
     protected config: Config,
@@ -19,5 +19,5 @@ export abstract class DurableObjectBaseDelegate<Config = any> {
   /**
    * The primary method associated with the pattern (e.g., populate, check, etc.)
    */
-  abstract handle(...args: any[]): Promise<any>;
+  abstract handle(...args: unknown[]): Promise<unknown>;
 }

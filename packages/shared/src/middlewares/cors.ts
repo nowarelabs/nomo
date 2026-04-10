@@ -8,7 +8,7 @@ export type CorsOptions = {
 };
 
 export const cors = (options: CorsOptions = {}): Middleware => {
-  return async (req: Request, env: any, ctx: RouterContext, next: Next) => {
+  return async (req: Request, env: unknown, ctx: RouterContext, next: Next) => {
     const origin = options.origin || "*";
     const methods = options.methods || ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
     const headers = options.headers || ["Content-Type", "Authorization", "X-Requested-With"];

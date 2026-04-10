@@ -11,7 +11,7 @@ import { sql as sqlBuilder, getDialectStrategy } from "nomo/sql";
 export class MigrationRunner {
   private migrations: Migration[] = [];
 
-  constructor(private db: any) {}
+  constructor(private db: unknown) {}
 
   /**
    * Set the migrations to operate on
@@ -73,7 +73,7 @@ export class MigrationRunner {
       sqlTag`SELECT version FROM schema_migrations ORDER BY version ASC;`,
     );
     if (!res.success) return res as Result<never>;
-    return ok(res.data.map((r: any) => r.version));
+    return ok(res.data.map((r: unknown) => r.version));
   }
 
   /**
@@ -175,7 +175,7 @@ export class MigrationRunner {
       return ok(this);
     }
 
-    const batchStmts: any[] = [];
+    const batchStmts: unknown[] = [];
     for (const m of pending) {
       const sqlsRes = await m.toSql("up");
       if (!sqlsRes.success) return sqlsRes as Result<never>;

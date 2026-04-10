@@ -57,14 +57,14 @@ describe("Migration Modification Methods", () => {
         ]),
     };
     const migration = new MockMigration(mockDb);
-    (migration as any)._inChange = true;
+    (migration as unknown)._inChange = true;
     await migration.change();
 
-    const commands = (migration as any)._commands;
-    const queries = commands.map((cmd: any) => {
+    const commands = (migration as unknown)._commands;
+    const queries = commands.map((cmd: unknown) => {
       const res = sql.generate(cmd.up);
       expect(res.success).toBe(true);
-      return (res as any).data;
+      return (res as unknown).data;
     });
 
     expect(queries).toContain('ALTER TABLE "users" RENAME TO "accounts";');
@@ -73,7 +73,7 @@ describe("Migration Modification Methods", () => {
     expect(queries).toContain('ALTER TABLE "accounts" RENAME COLUMN "name" TO "full_name";');
 
     // In SQLite mode, these now trigger recreateTable
-    expect(commands.some((c: any) => c.up.type === "recreateTable")).toBe(true);
+    expect(commands.some((c: unknown) => c.up.type === "recreateTable")).toBe(true);
 
     expect(queries).toContain(
       'CREATE UNIQUE INDEX IF NOT EXISTS "idx_accounts_email" ON "accounts" ("email");',

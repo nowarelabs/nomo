@@ -120,7 +120,7 @@ function generateMigrationTemplate(
   content += `      // t.integer('count', { notNull: true, default: 0 });\n`;
   content += `      // t.foreignKey('parent_id', 'parents', 'id', { onDelete: 'cascade' });\n`;
   content += `      // t.belongsTo('parents', { name: 'parent', foreignKey: 'parent_id' });\n`;
-  content += `      // t.hasMany('children', { name: 'children', foreignKey: 'parent_id' });\n`;
+  content += `      // t.hasMunknown('children', { name: 'children', foreignKey: 'parent_id' });\n`;
   content += `      t.timestamps();\n`;
 
   if (isDO) {

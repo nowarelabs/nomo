@@ -39,11 +39,11 @@ export class MigrationCompiler {
       const metadataPath = path.resolve(process.cwd(), ".nomo/temp_metadata.json");
       const { execSync } = await import("node:child_process");
 
-      // Clean up any existing temp files
+      // Clean up unknown existing temp files
       await fs.rm(path.dirname(metadataPath), { force: true }).catch(() => {});
       await fs.mkdir(path.dirname(metadataPath), { recursive: true });
 
-      const allMetadata: Record<string, any[]> = {};
+      const allMetadata: Record<string, unknown[]> = {};
 
       const files = (await fs.readdir(this.migrationsDir)).filter((f) => f.endsWith(".ts")).sort();
 

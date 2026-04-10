@@ -2,9 +2,9 @@ import { ComponentChild } from "./types";
 
 export declare namespace JSX {
   interface IntrinsicElements {
-    [elemName: string]: any;
+    [elemName: string]: unknown;
   }
-  type Element = any;
+  type Element = unknown;
   interface ElementClass {
     render(): ComponentChild;
   }
@@ -20,9 +20,9 @@ declare global {
        * Support for standard and custom elements (Web Components).
        * Custom elements are normally kebab-case.
        */
-      [elemName: string]: any;
+      [elemName: string]: unknown;
     }
-    type Element = any;
+    type Element = unknown;
     interface ElementClass {
       render(): ComponentChild;
     }

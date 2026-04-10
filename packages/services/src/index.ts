@@ -29,12 +29,12 @@ export abstract class BaseService<Env = unknown, Ctx = ExecutionContext> {
   }
 
   protected get db(): D1Database {
-    return (this.env as any).DB;
+    return (this.env as unknown).DB;
   }
 
   protected createServiceContext(
     serviceName: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): RouterContext<Env, Ctx> {
     const newCtx = { ...this.ctx } as RouterContext<Env, Ctx>;
     newCtx.source = "service";

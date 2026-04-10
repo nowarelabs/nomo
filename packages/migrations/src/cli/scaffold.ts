@@ -21,9 +21,9 @@ const tableize = (typeName: string) => i.tableize(typeName);
 export interface Field {
   name: string;
   type: string;
-  options: Record<string, any>;
+  options: Record<string, unknown>;
   relationship?: {
-    type: "hasMany" | "belongsTo" | "hasOne";
+    type: "hasMunknown" | "belongsTo" | "hasOne";
     target: string;
     foreignKey?: string;
     name?: string;
@@ -110,7 +110,7 @@ class RemoteTemplateLoader implements ITemplateLoader {
 // loads + renders in one step.
 // ═════════════════════════════════════════════════════════════════════════════
 
-const TEMPLATE_HELPERS: Record<string, (val: any) => string> = {
+const TEMPLATE_HELPERS: Record<string, (val: unknown) => string> = {
   pascalCase,
   camelCase,
   snakeCase,
@@ -135,14 +135,14 @@ class TemplateEngine {
     return this.loader.load(name);
   }
 
-  async render(templateName: string, vars: Record<string, any>): Promise<string> {
+  async render(templateName: string, vars: Record<string, unknown>): Promise<string> {
     const tpl = await this.load(templateName);
     return TemplateEngine.renderString(tpl, vars);
   }
 
   // ── Static Renderer (pure, no I/O) ──────────────────────────────────────
 
-  static renderString(template: string, vars: Record<string, any>): string {
+  static renderString(template: string, vars: Record<string, unknown>): string {
     let res = template;
 
     // {{#if key}}...{{/if}}
@@ -157,7 +157,7 @@ class TemplateEngine {
       const arr = vars[key];
       if (!Array.isArray(arr) || arr.length === 0) return "";
       return arr
-        .map((item: any) => {
+        .map((item: unknown) => {
           let block = content;
           block = block.replace(/\{\{this\}\}/g, String(item));
           for (const [helperName, helperFn] of Object.entries(TEMPLATE_HELPERS)) {
@@ -200,7 +200,7 @@ class TemplateEngine {
 // ═════════════════════════════════════════════════════════════════════════════
 
 class TemplateVarsBuilder {
-  private vars: Record<string, any> = {};
+  private vars: Record<string, unknown> = {};
 
   withMigration(parsed: ParsedMigration, typeName: string, modelFileName: string): this {
     const kebabTableName = parsed.tableName.replace(/_/g, "-");
@@ -243,12 +243,12 @@ class TemplateVarsBuilder {
     return this;
   }
 
-  withExtra(extra: Record<string, any>): this {
+  withExtra(extra: Record<string, unknown>): this {
     this.vars = { ...this.vars, ...extra };
     return this;
   }
 
-  build(): Record<string, any> {
+  build(): Record<string, unknown> {
     return { ...this.vars };
   }
 
@@ -315,7 +315,7 @@ class TemplateVarsBuilder {
 // generate() is the fixed algorithm skeleton:
 //   1. Ensure output directory exists
 //   2. Load + render template
-//   3. Apply any post-processing (relationship injection, etc.)
+//   3. Apply unknown post-processing (relationship injection, etc.)
 //   4. Write to disk
 //
 // Subclasses only override the parts that differ: getTemplateName(),
@@ -329,14 +329,14 @@ abstract class FileGenerator {
   ) {}
 
   abstract getTemplateName(): string;
-  abstract resolveTargetPath(vars: Record<string, any>): string;
+  abstract resolveTargetPath(vars: Record<string, unknown>): string;
 
   // Hook — subclasses may override for extra content injection
-  protected postProcess(content: string, _vars: Record<string, any>, _fields: Field[]): string {
+  protected postProcess(content: string, _vars: Record<string, unknown>, _fields: Field[]): string {
     return content;
   }
 
-  async generate(vars: Record<string, any>, fields: Field[]): Promise<string> {
+  async generate(vars: Record<string, unknown>, fields: Field[]): Promise<string> {
     const targetPath = this.resolveTargetPath(vars);
     await fs.mkdir(path.dirname(targetPath), { recursive: true });
 
@@ -380,7 +380,7 @@ class ModelGenerator extends FileGenerator {
   getTemplateName() {
     return "model.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/models", `${vars.modelFileName}.ts`);
   }
 }
@@ -389,7 +389,7 @@ class RpcGenerator extends FileGenerator {
   getTemplateName() {
     return "rpc.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/rpc", `${vars.tableName}.ts`);
   }
 }
@@ -398,7 +398,7 @@ class RpcInstanceGenerator extends FileGenerator {
   getTemplateName() {
     return "rpc_instance.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     const fileName = `${vars.tableName}_rpc_instance`;
     return path.join(this.projectRoot, "src/rpc/instances", `${fileName}.ts`);
   }
@@ -408,7 +408,7 @@ class ControllerGenerator extends FileGenerator {
   getTemplateName() {
     return "controller.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/controllers", `${vars.tableName}_controller.ts`);
   }
 }
@@ -417,7 +417,7 @@ class ControllerRpcGenerator extends FileGenerator {
   getTemplateName() {
     return "controller_rpc.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/controllers/rpcs", `${vars.tableName}.ts`);
   }
 }
@@ -426,7 +426,7 @@ class ServiceGenerator extends FileGenerator {
   getTemplateName() {
     return "service.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/services", `${vars.tableName}_service.ts`);
   }
 }
@@ -435,7 +435,7 @@ class ViewGenerator extends FileGenerator {
   getTemplateName() {
     return "view.tsx";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/views", vars.tableName, "index.tsx");
   }
 }
@@ -444,7 +444,7 @@ class ComponentJsGenerator extends FileGenerator {
   getTemplateName() {
     return "component.js";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     const kebabName = (vars.kebabTableName || vars.tableName).replace(/_/g, "-");
     return path.join(this.projectRoot, "public/components", `${kebabName}-table.js`);
   }
@@ -454,7 +454,7 @@ class ComponentCssGenerator extends FileGenerator {
   getTemplateName() {
     return "component.css";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     const kebabName = (vars.kebabTableName || vars.tableName).replace(/_/g, "-");
     return path.join(this.projectRoot, "public/components", `${kebabName}-table.css`);
   }
@@ -464,7 +464,7 @@ class TypeFileGenerator extends FileGenerator {
   getTemplateName() {
     return "types.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/models/types", `${snakeCase(vars.typeName)}.ts`);
   }
 }
@@ -473,7 +473,7 @@ class DurableObjectGenerator extends FileGenerator {
   getTemplateName() {
     return "durable_object.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/durable_objects", `${vars.doClassName}.ts`);
   }
 }
@@ -482,7 +482,7 @@ class ControllerRpcViewGenerator extends FileGenerator {
   getTemplateName() {
     return "controller_rpc_view.ts";
   }
-  resolveTargetPath(vars: Record<string, any>) {
+  resolveTargetPath(vars: Record<string, unknown>) {
     return path.join(this.projectRoot, "src/controllers/rpcs/views", `${vars.tableName}.ts`);
   }
 }
@@ -573,11 +573,11 @@ class SchemaGenerator extends FileGenerator {
     return "schema.ts";
   }
 
-  resolveTargetPath(_vars: Record<string, any>) {
+  resolveTargetPath(_vars: Record<string, unknown>) {
     return path.resolve(this.projectRoot, "src/db/schema/schema.ts");
   }
 
-  override async generate(vars: Record<string, any>, fields: Field[]): Promise<string> {
+  override async generate(vars: Record<string, unknown>, fields: Field[]): Promise<string> {
     const { tableName } = vars;
     const schemaDir = path.resolve(this.projectRoot, "src/db/schema");
     await fs.mkdir(schemaDir, { recursive: true });
@@ -795,7 +795,7 @@ class MigrationParser {
     const tableNames = Array.from(tableNameMatches, (m) => m[1]);
 
     if (tableNames.length === 0) {
-      throw new Error(`Could not find any table names in migration: ${filePath}`);
+      throw new Error(`Could not find unknown table names in migration: ${filePath}`);
     }
 
     const locationMatch = content.match(/location:\s*['"]([^'"]+)['"]/);
@@ -845,7 +845,7 @@ class MigrationParser {
         const originalType = match[1];
         const name = match[2];
         const optsRaw = match[3] || "";
-        const options: Record<string, any> = {};
+        const options: Record<string, unknown> = {};
 
         let type = originalType;
         if (type === "text") type = "string";
@@ -867,7 +867,7 @@ class MigrationParser {
       const fkRegex =
         /t\.foreignKey\(['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"](?:\s*,\s*(\{[^}]+\}))?\);/g;
       while ((match = fkRegex.exec(tableContent)) !== null) {
-        const fk: any = { column: match[1], toTable: match[2], toColumn: match[3] };
+        const fk: unknown = { column: match[1], toTable: match[2], toColumn: match[3] };
         const onDeleteMatch = (match[4] || "").match(/onDelete:\s*['"]([^'"]+)['"]/);
         if (onDeleteMatch) fk.onDelete = onDeleteMatch[1];
         foreignKeys.push(fk);
@@ -879,9 +879,9 @@ class MigrationParser {
         if (cols) indexes.push({ columns: cols.map((c) => c.replace(/['"]/g, "")) });
       }
 
-      const relRegex = /t\.(belongsTo|hasMany|hasOne)\(['"]([^'"]+)['"]\s*,\s*(\{[^}]+\})\);/g;
+      const relRegex = /t\.(belongsTo|hasMunknown|hasOne)\(['"]([^'"]+)['"]\s*,\s*(\{[^}]+\})\);/g;
       while ((match = relRegex.exec(tableContent)) !== null) {
-        const relType = match[1] as "hasMany" | "belongsTo" | "hasOne";
+        const relType = match[1] as "hasMunknown" | "belongsTo" | "hasOne";
         const target = match[2];
         const optsRaw = match[3];
         const nameMatch = optsRaw.match(/name:\s*['"]([^'"]+)['"]/);
@@ -1062,7 +1062,7 @@ class ScaffoldDirector {
 
   private async generateForMigration(
     migration: ParsedMigration,
-    vars: Record<string, any>,
+    vars: Record<string, unknown>,
   ): Promise<string[]> {
     const { engine, options } = this;
     const generated: string[] = [];
@@ -1243,7 +1243,7 @@ export const scaffoldCommand = defineCommand({
 // ═════════════════════════════════════════════════════════════════════════════
 // PUBLIC API — Backwards-Compatible Exports
 //
-// These thin wrappers preserve the external API surface so that any code
+// These thin wrappers preserve the external API surface so that unknown code
 // depending on `generateSchema` or `generateFromTemplate` continues to compile.
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -1263,7 +1263,7 @@ export async function generateSchema(
 export async function generateFromTemplate(
   name: string,
   targetPath: string,
-  vars: any,
+  vars: unknown,
   fields: Field[],
   loadTemplate: (n: string) => Promise<string>,
 ): Promise<string> {
@@ -1326,7 +1326,7 @@ function typeNameFromTableName(tableName: string): string {
  *   "title:string:notNull:unique"
  *   "price:decimal:precision=10:scale=2:default=0"
  *   "owner_id:text:references=users:onDelete=cascade"
- *   ":hasMany=comments"
+ *   ":hasMunknown=comments"
  */
 export function parseField(token: string): Field {
   const parts = token.split(":");
@@ -1334,17 +1334,17 @@ export function parseField(token: string): Field {
   const typeRaw = parts[1] ?? "string";
   const modifiers = parts.slice(2);
 
-  const options: Record<string, any> = {};
+  const options: Record<string, unknown> = {};
 
-  // Relationship shorthand: ":hasMany=target" / ":belongsTo=target" etc.
-  const relMatch = typeRaw.match(/^(hasMany|belongsTo|hasOne)=(.+)$/);
+  // Relationship shorthand: ":hasMunknown=target" / ":belongsTo=target" etc.
+  const relMatch = typeRaw.match(/^(hasMunknown|belongsTo|hasOne)=(.+)$/);
   if (relMatch) {
     return {
       name,
       type: typeRaw,
       options,
       relationship: {
-        type: relMatch[1] as "hasMany" | "belongsTo" | "hasOne",
+        type: relMatch[1] as "hasMunknown" | "belongsTo" | "hasOne",
         target: relMatch[2],
       },
     };

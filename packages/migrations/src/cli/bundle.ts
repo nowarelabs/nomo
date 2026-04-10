@@ -31,7 +31,7 @@ export const bundleCommand = defineCommand({
         process.exit(1);
       }
       consola.success(`Migrations bundled to ${args.output}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       consola.error(`Failed to bundle migrations: ${err.message}`);
       process.exit(1);
     }

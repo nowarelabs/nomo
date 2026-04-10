@@ -1,7 +1,7 @@
 import { Middleware, Next, RouterContext } from "../router";
 
 export const logger = (): Middleware => {
-  return async (req: Request, env: any, ctx: RouterContext, next: Next) => {
+  return async (req: Request, env: unknown, ctx: RouterContext, next: Next) => {
     const start = Date.now();
     const { method, url } = req;
     const { pathname } = new URL(url);

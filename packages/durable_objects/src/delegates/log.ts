@@ -9,7 +9,7 @@ export class LogDelegate extends DurableObjectBaseDelegate<LogConfig> {
   /**
    * Log an event to the DO's SQL storage.
    */
-  async handle(event: string, metadata: any = {}): Promise<void> {
+  async handle(event: string, metadata: unknown = {}): Promise<void> {
     const { tableName = "logs" } = this.config;
 
     await this.durableObject.storage.sql.exec(

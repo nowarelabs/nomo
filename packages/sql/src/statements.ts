@@ -184,7 +184,7 @@ export const sql = {
         sql.val(path),
         sql.op(")"),
       ]),
-    set: (json: string | SqlPart, path: string, value: any) =>
+    set: (json: string | SqlPart, path: string, value: unknown) =>
       new Composite([
         new Keyword("JSON_SET("),
         typeof json === "string" ? sql.id(json) : json,
@@ -235,7 +235,7 @@ export const sql = {
     }
     return {
       doNothing: () => new Composite([...parts, new Keyword(" DO NOTHING")]),
-      doUpdate: (set: Record<string, any>) => {
+      doUpdate: (set: Record<string, unknown>) => {
         const updateParts: SqlPart[] = [...parts, new Keyword(" DO UPDATE SET ")];
         const entries = Object.entries(set).map(([k, v]) => {
           const valPart = v instanceof SqlPart ? v : sql.val(v);

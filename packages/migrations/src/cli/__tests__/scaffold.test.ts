@@ -51,11 +51,11 @@ describe("Scaffold Generator Helpers", () => {
     });
 
     it("parses relationship-only tokens", () => {
-      expect(parseField(":hasMany=comments")).toEqual({
+      expect(parseField(":hasMunknown=comments")).toEqual({
         name: "",
-        type: "hasMany=comments",
+        type: "hasMunknown=comments",
         options: {},
-        relationship: { type: "hasMany", target: "comments" },
+        relationship: { type: "hasMunknown", target: "comments" },
       });
       expect(parseField(":belongsTo=user")).toEqual({
         name: "",
@@ -74,7 +74,7 @@ describe("Scaffold Generator Helpers", () => {
 
     it("handles -y suffix", () => {
       expect(pluralize("Category")).toBe("Categories");
-      expect(pluralize("Company")).toBe("Companies");
+      expect(pluralize("Compunknown")).toBe("Companies");
     });
 
     it("handles -s suffix", () => {

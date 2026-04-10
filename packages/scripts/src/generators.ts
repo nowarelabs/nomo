@@ -5,8 +5,8 @@ import { JobRegistry } from "../jobs";
 
 const dispatcher = new JobDispatcher(JobRegistry);
 
-export class ${name} extends BaseWorkflow<Env, any> {
-    async run(event: WorkflowEvent<any>, step: WorkflowStep) {
+export class ${name} extends BaseWorkflow<Env, unknown> {
+    async run(event: WorkflowEvent<unknown>, step: WorkflowStep) {
         await dispatcher.handleWorkflow(event, step);
     }
 }

@@ -1,6 +1,6 @@
 import { Middleware, Next, RouterContext } from "../types";
 
-export const logger = <Env = any, Ctx = any>(): Middleware<Env, Ctx> => {
+export const logger = <Env = unknown, Ctx = unknown>(): Middleware<Env, Ctx> => {
   return async (req: Request, env: Env, ctx: RouterContext<Env, Ctx>, next: Next) => {
     const start = Date.now();
     const { method, url } = req;

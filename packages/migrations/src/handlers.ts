@@ -123,8 +123,8 @@ export const STANDARD_HANDLERS: Record<string, HandlerFunc> = {
             );
           } else if (con.type === "check") {
             conParts.append(sql.key("CHECK ("));
-            if (typeof con.definition === "object" && "__isSql" in (con.definition as any)) {
-              conParts.append(sql.raw((con.definition as any).sql));
+            if (typeof con.definition === "object" && "__isSql" in (con.definition as unknown)) {
+              conParts.append(sql.raw((con.definition as unknown).sql));
             } else {
               conParts.append(sql.raw(String(con.definition)));
             }
@@ -188,7 +188,7 @@ export const STANDARD_HANDLERS: Record<string, HandlerFunc> = {
           tableName: string;
           name: string;
           columnType: string;
-          options: any;
+          options: unknown;
         };
         const stmt = sql
           .statement()

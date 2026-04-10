@@ -2,7 +2,7 @@ import { DurableObjectBaseDelegate } from "../delegate";
 import { eq } from "drizzle-orm";
 
 export interface ViewConfig {
-  table: any; // Drizzle table
+  table: unknown; // Drizzle table
   primaryKey?: string;
 }
 
@@ -13,14 +13,14 @@ export class ViewDelegate extends DurableObjectBaseDelegate<ViewConfig> {
    */
   async handle(
     options: {
-      where?: any;
+      where?: unknown;
       limit?: number;
       offset?: number;
-      orderBy?: any;
+      orderBy?: unknown;
     } = {},
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     const { table } = this.config;
-    let query: any = this.durableObject.db.select().from(table);
+    let query: unknown = this.durableObject.db.select().from(table);
 
     if (options.where) {
       // Simple where logic for now, can be expanded
@@ -44,7 +44,7 @@ export class ViewDelegate extends DurableObjectBaseDelegate<ViewConfig> {
   /**
    * Find a single record by primary key
    */
-  async find(id: any): Promise<any | null> {
+  async find(id: unknown): Promise<unknown | null> {
     const { table, primaryKey = "id" } = this.config;
     const results = await this.durableObject.db
       .select()

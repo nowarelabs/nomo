@@ -4,7 +4,7 @@ import { Migration } from "../index";
 import { ok } from "nomo/result";
 
 vi.mock("drizzle-orm", () => {
-  const sqlMock = (chunks: any, ...vals: any[]) => ({
+  const sqlMock = (chunks: unknown, ...vals: unknown[]) => ({
     sql: chunks.reduce((acc: string, chunk: string, i: number) => {
       const val = vals[i];
       const valStr =
@@ -13,7 +13,7 @@ vi.mock("drizzle-orm", () => {
     }, ""),
     __isSql: true,
   });
-  (sqlMock as any).raw = (str: string) => ({ sql: str, __isSql: true });
+  (sqlMock as unknown).raw = (str: string) => ({ sql: str, __isSql: true });
   return { sql: sqlMock };
 });
 
@@ -29,7 +29,7 @@ class Migration2 extends Migration {
 }
 
 describe("MigrationRunner", () => {
-  let mockDb: any;
+  let mockDb: unknown;
   let runner: MigrationRunner;
   let migrations: Migration[];
 
@@ -44,7 +44,7 @@ describe("MigrationRunner", () => {
 
   it("ensures migrations table exists", async () => {
     await runner.ensureMigrationsTable();
-    expect(mockDb.run).toHaveBeenCalledWith(expect.anything());
+    expect(mockDb.run).toHaveBeenCalledWith(expect.unknownthing());
   });
 
   it("runs pending migrations up", async () => {
@@ -61,7 +61,7 @@ describe("MigrationRunner", () => {
 
     expect(mockDb.run).not.toHaveBeenCalledWith(expect.stringContaining("20260101000000"));
     // Wait, let's be more specific
-    const insertCalls = mockDb.run.mock.calls.filter((c: any) => c[0]?.sql?.includes("INSERT"));
+    const insertCalls = mockDb.run.mock.calls.filter((c: unknown) => c[0]?.sql?.includes("INSERT"));
     // Since we are mocking drizzle-orm sql, it might be an object
   });
 

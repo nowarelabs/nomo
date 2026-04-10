@@ -1,6 +1,6 @@
 import { Middleware, Next, RouterContext } from "../types";
 
-export const secureHeaders = <Env = any, Ctx = any>(): Middleware<Env, Ctx> => {
+export const secureHeaders = <Env = unknown, Ctx = unknown>(): Middleware<Env, Ctx> => {
   return async (req: Request, env: Env, ctx: RouterContext<Env, Ctx>, next: Next) => {
     const res = await next();
     res.headers.set("X-Content-Type-Options", "nosniff");

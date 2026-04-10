@@ -24,7 +24,7 @@ export class CodeBuilder {
    * Render a template with variable replacement
    * Syntax: {{variable}}
    */
-  render(template: string, vars: Record<string, any>): this {
+  render(template: string, vars: Record<string, unknown>): this {
     let rendered = template;
     for (const [key, value] of Object.entries(vars)) {
       const regex = new RegExp(`{{${key}}}`, "g");

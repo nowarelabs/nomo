@@ -108,7 +108,7 @@ describe("Result", () => {
       expect(when(false, "yes", "no")).toBe("no");
 
       // Practical examples
-      const req = { user: { id: "123" } } as any;
+      const req = { user: { id: "123" } } as unknown;
       expect(when(!!req.user?.id, req.user.id, "anonymous")).toBe("123");
       expect(when(false, "prod", "dev")).toBe("dev");
     });
@@ -367,7 +367,7 @@ describe("Result", () => {
       // With ok()
       const result = ok(tagged("FOUND", { id: 1 }));
       expect(isTagged(result.data)).toBe(true);
-      expect((result.data as any).tag).toBe("FOUND");
+      expect((result.data as unknown).tag).toBe("FOUND");
 
       // With err()
       const error = err(tagged("VALIDATION_ERROR", { field: "email" }));
@@ -375,7 +375,7 @@ describe("Result", () => {
       if (!error.success) {
         expect(error.message).toBe("VALIDATION_ERROR");
         expect(isTagged(error.details)).toBe(true);
-        expect((error.details as any).tag).toBe("VALIDATION_ERROR");
+        expect((error.details as unknown).tag).toBe("VALIDATION_ERROR");
       }
     });
 
@@ -393,7 +393,7 @@ describe("Result", () => {
 
       // Practical example
       const result = ok(taggedWith("resultType", "FOUND", { user: "John" }));
-      expect((result.data as any).resultType).toBe("FOUND");
+      expect((result.data as unknown).resultType).toBe("FOUND");
     });
 
     it("taggedWith should create a tagger for a specific key", () => {
@@ -413,7 +413,7 @@ describe("Result", () => {
     });
 
     it("transform should propagate error", () => {
-      const result = err("fail").transform((x: any) => x + 1);
+      const result = err("fail").transform((x: unknown) => x + 1);
       expect(result.success).toBe(false);
       if (!result.success) expect(result.error).toBe("fail");
     });
@@ -530,7 +530,7 @@ describe("Result", () => {
   describe("complex patterns", () => {
     interface APIResponse {
       status: number;
-      body: any;
+      body: unknown;
       code?: string;
     }
 
@@ -543,7 +543,7 @@ describe("Result", () => {
         },
       };
       const verifyPassword = async (p: string, h: string) => p === "password123" && h === "hashed";
-      const generateToken = (u: any) => `token-${u.id}`;
+      const generateToken = (u: unknown) => `token-${u.id}`;
 
       async function authenticateUser(email: string, password: string): Promise<APIResponse> {
         // Step 1: Validate input
@@ -715,18 +715,18 @@ describe("Result", () => {
         });
 
         return match(paymentResult, {
-          PAID: (payload: any) => ({
+          PAID: (payload: unknown) => ({
             status: 200,
             body: {
               message: "Payment successful",
               transactionId: payload.transactionId,
             },
           }),
-          INSUFFICIENT_FUNDS: (payload: any) => ({
+          INSUFFICIENT_FUNDS: (payload: unknown) => ({
             status: 402,
             body: { error: "Insufficient funds", amount: payload.amount },
           }),
-          CARD_ERROR: (payload: any) => ({
+          CARD_ERROR: (payload: unknown) => ({
             status: 400,
             body: { error: "Card error", code: payload.code },
           }),
@@ -734,7 +734,7 @@ describe("Result", () => {
             status: 503,
             body: { error: "Network error, please try again" },
           }),
-          error: (err: any) => ({
+          error: (err: unknown) => ({
             status: err.status || 500,
             body: { error: err.message },
           }),
@@ -749,7 +749,7 @@ describe("Result", () => {
       // Test Card Error (Wildcard)
       const cardResponse = await processPayment(99, "invalid_card");
       expect(cardResponse.status).toBe(400);
-      expect((cardResponse as any).body?.error).toBe("Card error");
+      expect((cardResponse as unknown).body?.error).toBe("Card error");
 
       // Test Network Error (Wildcard)
       const networkResponse = await processPayment(99, "other");
@@ -841,12 +841,12 @@ describe("Result", () => {
         const responseResult = await match<
           ProcessResult,
           "tag",
-          Record<string, (p: any) => APIResponse>
+          Record<string, (p: unknown) => APIResponse>
         >(processResult, {
           VALID: () => ({ status: 200, body: { message: "Valid request" } }),
           FOUND: (payload) => ({
             status: 200,
-            body: (payload as { user: any }).user,
+            body: (payload as { user: unknown }).user,
           }),
           NOT_FOUND: (payload) => ({
             status: 404,
@@ -858,7 +858,7 @@ describe("Result", () => {
             status: 403,
             body: {
               error: "User account is suspended",
-              user: (payload as { user: any }).user,
+              user: (payload as { user: unknown }).user,
             },
           }),
           MISSING_ID: () => ({
@@ -914,7 +914,7 @@ describe("Result", () => {
     it("should handle match with extra non-function properties (type robustness)", () => {
       const result = ok(tagged("TEST", { value: 1 }));
       const matched = match(result, {
-        TEST: (p: any) => p.value + 1,
+        TEST: (p: unknown) => p.value + 1,
         metadata: "important info", // This should not break type inference
         version: 1.0,
       });

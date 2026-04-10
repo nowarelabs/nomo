@@ -7,13 +7,13 @@ export interface AssetManifest {
 export class AssetPipeline {
   private manifest: AssetManifest | null = null;
   private isProd: boolean;
-  public importMap: any = null;
+  public importMap: unknown = null;
 
   constructor(
     options: {
       manifest?: AssetManifest;
       isProd?: boolean;
-      importMap?: any;
+      importMap?: unknown;
     } = {},
   ) {
     this.manifest = options.manifest || null;
@@ -65,7 +65,7 @@ export class AssetInjector {
     private entries: { styles: string[]; scripts: string[] },
   ) {}
 
-  element(element: any) {
+  element(element: unknown) {
     if (element.tagName === "head") {
       for (const style of this.entries.styles) {
         element.append(this.pipeline.stylesheet_link_tag(style), {

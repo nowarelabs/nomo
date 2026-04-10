@@ -47,7 +47,7 @@ export const syncCommand = defineCommand({
 
     // Read metadata if it exists
     const metadataPath = path.resolve(process.cwd(), ".nomo/temp_metadata.json");
-    let metadata: Record<string, any[]> = {};
+    let metadata: Record<string, unknown[]> = {};
     try {
       const content = await fs.readFile(metadataPath, "utf-8");
       metadata = JSON.parse(content);
@@ -128,7 +128,7 @@ async function updateWranglerConfig() {
         }
       } else {
         const err = updateRes.error;
-        const errMsg = typeof err === "string" ? err : (err as any)?.message;
+        const errMsg = typeof err === "string" ? err : (err as unknown)?.message;
         if (errMsg === "Migrations array not found in configuration") {
           consola.warn(
             "'migrations' array not found in wrangler.jsonc. You might need to add it manually.",

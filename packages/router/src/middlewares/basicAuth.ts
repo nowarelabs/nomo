@@ -1,6 +1,6 @@
 import { Middleware, Next, RouterContext } from "../types";
 
-export const basicAuth = <Env = any, Ctx = any>(
+export const basicAuth = <Env = unknown, Ctx = unknown>(
   options: {
     username?: string;
     password?: string;

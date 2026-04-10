@@ -11,7 +11,7 @@ const mockCtx = {
 describe("Router", () => {
   it("should match simple routes", async () => {
     const router = new Router();
-    router.get("/hello", async (req: any, env: any, ctx: any) => ctx.text("world"));
+    router.get("/hello", async (req: unknown, env: unknown, ctx: unknown) => ctx.text("world"));
 
     const req = new Request("http://localhost/hello");
     const res = await router.handle(req, {}, mockCtx);
@@ -22,7 +22,7 @@ describe("Router", () => {
 
   it("should extract parameters", async () => {
     const router = new Router();
-    router.get("/user/:id", async (req: any, env: any, ctx: any) =>
+    router.get("/user/:id", async (req: unknown, env: unknown, ctx: unknown) =>
       ctx.json({ id: ctx.params.id }),
     );
 
@@ -30,19 +30,19 @@ describe("Router", () => {
     const res = await router.handle(req, {}, mockCtx);
 
     expect(res.status).toBe(200);
-    const data = (await res.json()) as any;
+    const data = (await res.json()) as unknown;
     expect(data.id).toBe("123");
   });
 
   it("should handle query parameters", async () => {
     const router = new Router();
-    router.get("/search", async (req: any, env: any, ctx: any) => ctx.json(ctx.query));
+    router.get("/search", async (req: unknown, env: unknown, ctx: unknown) => ctx.json(ctx.query));
 
     const req = new Request("http://localhost/search?q=test&page=1");
     const res = await router.handle(req, {}, mockCtx);
 
     expect(res.status).toBe(200);
-    const data = (await res.json()) as any;
+    const data = (await res.json()) as unknown;
     expect(data.q).toBe("test");
     expect(data.page).toBe("1");
   });
@@ -58,7 +58,7 @@ describe("Router", () => {
       return res;
     });
 
-    router.get("/test", async (req: any, env: any, ctx: any) => {
+    router.get("/test", async (req: unknown, env: unknown, ctx: unknown) => {
       logs.push("handler");
       return ctx.text("ok");
     });
@@ -137,7 +137,7 @@ describe("Router", () => {
 
     it("should handle encoded characters correctly and safely", async () => {
       const router = new Router();
-      router.get("/hello/:name", async (req: any, env: any, ctx: any) => ctx.text(ctx.params.name));
+      router.get("/hello/:name", async (req: unknown, env: unknown, ctx: unknown) => ctx.text(ctx.params.name));
 
       // %20 is space
       const req = new Request("http://localhost/hello/John%20Doe");
@@ -171,7 +171,7 @@ describe("Router", () => {
 
     it("should handle recursive wildcards (*)", async () => {
       const router = new Router();
-      router.get("/static/*", async (req: any, env: any, ctx: any) => ctx.text(ctx.params["*"]));
+      router.get("/static/*", async (req: unknown, env: unknown, ctx: unknown) => ctx.text(ctx.params["*"]));
 
       const req = new Request("http://localhost/static/css/main.css");
       const res = await router.handle(req, {}, mockCtx);
@@ -211,7 +211,7 @@ describe("Router", () => {
 
     it("should support ctx.cache() helper", async () => {
       const router = new Router();
-      router.get("/cached", async (req: any, env: any, ctx: any) => {
+      router.get("/cached", async (req: unknown, env: unknown, ctx: unknown) => {
         ctx.cache(60);
         return ctx.text("ok");
       });
@@ -223,7 +223,7 @@ describe("Router", () => {
 
     it("should use elite hardening (Object.create(null)) for params", async () => {
       const router = new Router();
-      router.get("/:id", async (req: any, env: any, ctx: any) => {
+      router.get("/:id", async (req: unknown, env: unknown, ctx: unknown) => {
         return ctx.json({
           id: ctx.params.id,
           hasProto: "toString" in ctx.params,
@@ -232,7 +232,7 @@ describe("Router", () => {
 
       const req = new Request("http://localhost/123");
       const res = await router.handle(req, {}, mockCtx);
-      const data = (await res.json()) as any;
+      const data = (await res.json()) as unknown;
       expect(data.id).toBe("123");
       expect(data.hasProto).toBe(false); // Elite hardening check
     });

@@ -19,7 +19,7 @@ export class AppRoutes extends RouteDrawer<Env, AppExecutionContext> {
   draw() {
     this.use(htmlRewriterMiddleware);
     this.use(importMapMiddleware);
-    this.get('/health', (req: Request, env: Env, ctx: any) => ctx.json({ req, env, ctx, status: 'ok', service: 'gateway' }));
+    this.get('/health', (req: Request, env: Env, ctx: unknown) => ctx.json({ req, env, ctx, status: 'ok', service: 'gateway' }));
 
     this.version('1', (v1: AppRoutes) => {
 {{d1ResourceRoutes}}

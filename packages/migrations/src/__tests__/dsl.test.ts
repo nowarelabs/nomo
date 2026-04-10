@@ -22,7 +22,7 @@ describe("TableBuilder DSL & Column Types", () => {
 
     const res = sql.generate({ type: "createTable", name: "users", table: t });
     expect(res.success).toBe(true);
-    const generatedSql = (res as any).data;
+    const generatedSql = (res as unknown).data;
 
     expect(generatedSql).toContain('CREATE TABLE IF NOT EXISTS "users"');
     expect(generatedSql).toContain('"id" INTEGER PRIMARY KEY NOT NULL');
@@ -52,7 +52,7 @@ describe("TableBuilder DSL & Column Types", () => {
       table: t,
     });
     expect(res.success).toBe(true);
-    const generatedSql = (res as any).data;
+    const generatedSql = (res as unknown).data;
 
     expect(generatedSql).toContain('"sku" TEXT NOT NULL UNIQUE');
     expect(generatedSql).toContain('"price" DECIMAL DEFAULT 0');
@@ -69,7 +69,7 @@ describe("TableBuilder DSL & Column Types", () => {
 
     const res = sql.generate({ type: "createTable", name: "events", table: t });
     expect(res.success).toBe(true);
-    const generatedSql = (res as any).data;
+    const generatedSql = (res as unknown).data;
     expect(generatedSql).toContain('"occurred_at" TEXT DEFAULT CURRENT_TIMESTAMP');
   });
 
@@ -81,7 +81,7 @@ describe("TableBuilder DSL & Column Types", () => {
 
     const res = sql.generate({ type: "createTable", name: "posts", table: t });
     expect(res.success).toBe(true);
-    const generatedSql = (res as any).data;
+    const generatedSql = (res as unknown).data;
 
     expect(generatedSql).toContain('"user_id" INTEGER');
     expect(generatedSql).toContain('"p_id" INTEGER');
@@ -101,7 +101,7 @@ describe("TableBuilder DSL & Column Types", () => {
       table: t,
     });
     expect(res.success).toBe(true);
-    const generatedSql = (res as any).data;
+    const generatedSql = (res as unknown).data;
 
     expect(generatedSql).toContain('"record_id" INTEGER');
     expect(generatedSql).toContain('"record_type" TEXT');
@@ -119,7 +119,7 @@ describe("TableBuilder DSL & Column Types", () => {
 
     const res = sql.generate({ type: "createTable", name: "posts", table: t });
     expect(res.success).toBe(true);
-    const generatedSql = (res as any).data;
+    const generatedSql = (res as unknown).data;
     expect(generatedSql).toContain('"created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
     expect(generatedSql).toContain('"updated_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
   });

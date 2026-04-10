@@ -11,7 +11,7 @@ const mockCtx = {
 describe("Router", () => {
   it("should match simple routes", async () => {
     const router = new Router();
-    router.get("/hello", async (req: Request, env: any, ctx: any) => ctx.text("world"));
+    router.get("/hello", async (req: Request, env: unknown, ctx: unknown) => ctx.text("world"));
 
     const req = new Request("http://localhost/hello");
     const res = await router.handle(req, {}, mockCtx);
@@ -22,7 +22,7 @@ describe("Router", () => {
 
   it("should extract parameters", async () => {
     const router = new Router();
-    router.get("/user/:id", async (req: Request, env: any, ctx: any) =>
+    router.get("/user/:id", async (req: Request, env: unknown, ctx: unknown) =>
       ctx.json({ id: ctx.params.id }),
     );
 
@@ -30,19 +30,19 @@ describe("Router", () => {
     const res = await router.handle(req, {}, mockCtx);
 
     expect(res.status).toBe(200);
-    const data = (await res.json()) as any;
+    const data = (await res.json()) as unknown;
     expect(data.id).toBe("123");
   });
 
   it("should handle query parameters", async () => {
     const router = new Router();
-    router.get("/search", async (req: Request, env: any, ctx: any) => ctx.json(ctx.query));
+    router.get("/search", async (req: Request, env: unknown, ctx: unknown) => ctx.json(ctx.query));
 
     const req = new Request("http://localhost/search?q=test&page=1");
     const res = await router.handle(req, {}, mockCtx);
 
     expect(res.status).toBe(200);
-    const data = (await res.json()) as any;
+    const data = (await res.json()) as unknown;
     expect(data.q).toBe("test");
     expect(data.page).toBe("1");
   });
@@ -58,7 +58,7 @@ describe("Router", () => {
       return res;
     });
 
-    router.get("/test", async (req: Request, env: any, ctx: any) => {
+    router.get("/test", async (req: Request, env: unknown, ctx: unknown) => {
       logs.push("handler");
       return ctx.text("ok");
     });
@@ -137,7 +137,7 @@ describe("Router", () => {
 
     it("should handle encoded characters correctly and safely", async () => {
       const router = new Router();
-      router.get("/hello/:name", async (req: Request, env: any, ctx: any) =>
+      router.get("/hello/:name", async (req: Request, env: unknown, ctx: unknown) =>
         ctx.text(ctx.params.name),
       );
 
@@ -173,7 +173,7 @@ describe("Router", () => {
 
     it("should handle recursive wildcards (*)", async () => {
       const router = new Router();
-      router.get("/static/*", async (req: Request, env: any, ctx: any) =>
+      router.get("/static/*", async (req: Request, env: unknown, ctx: unknown) =>
         ctx.text(ctx.params["*"]),
       );
 
@@ -215,7 +215,7 @@ describe("Router", () => {
 
     it("should support ctx.cache() helper", async () => {
       const router = new Router();
-      router.get("/cached", async (req: Request, env: any, ctx: any) => {
+      router.get("/cached", async (req: Request, env: unknown, ctx: unknown) => {
         ctx.cache(60);
         return ctx.text("ok");
       });
@@ -227,7 +227,7 @@ describe("Router", () => {
 
     it("should use elite hardening (Object.create(null)) for params", async () => {
       const router = new Router();
-      router.get("/:id", async (req: Request, env: any, ctx: any) => {
+      router.get("/:id", async (req: Request, env: unknown, ctx: unknown) => {
         return ctx.json({
           id: ctx.params.id,
           hasProto: "toString" in ctx.params,
@@ -236,7 +236,7 @@ describe("Router", () => {
 
       const req = new Request("http://localhost/123");
       const res = await router.handle(req, {}, mockCtx);
-      const data = (await res.json()) as any;
+      const data = (await res.json()) as unknown;
       expect(data.id).toBe("123");
       expect(data.hasProto).toBe(false); // Elite hardening check
     });
@@ -264,16 +264,16 @@ describe("Router", () => {
 
       class TestDrawer extends RouteDrawer {
         draw() {
-          this.version("1", (v1: any) => {
-            v1.get("/test", async (req: Request, env: any, ctx: any) => ctx.text("v1 ok"));
+          this.version("1", (v1: unknown) => {
+            v1.get("/test", async (req: Request, env: unknown, ctx: unknown) => ctx.text("v1 ok"));
           });
-          this.version("2", (v2: any) => {
-            v2.get("/test", async (req: Request, env: any, ctx: any) => ctx.text("v2 ok"));
+          this.version("2", (v2: unknown) => {
+            v2.get("/test", async (req: Request, env: unknown, ctx: unknown) => ctx.text("v2 ok"));
           });
         }
       }
 
-      router.draw(TestDrawer as any);
+      router.draw(TestDrawer as unknown);
 
       const res1 = await router.handle(new Request("http://localhost/v1/test"), {}, mockCtx);
       expect(await res1.text()).toBe("v1 ok");

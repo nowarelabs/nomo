@@ -1,12 +1,12 @@
 import { DurableObjectBaseDelegate } from "../delegate";
 
-export interface QueueConfig<T = any> {
+export interface QueueConfig<T = unknown> {
   name: string;
-  onProcess: (owner: any, item: T) => Promise<void>;
+  onProcess: (owner: unknown, item: T) => Promise<void>;
   maxRetries?: number;
 }
 
-export class QueueDelegate<T = any> extends DurableObjectBaseDelegate<QueueConfig<T>> {
+export class QueueDelegate<T = unknown> extends DurableObjectBaseDelegate<QueueConfig<T>> {
   /**
    * Enqueue an item
    */

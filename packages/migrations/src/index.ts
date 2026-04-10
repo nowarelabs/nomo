@@ -83,7 +83,7 @@ export interface DurableObjectOptions {
  * Metadata for a relationship
  */
 export interface Relationship {
-  type: "hasMany" | "hasOne" | "belongsTo" | "belongsToPolymorphic";
+  type: "hasMunknown" | "hasOne" | "belongsTo" | "belongsToPolymorphic";
   name: string;
   targetTable: string;
   options: RelationshipOptions;
@@ -332,9 +332,9 @@ export class TableBuilder {
     return this;
   }
 
-  hasMany(targetTable: string, options: RelationshipOptions & { name?: string } = {}) {
+  hasMunknown(targetTable: string, options: RelationshipOptions & { name?: string } = {}) {
     this.relationships.push({
-      type: "hasMany",
+      type: "hasMunknown",
       targetTable,
       name: options.name || targetTable,
       options,
@@ -774,7 +774,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as any[];
+      const info = infoRes.data as unknown[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -815,7 +815,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as any[];
+      const info = infoRes.data as unknown[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -854,7 +854,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as any[];
+      const info = infoRes.data as unknown[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -926,7 +926,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as any[];
+      const info = infoRes.data as unknown[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -965,7 +965,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as any[];
+      const info = infoRes.data as unknown[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -1015,7 +1015,7 @@ export abstract class Migration implements TableAltererMigration {
 
     this._commands.push({
       up: { type: "recreateTable", name, table: t },
-      down: { type: "recreateTable", name, table: null as any }, // Down needs the previous state, which we don't know here
+      down: { type: "recreateTable", name, table: null as unknown }, // Down needs the previous state, which we don't know here
     });
     if (!this._inChange) return await this.executeCommands();
     return ok(undefined);

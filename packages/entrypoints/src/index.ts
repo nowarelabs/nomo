@@ -35,7 +35,7 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
   /**
    * Service Binding (RPC) job execution.
    */
-  async runJob(jobName: string, params: any, env?: Env, ctx?: ExecutionContext): Promise<void> {
+  async runJob(jobName: string, params: unknown, env?: Env, ctx?: ExecutionContext): Promise<void> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
     if (this.dispatcher) {
@@ -45,7 +45,7 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
     }
   }
 
-  async queue(batch: MessageBatch<any>, env?: Env, ctx?: ExecutionContext): Promise<void> {
+  async queue(batch: MessageBatch<unknown>, env?: Env, ctx?: ExecutionContext): Promise<void> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
     if (this.dispatcher) {
@@ -58,10 +58,10 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
    */
   protected async rpc(
     method: string,
-    args: any[],
+    args: unknown[],
     env?: Env,
     ctx?: ExecutionContext,
-  ): Promise<any> {
+  ): Promise<unknown> {
     const runtimeEnv = env ?? this.env;
     const runtimeCtx = ctx ?? this.ctx;
     if (this.router) {
@@ -71,12 +71,12 @@ export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<
   }
 }
 
-export abstract class BaseDurableObject<Env = any> extends DurableObject<Env> {
+export abstract class BaseDurableObject<Env = unknown> extends DurableObject<Env> {
   constructor(state: DurableObjectState, env: Env) {
     super(state, env);
   }
 }
 
-export abstract class BaseWorkflow<Env = any, T = any> extends WorkflowEntrypoint<Env, T> {
+export abstract class BaseWorkflow<Env = unknown, T = unknown> extends WorkflowEntrypoint<Env, T> {
   abstract run(event: WorkflowEvent<T>, step: WorkflowStep): Promise<void>;
 }

@@ -74,7 +74,7 @@ export interface IRpcController {
 /** Base class for resource RPC targets (list, get, create, update, delete) */
 export abstract class BaseResourceRpcTarget<
   Env = unknown,
-  Ctx = RouterContext<any, any>,
+  Ctx = RouterContext<unknown, unknown>,
   Controller extends IRpcController = IRpcController,
 > extends BaseRpcTarget {
   protected request: Request;
@@ -96,7 +96,7 @@ export abstract class BaseResourceRpcTarget<
     return new this.controllerClass(this.request, this.env, this.ctx);
   }
 
-  protected async runAction<T = any>(
+  protected async runAction<T = unknown>(
     action: Action,
     params: Record<string, unknown> = {},
   ): Promise<T> {
@@ -115,7 +115,7 @@ export abstract class BaseResourceRpcTarget<
 
   // ===== CRUD Actions =====
 
-  async list(params: Record<string, unknown> = {}): Promise<any> {
+  async list(params: Record<string, unknown> = {}): Promise<unknown> {
     this.logger.debug(`[LIST]`, { params });
     try {
       const res = await this.controller().withParams(params).runAction("index");
@@ -130,7 +130,7 @@ export abstract class BaseResourceRpcTarget<
     }
   }
 
-  async get(id: string, params: Record<string, unknown> = {}): Promise<any> {
+  async get(id: string, params: Record<string, unknown> = {}): Promise<unknown> {
     this.logger.debug(`[GET] ${id}`, { params });
     try {
       const res = await this.controller()
@@ -145,12 +145,12 @@ export abstract class BaseResourceRpcTarget<
     }
   }
 
-  async create(data: Record<string, unknown>): Promise<any> {
+  async create(data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[CREATE]`, { data });
     try {
       const res = await this.controller().withParams(data).runAction("create");
       const jsonResult = await res.json();
-      this.logger.info(`[CREATE] ${(jsonResult as any)?.id}`);
+      this.logger.info(`[CREATE] ${(jsonResult as unknown)?.id}`);
       return jsonResult;
     } catch (error) {
       this.logger.error(`[CREATE ERROR]`, { data, error: (error as Error).message });
@@ -158,7 +158,7 @@ export abstract class BaseResourceRpcTarget<
     }
   }
 
-  async update(id: string, data: Record<string, unknown>): Promise<any> {
+  async update(id: string, data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[UPDATE] ${id}`, { data });
     try {
       const res = await this.controller()
@@ -173,7 +173,7 @@ export abstract class BaseResourceRpcTarget<
     }
   }
 
-  async delete(id: string): Promise<any> {
+  async delete(id: string): Promise<unknown> {
     this.logger.debug(`[DELETE] ${id}`);
     try {
       const res = await this.controller().withParams({ id }).runAction("destroy");
@@ -188,81 +188,81 @@ export abstract class BaseResourceRpcTarget<
 
   // ===== Lifecycle Actions =====
 
-  async trash(id: string): Promise<any> {
+  async trash(id: string): Promise<unknown> {
     this.logger.debug(`[TRASH] ${id}`);
     return this.runAction("trash", { id });
   }
 
-  async restore(id: string): Promise<any> {
+  async restore(id: string): Promise<unknown> {
     this.logger.debug(`[RESTORE] ${id}`);
     return this.runAction("restore", { id });
   }
 
-  async hide(id: string): Promise<any> {
+  async hide(id: string): Promise<unknown> {
     this.logger.debug(`[HIDE] ${id}`);
     return this.runAction("hide", { id });
   }
 
-  async unhide(id: string): Promise<any> {
+  async unhide(id: string): Promise<unknown> {
     this.logger.debug(`[UNHIDE] ${id}`);
     return this.runAction("unhide", { id });
   }
 
-  async flag(id: string): Promise<any> {
+  async flag(id: string): Promise<unknown> {
     this.logger.debug(`[FLAG] ${id}`);
     return this.runAction("flag", { id });
   }
 
-  async unflag(id: string): Promise<any> {
+  async unflag(id: string): Promise<unknown> {
     this.logger.debug(`[UNFLAG] ${id}`);
     return this.runAction("unflag", { id });
   }
 
-  async purge(id: string): Promise<any> {
+  async purge(id: string): Promise<unknown> {
     this.logger.debug(`[PURGE] ${id}`);
     return this.runAction("purge", { id });
   }
 
-  async retire(id: string): Promise<any> {
+  async retire(id: string): Promise<unknown> {
     this.logger.debug(`[RETIRE] ${id}`);
     return this.runAction("retire", { id });
   }
 
-  async unretire(id: string): Promise<any> {
+  async unretire(id: string): Promise<unknown> {
     this.logger.debug(`[UNRETIRE] ${id}`);
     return this.runAction("unretire", { id });
   }
 
   // ===== Async Actions =====
 
-  async queue(id: string, data?: Record<string, unknown>): Promise<any> {
+  async queue(id: string, data?: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[QUEUE] ${id}`, { data });
     return this.runAction("queue", { id, ...data });
   }
 
-  async cron(id: string, data?: Record<string, unknown>): Promise<any> {
+  async cron(id: string, data?: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[CRON] ${id}`, { data });
     return this.runAction("cron", { id, ...data });
   }
 
   // ===== Special Actions =====
 
-  async add(id: string, data: Record<string, unknown>): Promise<any> {
+  async add(id: string, data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[ADD] ${id}`, { data });
     return this.runAction("add", { id, ...data });
   }
 
-  async remove(id: string, data: Record<string, unknown>): Promise<any> {
+  async remove(id: string, data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[REMOVE] ${id}`, { data });
     return this.runAction("remove", { id, ...data });
   }
 
-  async assign(id: string, data: Record<string, unknown>): Promise<any> {
+  async assign(id: string, data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[ASSIGN] ${id}`, { data });
     return this.runAction("assign", { id, ...data });
   }
 
-  async unassign(id: string, data: Record<string, unknown>): Promise<any> {
+  async unassign(id: string, data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[UNASSIGN] ${id}`, { data });
     return this.runAction("unassign", { id, ...data });
   }
@@ -316,44 +316,44 @@ export abstract class BaseResourceRpcTarget<
   // ===== Pluck for RPC chain mapping =====
   // Returns raw IDs for use with .map() in capnweb
 
-  async pluck(column: string, conditions?: Record<string, any>): Promise<any[]> {
-    return this.runAction("pluck" as any, { column, conditions });
+  async pluck(column: string, conditions?: Record<string, unknown>): Promise<unknown[]> {
+    return this.runAction("pluck" as unknown, { column, conditions });
   }
 
   async findAllBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       orderBy?: { column: string; direction?: "ASC" | "DESC" };
       limit?: number;
       offset?: number;
     },
-  ): Promise<any[]> {
-    return this.runAction("findAllBy" as any, { conditions, options });
+  ): Promise<unknown[]> {
+    return this.runAction("findAllBy" as unknown, { conditions, options });
   }
 
-  async findByIds(ids: (string | number)[]): Promise<any[]> {
-    return this.runAction("findByIds" as any, { ids });
+  async findByIds(ids: (string | number)[]): Promise<unknown[]> {
+    return this.runAction("findByIds" as unknown, { ids });
   }
 
   // ===== Include Methods for Eager Loading =====
 
   async findAllWith(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     includes: Record<string, { model: string; foreignKey: string }>,
     options?: {
       orderBy?: { column: string; direction?: "ASC" | "DESC" };
       limit?: number;
       offset?: number;
     },
-  ): Promise<any[]> {
-    return this.runAction("findAllWith" as any, { conditions, includes, options });
+  ): Promise<unknown[]> {
+    return this.runAction("findAllWith" as unknown, { conditions, includes, options });
   }
 
   async findWith(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     includes: Record<string, { model: string; foreignKey: string }>,
-  ): Promise<any> {
-    return this.runAction("findWith" as any, { conditions, includes });
+  ): Promise<unknown> {
+    return this.runAction("findWith" as unknown, { conditions, includes });
   }
 }
 
@@ -364,7 +364,7 @@ export abstract class BaseResourceRpcTarget<
 /** Base class for resource instance RPC targets (get, update, delete) */
 export abstract class BaseResourceInstanceRpcTarget<
   Env = unknown,
-  Ctx = RouterContext<any, any>,
+  Ctx = RouterContext<unknown, unknown>,
   Controller extends IRpcController = IRpcController,
 > extends BaseRpcTarget {
   protected id: string;
@@ -388,7 +388,7 @@ export abstract class BaseResourceInstanceRpcTarget<
     return new this.controllerClass(this.request, this.env, this.ctx);
   }
 
-  protected async runAction<T = any>(
+  protected async runAction<T = unknown>(
     action: Action,
     params: Record<string, unknown> = {},
   ): Promise<T> {
@@ -408,7 +408,7 @@ export abstract class BaseResourceInstanceRpcTarget<
     }
   }
 
-  async get(params: Record<string, unknown> = {}): Promise<any> {
+  async get(params: Record<string, unknown> = {}): Promise<unknown> {
     this.logger.debug(`[GET] ${this.id}`, { params });
     try {
       const res = await this.controller()
@@ -423,7 +423,7 @@ export abstract class BaseResourceInstanceRpcTarget<
     }
   }
 
-  async update(data: Record<string, unknown>): Promise<any> {
+  async update(data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[UPDATE] ${this.id}`, { data });
     try {
       const res = await this.controller()
@@ -438,7 +438,7 @@ export abstract class BaseResourceInstanceRpcTarget<
     }
   }
 
-  async delete(): Promise<any> {
+  async delete(): Promise<unknown> {
     this.logger.debug(`[DELETE] ${this.id}`);
     try {
       const res = await this.controller().withParams({ id: this.id }).runAction("destroy");
@@ -453,81 +453,81 @@ export abstract class BaseResourceInstanceRpcTarget<
 
   // ===== Lifecycle Actions =====
 
-  async trash(): Promise<any> {
+  async trash(): Promise<unknown> {
     this.logger.debug(`[TRASH] ${this.id}`);
     return this.runAction("trash");
   }
 
-  async restore(): Promise<any> {
+  async restore(): Promise<unknown> {
     this.logger.debug(`[RESTORE] ${this.id}`);
     return this.runAction("restore");
   }
 
-  async hide(): Promise<any> {
+  async hide(): Promise<unknown> {
     this.logger.debug(`[HIDE] ${this.id}`);
     return this.runAction("hide");
   }
 
-  async unhide(): Promise<any> {
+  async unhide(): Promise<unknown> {
     this.logger.debug(`[UNHIDE] ${this.id}`);
     return this.runAction("unhide");
   }
 
-  async flag(): Promise<any> {
+  async flag(): Promise<unknown> {
     this.logger.debug(`[FLAG] ${this.id}`);
     return this.runAction("flag");
   }
 
-  async unflag(): Promise<any> {
+  async unflag(): Promise<unknown> {
     this.logger.debug(`[UNFLAG] ${this.id}`);
     return this.runAction("unflag");
   }
 
-  async purge(): Promise<any> {
+  async purge(): Promise<unknown> {
     this.logger.debug(`[PURGE] ${this.id}`);
     return this.runAction("purge");
   }
 
-  async retire(): Promise<any> {
+  async retire(): Promise<unknown> {
     this.logger.debug(`[RETIRE] ${this.id}`);
     return this.runAction("retire");
   }
 
-  async unretire(): Promise<any> {
+  async unretire(): Promise<unknown> {
     this.logger.debug(`[UNRETIRE] ${this.id}`);
     return this.runAction("unretire");
   }
 
   // ===== Async Actions =====
 
-  async queue(data?: Record<string, unknown>): Promise<any> {
+  async queue(data?: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[QUEUE] ${this.id}`, { data });
     return this.runAction("queue", data || {});
   }
 
-  async cron(data?: Record<string, unknown>): Promise<any> {
+  async cron(data?: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[CRON] ${this.id}`, { data });
     return this.runAction("cron", data || {});
   }
 
   // ===== Special Actions =====
 
-  async add(data: Record<string, unknown>): Promise<any> {
+  async add(data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[ADD] ${this.id}`, { data });
     return this.runAction("add", data);
   }
 
-  async remove(data: Record<string, unknown>): Promise<any> {
+  async remove(data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[REMOVE] ${this.id}`, { data });
     return this.runAction("remove", data);
   }
 
-  async assign(data: Record<string, unknown>): Promise<any> {
+  async assign(data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[ASSIGN] ${this.id}`, { data });
     return this.runAction("assign", data);
   }
 
-  async unassign(data: Record<string, unknown>): Promise<any> {
+  async unassign(data: Record<string, unknown>): Promise<unknown> {
     this.logger.debug(`[UNASSIGN] ${this.id}`, { data });
     return this.runAction("unassign", data);
   }
@@ -576,19 +576,19 @@ export abstract class BaseResourceInstanceRpcTarget<
 
   // ===== Pluck for RPC chain mapping =====
 
-  async pluck(column: string, conditions?: Record<string, any>): Promise<any[]> {
-    return this.runAction("pluck" as any, { column, conditions });
+  async pluck(column: string, conditions?: Record<string, unknown>): Promise<unknown[]> {
+    return this.runAction("pluck" as unknown, { column, conditions });
   }
 
   async findAllBy(
-    conditions: Record<string, any>,
+    conditions: Record<string, unknown>,
     options?: {
       orderBy?: { column: string; direction?: "ASC" | "DESC" };
       limit?: number;
       offset?: number;
     },
-  ): Promise<any[]> {
-    return this.runAction("findAllBy" as any, { conditions, options });
+  ): Promise<unknown[]> {
+    return this.runAction("findAllBy" as unknown, { conditions, options });
   }
 }
 

@@ -45,7 +45,7 @@ export const resetCommand = defineCommand({
       consola.info(
         "💡 Consider running 'wrangler d1 execute DB --command \"DROP TABLE ...\"' if needed.",
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       consola.error(`Failed to reset: ${err.message}`);
       process.exit(1);
     }

@@ -77,9 +77,9 @@ type MatchHandlers<T extends {
 } & {
     error?: (error: ErrorInfo) => R;
     default?: (payload: unknown) => R;
-    [key: string]: any;
+    [key: string]: unknown;
 };
-declare const match: <T extends { [K in TagName]: string | number | boolean; }, TagName extends string = "tag", Handlers extends MatchHandlers<T, any, TagName> = MatchHandlers<T, any, TagName>>(result: Result<T>, handlers: Handlers, tagName?: TagName) => Result<Handlers[keyof Handlers] extends (...args: any[]) => infer R ? R : never>;
+declare const match: <T extends { [K in TagName]: string | number | boolean; }, TagName extends string = "tag", Handlers extends MatchHandlers<T, unknown, TagName> = MatchHandlers<T, unknown, TagName>>(result: Result<T>, handlers: Handlers, tagName?: TagName) => Result<Handlers[keyof Handlers] extends (...args: unknown[]) => infer R ? R : never>;
 declare function isTagged(value: unknown): value is {
     tag: string | number | boolean;
 };

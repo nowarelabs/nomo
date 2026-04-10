@@ -4,14 +4,14 @@ export type ExecutionMode = "sequential" | "parallel" | "sequential_realtime" | 
 
 export interface ExecutionConfig {
   mode: ExecutionMode;
-  onItem?: (owner: any, item: any) => Promise<any>;
+  onItem?: (owner: unknown, item: unknown) => Promise<unknown>;
 }
 
 export class ExecutionDelegate extends DurableObjectBaseDelegate<ExecutionConfig> {
   /**
    * Execute a collection of tasks based on the configured mode
    */
-  async handle(items: any[]): Promise<any[]> {
+  async handle(items: unknown[]): Promise<unknown[]> {
     const { mode, onItem } = this.config;
     if (!onItem) return items;
 

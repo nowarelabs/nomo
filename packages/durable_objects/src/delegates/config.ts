@@ -1,21 +1,21 @@
 import { DurableObjectBaseDelegate } from "../delegate";
 
-export interface ConfigEntry<T = any> {
+export interface ConfigEntry<T = unknown> {
   key: string;
   value: T;
 }
 
 export interface ConfigOptions {
-  onConfigure?: (owner: any, config: any) => Promise<void>;
-  onAdapter?: (owner: any, input: any) => Promise<any>;
-  onFurnish?: (owner: any, output: any) => Promise<any>;
+  onConfigure?: (owner: unknown, config: unknown) => Promise<void>;
+  onAdapter?: (owner: unknown, input: unknown) => Promise<unknown>;
+  onFurnish?: (owner: unknown, output: unknown) => Promise<unknown>;
 }
 
 export class ConfigDelegate extends DurableObjectBaseDelegate<ConfigOptions> {
   /**
    * Configure the Durable Object with settings.
    */
-  async handle(settings: any): Promise<void> {
+  async handle(settings: unknown): Promise<void> {
     const { onConfigure } = this.config;
     if (onConfigure) {
       await onConfigure(this.durableObject, settings);
@@ -25,7 +25,7 @@ export class ConfigDelegate extends DurableObjectBaseDelegate<ConfigOptions> {
   /**
    * Adapt data from one form to another.
    */
-  async adapt(input: any): Promise<any> {
+  async adapt(input: unknown): Promise<unknown> {
     const { onAdapter } = this.config;
     if (onAdapter) {
       return await onAdapter(this.durableObject, input);
@@ -36,7 +36,7 @@ export class ConfigDelegate extends DurableObjectBaseDelegate<ConfigOptions> {
   /**
    * Furnish the output data.
    */
-  async furnish(output: any): Promise<any> {
+  async furnish(output: unknown): Promise<unknown> {
     const { onFurnish } = this.config;
     if (onFurnish) {
       return await onFurnish(this.durableObject, output);

@@ -35,7 +35,7 @@ export const statusCommand = defineCommand({
       execSync(`pnpm wrangler d1 migrations list ${database} ${_scope}`, {
         stdio: "inherit",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       consola.error(`Failed to get status: ${err.message}`);
       process.exit(1);
     }

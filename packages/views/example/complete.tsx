@@ -227,7 +227,7 @@ class AppLayout extends BaseLayout<LayoutProps> {
           <meta name="viewport" content="width=device-width, initial-scale=1" />
 
           {/*
-            Import map MUST come before any <script type="module">.
+            Import map MUST come before unknown <script type="module">.
             This is what makes `import { ... } from 'capnweb'` work
             in your web component — it maps the bare specifier to the
             hashed vendor URL at runtime in the browser.
@@ -355,7 +355,7 @@ export default {
             connectSrc: ["'self'", "/api"],
           }),
           // Cache the HTML shell at the edge for 10 seconds.
-          // Web components fetch fresh data via RPC anyway.
+          // Web components fetch fresh data via RPC unknownway.
           "Cache-Control": "public, max-age=10, stale-while-revalidate=60",
         },
       });

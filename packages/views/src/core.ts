@@ -15,12 +15,12 @@ function renderChild(c: ComponentChild): string {
   return String(c);
 }
 
-export const Fragment = ({ children }: { children?: ComponentChild }): any => renderChild(children);
+export const Fragment = ({ children }: { children?: ComponentChild }): unknown => renderChild(children);
 
 // --- DIRECT STRING JSX ---
 
-function renderTag<P extends Record<string, any>>(tag: string, props: P | null): string {
-  const p = (props || {}) as any;
+function renderTag<P extends Record<string, unknown>>(tag: string, props: P | null): string {
+  const p = (props || {}) as unknown;
   let h = `<${tag}`;
   let children = "";
 
@@ -70,20 +70,20 @@ function renderTag<P extends Record<string, any>>(tag: string, props: P | null):
   return h + children + `</${tag}>`;
 }
 
-export function jsx<P extends Record<string, any>>(
-  tag: string | FC<P> | (new (...args: any[]) => any),
+export function jsx<P extends Record<string, unknown>>(
+  tag: string | FC<P> | (new (...args: unknown[]) => unknown),
   props: P | null,
   _key?: string | number,
 ): string {
-  const p = (props || {}) as any;
+  const p = (props || {}) as unknown;
 
   if (typeof tag === "function") {
     // If it's a class component (BaseView descendant)
-    if (tag.prototype && tag.prototype.render && (tag as any).render) {
+    if (tag.prototype && tag.prototype.render && (tag as unknown).render) {
       const ctx = _ctx();
-      return (tag as any).render(p, ctx?.a, ctx?.r);
+      return (tag as unknown).render(p, ctx?.a, ctx?.r);
     }
-    return (tag as FC<any>)({ ...p, children: p.children });
+    return (tag as FC<unknown>)({ ...p, children: p.children });
   }
 
   return renderTag(tag as string, props);
@@ -91,7 +91,7 @@ export function jsx<P extends Record<string, any>>(
 
 export const jsxs = jsx;
 
-export const h = (tag: any, props: any, ...children: any[]): string => {
+export const h = (tag: unknown, props: unknown, ...children: unknown[]): string => {
   const p = props || {};
   if (children.length > 0) p.children = children.length === 1 ? children[0] : children;
   return jsx(tag, p);
@@ -113,8 +113,8 @@ export function safeCss(value: string | undefined, fallback: string): string {
 /**
  * Tagged template literal for XSS-safe HTML strings.
  */
-export function html(strings: TemplateStringsArray, ...values: any[]): string {
-  const e = (s: any) =>
+export function html(strings: TemplateStringsArray, ...values: unknown[]): string {
+  const e = (s: unknown) =>
     String(s).replace(
       /[&<>"']/g,
       (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
@@ -131,10 +131,10 @@ const getGlobal = () =>
       ? self
       : typeof window !== "undefined"
         ? window
-        : ({} as any);
+        : ({} as unknown);
 const _g = getGlobal();
 
-export const withCtx = <T>(r: ContentRegistry, a: any, fn: () => T): T => {
+export const withCtx = <T>(r: ContentRegistry, a: unknown, fn: () => T): T => {
   const prev = _g.__NB_VIEWS_CTX__;
   _g.__NB_VIEWS_CTX__ = { r, a };
   try {
@@ -172,7 +172,7 @@ export function yield_content(n: string) {
  */
 export function custom_element(
   tag: string,
-  attrs: Record<string, any> = {},
+  attrs: Record<string, unknown> = {},
   children: ComponentChild = null,
   options: { shadow?: boolean } = {},
 ): string {
@@ -186,7 +186,7 @@ export function custom_element(
 export abstract class AssetHelpers {
   constructor(
     protected r: ContentRegistry,
-    protected a?: any,
+    protected a?: unknown,
   ) {}
   content_for(n: string, c: string) {
     this.r.push(n, c);
@@ -196,7 +196,7 @@ export abstract class AssetHelpers {
     return this.r.yield(n);
   }
 
-  import_map_tag(customMap?: any) {
+  import_map_tag(customMap?: unknown) {
     const ctx = _ctx();
     const mapRaw = customMap
       ? JSON.stringify(customMap)
@@ -221,7 +221,7 @@ export abstract class AssetHelpers {
 
   custom_element(
     tag: string,
-    attrs: Record<string, any> = {},
+    attrs: Record<string, unknown> = {},
     children: ComponentChild = null,
     options: { shadow?: boolean } = {},
   ) {
@@ -229,56 +229,56 @@ export abstract class AssetHelpers {
   }
 }
 
-export abstract class BaseView<P = any> extends AssetHelpers {
+export abstract class BaseView<P = unknown> extends AssetHelpers {
   constructor(
     protected props: P,
     r: ContentRegistry,
-    a?: any,
+    a?: unknown,
   ) {
     super(r, a);
   }
   abstract render(): string;
-  static render<V extends typeof BaseView, P = any>(
+  static render<V extends typeof BaseView, P = unknown>(
     this: V,
     p: P,
-    a?: any,
+    a?: unknown,
     r: ContentRegistry = new ContentRegistry(),
   ): string {
     return withCtx(r, a, () => {
-      const instance = new (this as any)(p, r, a);
+      const instance = new (this as unknown)(p, r, a);
       return instance.render();
     });
   }
 }
 
-export abstract class BaseLayout<P = any> extends AssetHelpers {
+export abstract class BaseLayout<P = unknown> extends AssetHelpers {
   constructor(
     protected content: string,
     protected props: P,
     r: ContentRegistry,
-    a?: any,
+    a?: unknown,
   ) {
     super(r, a);
   }
   abstract render(): string;
-  static withLayout<L extends typeof BaseLayout, V extends typeof BaseView, P = any>(
+  static withLayout<L extends typeof BaseLayout, V extends typeof BaseView, P = unknown>(
     Layout: L,
     View: V,
     p: P,
-    a?: any,
+    a?: unknown,
   ): string {
     const r = new ContentRegistry();
     const c = View.render(p, a, r);
-    return withCtx(r, a, () => new (Layout as any)(c, p, r, a).render());
+    return withCtx(r, a, () => new (Layout as unknown)(c, p, r, a).render());
   }
 }
 
-export abstract class BaseDtoView<T = any> {
+export abstract class BaseDtoView<T = unknown> {
   constructor(protected data: T) {}
 
-  abstract toDto(): any;
+  abstract toDto(): unknown;
 
-  protected filter(data: any, exclude: string[] = ["createdAt", "updatedAt"]): any {
+  protected filter(data: unknown, exclude: string[] = ["createdAt", "updatedAt"]): unknown {
     if (Array.isArray(data)) return data.map((v) => this.filter(v, exclude));
     if (data !== null && typeof data === "object") {
       return Object.fromEntries(Object.entries(data).filter(([k]) => !exclude.includes(k)));
@@ -286,13 +286,13 @@ export abstract class BaseDtoView<T = any> {
     return data;
   }
 
-  json(): any {
+  json(): unknown {
     return this.toDto();
   }
 
   xml(): string {
     const data = this.toDto();
-    const toXml = (obj: any, tag: string): string => {
+    const toXml = (obj: unknown, tag: string): string => {
       if (Array.isArray(obj)) return obj.map((v) => toXml(v, "item")).join("");
       if (obj !== null && typeof obj === "object") {
         const body = Object.entries(obj)
@@ -305,15 +305,15 @@ export abstract class BaseDtoView<T = any> {
     return `<?xml version="1.0" encoding="UTF-8"?>\n${toXml(data, "response")}`;
   }
 
-  static renderJson<V extends typeof BaseDtoView>(this: V, data: any): any {
-    return new (this as any)(data).json();
+  static renderJson<V extends typeof BaseDtoView>(this: V, data: unknown): unknown {
+    return new (this as unknown)(data).json();
   }
 
-  static renderXml<V extends typeof BaseDtoView>(this: V, data: any): string {
-    return new (this as any)(data).xml();
+  static renderXml<V extends typeof BaseDtoView>(this: V, data: unknown): string {
+    return new (this as unknown)(data).xml();
   }
 }
 
 // Compatibility wrapper
-export const render = (v: any): string => v;
+export const render = (v: unknown): string => v;
 export const renderToString = render;

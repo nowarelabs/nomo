@@ -5,18 +5,18 @@ import type { ExecutionContext } from "@cloudflare/workers-types";
 import RouterTrieNode from "./lib/routerTrieNode";
 import { isValidPath, splitPath, tryDecode } from "./utils/url";
 
-export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<string, any> {
+export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<string, unknown> {
   params: Record<string, string>;
   query: Record<string, string>;
   headers: Record<string, string>;
   env: Env;
   executionCtx: Ctx;
-  json: <T = any>(data: T, init?: ResponseInit) => Response;
+  json: <T = unknown>(data: T, init?: ResponseInit) => Response;
   text: (data: string, init?: ResponseInit) => Response;
   html: (data: string, init?: ResponseInit) => Response;
   redirect: (url: string, status?: number) => Response;
   cache: (seconds: number) => void;
-  parseJson: <T = any>() => Promise<T | null>;
+  parseJson: <T = unknown>() => Promise<T | null>;
 }
 
 export interface RouteConfig {
@@ -26,15 +26,15 @@ export interface RouteConfig {
     body?: {
       content: {
         "application/json": {
-          schema: z.ZodTypeAny;
+          schema: z.ZodTypeunknown;
         };
       };
       description?: string;
       required?: boolean;
     };
-    params?: z.ZodObject<any>;
-    query?: z.ZodObject<any>;
-    headers?: z.ZodObject<any>;
+    params?: z.ZodObject<unknown>;
+    query?: z.ZodObject<unknown>;
+    headers?: z.ZodObject<unknown>;
   };
   responses: Record<
     string,
@@ -42,7 +42,7 @@ export interface RouteConfig {
       description: string;
       content?: {
         "application/json": {
-          schema: z.ZodTypeAny;
+          schema: z.ZodTypeunknown;
         };
       };
     }
@@ -73,7 +73,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   private root: RouterTrieNode;
   private middlewares: MiddlewareEntry<Env, Ctx>[];
   private errorHandler?: (
-    err: any,
+    err: unknown,
     request: Request,
     env: Env,
     ctx: RouterContext<Env, Ctx>,
@@ -158,12 +158,12 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
    * @param target The part of the request to validate (json, query, header, param)
    * @param schema The Zod schema to validate against
    */
-  static zValidator<S extends z.ZodTypeAny, Env = unknown, Ctx = ExecutionContext>(
+  static zValidator<S extends z.ZodTypeunknown, Env = unknown, Ctx = ExecutionContext>(
     target: "json" | "query" | "header" | "param",
     schema: S,
   ): Middleware<Env, Ctx> {
     return async (req, env, ctx, next) => {
-      let value: any;
+      let value: unknown;
       if (target === "json") {
         value = await ctx.parseJson();
       } else if (target === "query") {
@@ -187,7 +187,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       }
 
       // Store validated data in context
-      (ctx as any)[`valid${target.charAt(0).toUpperCase() + target.slice(1)}`] = result.data;
+      (ctx as unknown)[`valid${target.charAt(0).toUpperCase() + target.slice(1)}`] = result.data;
 
       return await next();
     };
@@ -278,7 +278,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   }
 
   private registerOpenApiRoute(config: RouteConfig) {
-    const responses: any = {};
+    const responses: Record<string, unknown> = {};
     for (const [code, res] of Object.entries(config.responses)) {
       responses[code] = {
         description: res.description,
@@ -287,7 +287,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     }
 
     this.openAPIRegistry.registerPath({
-      method: config.method as any,
+      method: config.method as unknown,
       path: config.path,
       request: {
         params: config.request?.params,
@@ -299,7 +299,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     });
   }
 
-  getOpenApiDocument(info: { title: string; version: string; description?: string }): any {
+  getOpenApiDocument(info: { title: string; version: string; description?: string }): unknown {
     const generator = new OpenApiGeneratorV3(this.openAPIRegistry.definitions);
     return generator.generateDocument({
       openapi: "3.0.0",
@@ -309,7 +309,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
 
   onError(
     handler: (
-      err: any,
+err: unknown,
       request: Request,
       env: Env,
       ctx: RouterContext<Env, Ctx>,
@@ -375,8 +375,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     // DoS Protection: Limit path segments
     try {
       splitPath(decodedPath);
-    } catch (e: any) {
-      return new Response(e.message, { status: 414 });
+    } catch (e: unknown) {
+      return new Response((e as Error).message, { status: 414 });
     }
 
     if (!isValidPath(decodedPath)) {
