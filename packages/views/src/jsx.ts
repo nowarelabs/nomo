@@ -4,7 +4,6 @@ export declare namespace JSX {
   interface IntrinsicElements {
     [elemName: string]: unknown;
   }
-  type Element = unknown;
   interface ElementClass {
     render(): ComponentChild;
   }
