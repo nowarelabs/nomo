@@ -1,4 +1,4 @@
-import { type Result, ok, safeAsync } from "nomo/result";
+import { type Result, ok } from "nomo/result";
 import { consola } from "consola";
 import { hash } from "ohash";
 import { sql as sqlTag } from "./index";

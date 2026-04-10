@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TableBuilder, sql as sqlTag } from "../index";
 import { SqlGenerator } from "../sql";
-import { type Result } from "nomo/result";
 
 describe("TableBuilder DSL & Column Types", () => {
   const sql = new SqlGenerator();

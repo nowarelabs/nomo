@@ -27,12 +27,12 @@ export const statusCommand = defineCommand({
   },
   async run({ args }) {
     const database = args.database;
-    const scope = args.remote ? "--remote" : "--local";
+    const _scope = args.remote ? "--remote" : "--local";
 
     consola.info(`Checking migration status for D1 (${database})...`);
 
     try {
-      execSync(`pnpm wrangler d1 migrations list ${database} ${scope}`, {
+      execSync(`pnpm wrangler d1 migrations list ${database} ${_scope}`, {
         stdio: "inherit",
       });
     } catch (err: any) {

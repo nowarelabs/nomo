@@ -51,7 +51,7 @@ export const syncCommand = defineCommand({
     try {
       const content = await fs.readFile(metadataPath, "utf-8");
       metadata = JSON.parse(content);
-    } catch (e) {}
+    } catch (_e) {}
 
     const reflector = new SchemaReflector({
       outDir: args.out,
@@ -140,7 +140,7 @@ async function updateWranglerConfig() {
     } else {
       consola.warn(`Failed to read wrangler.jsonc: ${configRes.error}`);
     }
-  } catch (err: any) {
-    consola.warn(`Failed to update wrangler.jsonc: ${err.message}`);
+  } catch (err: unknown) {
+    consola.warn(`Failed to update wrangler.jsonc: ${err}`);
   }
 }

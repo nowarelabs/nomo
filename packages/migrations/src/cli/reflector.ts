@@ -28,10 +28,10 @@ export class SchemaReflector {
   async source(file?: string, options: { db?: string; remote?: boolean } = {}): Promise<this> {
     if (options.db) {
       console.log(`\n📡 Exporting schema from D1 database: ${options.db}...`);
-      const scope = options.remote ? "--remote" : "--local";
+      const _scope = options.remote ? "--remote" : "--local";
       const res = spawnSync(
         "pnpm",
-        ["wrangler", "d1", "export", options.db, scope, "--no-data", "--output", this.tempSqlPath],
+        ["wrangler", "d1", "export", options.db, _scope, "--no-data", "--output", this.tempSqlPath],
         { stdio: "inherit" },
       );
       if (res.status !== 0)
@@ -351,7 +351,7 @@ export class SchemaReflector {
     try {
       await fs.rm(this.tempSqlPath, { force: true });
       await fs.rm(this.tempDbPath, { force: true });
-    } catch (e) {}
+    } catch (_e) {}
   }
 
   private singularize(str: string) {

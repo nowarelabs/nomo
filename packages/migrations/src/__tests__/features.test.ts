@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { Migration, TableBuilder, sql, ForeignKey } from "../index";
+import { Migration, TableBuilder } from "../index";
 import { SqlGenerator } from "../sql";
 import { ok } from "nomo/result";
 

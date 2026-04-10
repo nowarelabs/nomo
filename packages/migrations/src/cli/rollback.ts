@@ -32,7 +32,7 @@ export const rollbackCommand = defineCommand({
   async run({ args }) {
     try {
       const database = args.database;
-      const scope = args.remote ? "--remote" : "--local";
+      const _scope = args.remote ? "--remote" : "--local";
 
       consola.info(`Rolling back ${args.steps} migration(s) in D1 (${database})...`);
 

@@ -1289,7 +1289,7 @@ export async function generateFromTemplate(
 // Writes the barrel re-export index.ts for the models/types directory.
 // ═════════════════════════════════════════════════════════════════════════════
 
-class TypesIndexGenerator {
+class _TypesIndexGenerator {
   constructor(
     private readonly engine: TemplateEngine,
     private readonly projectRoot: string,

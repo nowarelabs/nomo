@@ -759,7 +759,7 @@ export abstract class BaseResourceController<
     }
     try {
       return (await this.ctx.parseJson()) || {};
-    } catch (e) {
+    } catch (_e) {
       return {};
     }
   }

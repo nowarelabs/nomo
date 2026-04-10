@@ -39,7 +39,7 @@ export const reflectCommand = defineCommand({
       try {
         const content = await fs.readFile(metadataPath, "utf-8");
         metadata = JSON.parse(content);
-      } catch (e) {}
+      } catch (_e) {}
 
       const reflector = new SchemaReflector({
         outDir: args.out,

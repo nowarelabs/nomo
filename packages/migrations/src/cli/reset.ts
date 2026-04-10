@@ -27,7 +27,7 @@ export const resetCommand = defineCommand({
   async run({ args }) {
     try {
       const database = args.database;
-      const scope = args.remote ? "--remote" : "--local";
+      const _scope = args.remote ? "--remote" : "--local";
 
       consola.warn("WARNING: This will drop all tables in your database!");
       consola.info("💡 For D1, we achieve this by deleting the migration history and re-applying.");

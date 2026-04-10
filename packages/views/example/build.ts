@@ -8,7 +8,7 @@
  * 4. Ensuring DSD (Declarative Shadow DOM) compatibility for SSR'd custom elements
  */
 
-import type { Plugin, ResolvedConfig, Rollup } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import { createHash } from "crypto";
 import * as fs from "fs";
 import * as path from "path";

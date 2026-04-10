@@ -45,12 +45,12 @@ export const migrateCommand = defineCommand({
 
     // 2. Build wrangler command
     const database = args.database;
-    const scope = args.remote ? "--remote" : "--local";
+    const _scope = args.remote ? "--remote" : "--local";
 
     consola.info(`Applying migrations to D1 (${database})...`);
 
     try {
-      execSync(`pnpm wrangler d1 migrations apply ${database} ${scope}`, {
+      execSync(`pnpm wrangler d1 migrations apply ${database} ${_scope}`, {
         stdio: "inherit",
       });
       consola.success("Migrations applied successfully!");

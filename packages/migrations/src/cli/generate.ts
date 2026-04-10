@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { pascalCase, camelCase, snakeCase } from "scule";
+import { pascalCase, snakeCase } from "scule";
 import * as fs from "node:fs/promises";
 import * as path from "pathe";
 
