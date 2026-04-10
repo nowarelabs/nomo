@@ -5,7 +5,7 @@ Workflow/Domain logic for Nomo applications.
 ## BaseDomain
 
 ```typescript
-import { BaseDomain } from 'nomo/domains';
+import { BaseDomain } from "nomo/domains";
 
 export class OrderDomain extends BaseDomain {
   async createOrder(data: { userId: string; items: any[] }) {
@@ -30,15 +30,15 @@ export class OrderDomain extends BaseDomain {
 
 ## Lifecycle Hooks
 
-| Method | Description |
-|--------|-------------|
-| `beforePerform()` | Runs before the main logic |
-| `afterPerform()` | Runs after successful completion |
-| `onPerformError(error)` | Runs on error |
+| Method                  | Description                      |
+| ----------------------- | -------------------------------- |
+| `beforePerform()`       | Runs before the main logic       |
+| `afterPerform()`        | Runs after successful completion |
+| `onPerformError(error)` | Runs on error                    |
 
 ## Usage
 
 ```typescript
 const domain = new OrderDomain(env, ctx);
-const order = await domain.createOrder({ userId: '1', items: [] });
+const order = await domain.createOrder({ userId: "1", items: [] });
 ```

@@ -9,14 +9,14 @@ graph TB
     subgraph "Client"
         A[Browser/Mobile]
     end
-    
+
     subgraph "Cloudflare Edge"
         B[Workers]
         C[Durable Objects]
         D[KV]
         E[D1 Database]
     end
-    
+
     A -->|HTTP| B
     B -->|Request| C
     B -->|Storage| D
@@ -33,7 +33,7 @@ sequenceDiagram
     participant Controller
     participant Service
     participant Model
-    
+
     User->>Worker: HTTP Request
     Worker->>Router: Route to Controller
     Router->>Controller: Invoke Action
@@ -48,6 +48,7 @@ sequenceDiagram
 ## Layers
 
 ### 1. Entrypoints
+
 Entrypoints handle incoming HTTP requests at the edge.
 
 ```mermaid
@@ -59,6 +60,7 @@ graph LR
 ```
 
 ### 2. Controllers
+
 Controllers contain business logic and orchestrate services.
 
 ```typescript
@@ -73,6 +75,7 @@ export class UsersController extends BaseController {
 ```
 
 ### 3. Services
+
 Services handle external integrations and business rules.
 
 ```typescript
@@ -84,12 +87,13 @@ export class UserService extends BaseService {
 ```
 
 ### 4. Models
+
 Models define data structures and handle database operations.
 
 ```typescript
 export class UserModel extends BaseModel {
   table = users;
-  
+
   async findByEmail(email: string) {
     return this.query().where({ email }).first();
   }
@@ -105,19 +109,22 @@ graph TB
         C[Durable Objects] --> D[Stateful coordination]
         E[D1 Database] --> F[Relational data]
     end
-    
+
     B --> G[Application State]
     D --> G
     F --> G
 ```
 
 ### KV Storage
+
 Best for caching and simple key-value data.
 
 ### Durable Objects
+
 Best for stateful coordination, WebSockets, and real-time features.
 
 ### D1 Database
+
 Best for persistent relational data.
 
 ## Deployment Architecture
@@ -127,13 +134,13 @@ graph TB
     subgraph "Development"
         A[Local Dev] --> B[Wrangler Dev]
     end
-    
+
     subgraph "Production"
         C[GitHub Push] --> D[CI/CD]
         D --> E[Workers Deploy]
         E --> F[Edge Network]
     end
-    
+
     B --> C
 ```
 

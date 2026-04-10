@@ -5,16 +5,12 @@ No-Transpiler DSL framework for Nomo.
 ## Usage
 
 ```typescript
-import { Component, define, html } from 'nomo/nofo';
+import { Component, define, html } from "nomo/nofo";
 
-@define('my-component')
+@define("my-component")
 class MyComponent extends Component {
   render() {
-    return html`
-      <div class="greeting">
-        Hello, ${this.props.name}!
-      </div>
-    `;
+    return html` <div class="greeting">Hello, ${this.props.name}!</div> `;
   }
 }
 ```

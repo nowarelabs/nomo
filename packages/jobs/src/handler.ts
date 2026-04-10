@@ -43,7 +43,13 @@ export class JobDispatcher implements IJobDispatcher {
     }
   }
 
-  async runJob(jobName: string, params: unknown, env?: unknown, ctx?: unknown, traceContext?: unknown) {
+  async runJob(
+    jobName: string,
+    params: unknown,
+    env?: unknown,
+    ctx?: unknown,
+    traceContext?: unknown,
+  ) {
     const parentContext = traceContext
       ? propagation.extract(context.active(), traceContext)
       : context.active();

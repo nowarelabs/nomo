@@ -5,13 +5,13 @@ Result/Either type for error handling.
 ## Basic Usage
 
 ```typescript
-import { Result, Ok, Err } from 'nomo/result';
+import { Result, Ok, Err } from "nomo/result";
 
 // Success
 const ok: Result<number, string> = Ok(42);
 
 // Error
-const err: Result<number, string> = Err('Something went wrong');
+const err: Result<number, string> = Err("Something went wrong");
 
 // Using factory
 const result = Result.from(() => potentiallyFailingOperation());
@@ -21,18 +21,18 @@ const result = Result.from(() => potentiallyFailingOperation());
 
 ```typescript
 // Map success value
-const mapped = result.map(value => value * 2);
+const mapped = result.map((value) => value * 2);
 
 // Map error
-const mappedErr = result.mapErr(error => new CustomError(error));
+const mappedErr = result.mapErr((error) => new CustomError(error));
 
 // Chain operations
-const chained = result.andThen(value => Ok(value + 1));
+const chained = result.andThen((value) => Ok(value + 1));
 
 // Pattern matching
 result.match({
   Ok: (value) => console.log(value),
-  Err: (error) => console.error(error)
+  Err: (error) => console.error(error),
 });
 
 // Get value or default
@@ -42,8 +42,12 @@ const value = result.unwrapOr(0);
 const valueOrThrow = result.unwrap();
 
 // Check if success/failure
-if (result.isOk()) { /* ... */ }
-if (result.isErr()) { /* ... */ }
+if (result.isOk()) {
+  /* ... */
+}
+if (result.isErr()) {
+  /* ... */
+}
 ```
 
 ## Use Cases

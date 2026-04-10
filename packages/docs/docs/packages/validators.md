@@ -5,8 +5,8 @@ Input validation using Zod schemas.
 ## BaseValidator
 
 ```typescript
-import { BaseValidator } from 'nomo/validators';
-import { z } from 'zod';
+import { BaseValidator } from "nomo/validators";
+import { z } from "zod";
 
 export class PostsValidator extends BaseValidator {
   protected schema = z.object({
@@ -14,7 +14,7 @@ export class PostsValidator extends BaseValidator {
     content: z.string().min(1),
     slug: z.string().regex(/^[a-z0-9-]+$/),
     published: z.boolean().optional(),
-    authorId: z.string().uuid()
+    authorId: z.string().uuid(),
   });
 }
 ```
@@ -23,8 +23,6 @@ export class PostsValidator extends BaseValidator {
 
 ```typescript
 export class PostsController extends BaseResourceController {
-  static beforeActions = [
-    { validate: PostsValidator, only: ['create', 'update'] }
-  ];
+  static beforeActions = [{ validate: PostsValidator, only: ["create", "update"] }];
 }
 ```

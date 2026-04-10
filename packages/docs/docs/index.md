@@ -33,6 +33,7 @@ Explore the [Packages Overview](/packages/overview) to learn about all available
 ## Architecture
 
 Nomo follows a layered architecture:
+
 - **Entrypoints** - HTTP request handling
 - **Controllers** - Request/response logic
 - **Services** - Business logic

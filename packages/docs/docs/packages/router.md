@@ -5,14 +5,14 @@ The router provides HTTP routing with trie-based matching, middleware support, a
 ## Basic Usage
 
 ```typescript
-import { Router, RouteDrawer } from 'nomo/router';
+import { Router, RouteDrawer } from "nomo/router";
 
 // Simple route
 const router = new Router();
-router.get('/', (req, env, ctx) => new Response('Hello World'));
+router.get("/", (req, env, ctx) => new Response("Hello World"));
 
 // Route with parameters
-router.get('/users/:id', (req, env, ctx) => {
+router.get("/users/:id", (req, env, ctx) => {
   return ctx.json({ userId: ctx.params.id });
 });
 ```
@@ -22,9 +22,9 @@ router.get('/users/:id', (req, env, ctx) => {
 The `RouteDrawer` provides a fluent interface for defining routes.
 
 ```typescript
-import { RouteDrawer } from 'nomo/router';
-import type { AppExecutionContext } from 'nomo/router';
-import { PostsController } from './controllers/posts_controller';
+import { RouteDrawer } from "nomo/router";
+import type { AppExecutionContext } from "nomo/router";
+import { PostsController } from "./controllers/posts_controller";
 
 export class AppRoutes extends RouteDrawer<Env, AppExecutionContext> {
   draw() {
@@ -50,13 +50,13 @@ draw() {
 
 ```typescript
 // URL parameters
-this.get('/users/:id', (req, env, ctx) => {
+this.get("/users/:id", (req, env, ctx) => {
   const { id } = ctx.params;
   return ctx.json({ userId: id });
 });
 
 // Multiple params
-this.get('/posts/:postId/comments/:commentId', (req, env, ctx) => {
+this.get("/posts/:postId/comments/:commentId", (req, env, ctx) => {
   const { postId, commentId } = ctx.params;
 });
 ```
@@ -64,9 +64,9 @@ this.get('/posts/:postId/comments/:commentId', (req, env, ctx) => {
 ### Query Parameters
 
 ```typescript
-this.get('/search', (req, env, ctx) => {
+this.get("/search", (req, env, ctx) => {
   const { q, page } = ctx.query;
-  return ctx.json({ query: q, page: page || '1' });
+  return ctx.json({ query: q, page: page || "1" });
 });
 ```
 
@@ -74,7 +74,7 @@ this.get('/search', (req, env, ctx) => {
 
 ```typescript
 // Request body: { user: { name: 'John', email: 'john@example.com' } }
-this.post('/users', (req, env, ctx) => {
+this.post("/users", (req, env, ctx) => {
   const { user } = ctx.params; // { name: 'John', email: 'john@example.com' }
 });
 ```
@@ -136,7 +136,7 @@ draw() {
   this.version('1', (v1) => {
     v1.get('/posts', handler);
   });
-  
+
   this.version('2', (v2) => {
     v2.get('/posts', handler);
   });
@@ -154,13 +154,13 @@ Add middleware to routes:
 this.use(authMiddleware);
 
 // Route-specific
-this.get('/admin', authMiddleware, adminHandler);
+this.get("/admin", authMiddleware, adminHandler);
 ```
 
 ### Middleware Pattern
 
 ```typescript
-import { Middleware } from 'nomo/router';
+import { Middleware } from "nomo/router";
 
 export const loggerMiddleware: Middleware<Env, Ctx> = async (req, env, ctx, next) => {
   const start = Date.now();
@@ -170,12 +170,12 @@ export const loggerMiddleware: Middleware<Env, Ctx> = async (req, env, ctx, next
 };
 
 export const authMiddleware: Middleware<Env, Ctx> = async (req, env, ctx, next) => {
-  const token = req.headers.get('authorization');
-  
+  const token = req.headers.get("authorization");
+
   if (!token) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
-  
+
   return next();
 };
 ```
@@ -196,44 +196,44 @@ draw() {
 ## Real-World Example
 
 ```typescript
-import { RouteDrawer } from 'nomo/router';
-import type { AppExecutionContext } from 'nomo/router';
+import { RouteDrawer } from "nomo/router";
+import type { AppExecutionContext } from "nomo/router";
 
-import { PostsController } from './controllers/posts_controller';
-import { AuthorsController } from './controllers/authors_controller';
-import { healthCheckMiddleware } from './middlewares';
+import { PostsController } from "./controllers/posts_controller";
+import { AuthorsController } from "./controllers/authors_controller";
+import { healthCheckMiddleware } from "./middlewares";
 
 export class AppRoutes extends RouteDrawer<Env, AppExecutionContext> {
   draw() {
     // Global middleware
     this.use(healthCheckMiddleware);
-    
+
     // Public routes
-    this.get('/', (req, env, ctx) => ctx.html('<h1>Welcome to My Blog</h1>'));
-    this.get('/health', (req, env, ctx) => ctx.json({ status: 'ok' }));
-    
+    this.get("/", (req, env, ctx) => ctx.html("<h1>Welcome to My Blog</h1>"));
+    this.get("/health", (req, env, ctx) => ctx.json({ status: "ok" }));
+
     // Blog posts
-    this.get('/posts', PostsController.action('index'));
-    this.get('/posts/:slug', PostsController.action('showBySlug'));
-    
+    this.get("/posts", PostsController.action("index"));
+    this.get("/posts/:slug", PostsController.action("showBySlug"));
+
     // API v1
-    this.version('1', (v1) => {
-      v1.namespace('blog', (blog) => {
+    this.version("1", (v1) => {
+      v1.namespace("blog", (blog) => {
         // RESTful CRUD
-        blog.resources('posts', PostsController);
-        blog.resources('authors', AuthorsController);
+        blog.resources("posts", PostsController);
+        blog.resources("authors", AuthorsController);
       });
-      
+
       // RPC
-      v1.namespace('rpc', (rpc) => {
-        rpc.post('/posts', PostsController.action('rpc'));
+      v1.namespace("rpc", (rpc) => {
+        rpc.post("/posts", PostsController.action("rpc"));
       });
     });
-    
+
     // Admin (scoped)
-    this.scope('admin', (admin) => {
-      admin.get('/dashboard', (req, env, ctx) => ctx.json({ admin: true }));
-      admin.resources('posts', PostsController);
+    this.scope("admin", (admin) => {
+      admin.get("/dashboard", (req, env, ctx) => ctx.json({ admin: true }));
+      admin.resources("posts", PostsController);
     });
   }
 }
@@ -243,15 +243,15 @@ export class AppRoutes extends RouteDrawer<Env, AppExecutionContext> {
 
 ```typescript
 // src/index.ts
-import { Router } from 'nomo/router';
-import { BaseWorker } from 'nomo/entrypoints';
-import { AppRoutes } from './routes';
+import { Router } from "nomo/router";
+import { BaseWorker } from "nomo/entrypoints";
+import { AppRoutes } from "./routes";
 
 const router = new Router<Env, ExecutionContext>({
   drawer: AppRoutes,
   onNotFound: (req, env, ctx) => {
-    return new Response('Not Found', { status: 404 });
-  }
+    return new Response("Not Found", { status: 404 });
+  },
 });
 
 export default class AppWorker extends BaseWorker<Env> {
@@ -261,27 +261,27 @@ export default class AppWorker extends BaseWorker<Env> {
 
 ## Context Methods
 
-| Method | Description |
-|--------|-------------|
-| `ctx.parseJson()` | Parse request body as JSON |
-| `ctx.json(data, init)` | Send JSON response |
-| `ctx.text(data, init)` | Send text response |
-| `ctx.html(data, init)` | Send HTML response |
-| `ctx.redirect(url, status)` | Redirect to URL |
-| `ctx.params` | Route parameters |
-| `ctx.query` | Query string parameters |
-| `ctx.headers` | Request headers |
+| Method                      | Description                |
+| --------------------------- | -------------------------- |
+| `ctx.parseJson()`           | Parse request body as JSON |
+| `ctx.json(data, init)`      | Send JSON response         |
+| `ctx.text(data, init)`      | Send text response         |
+| `ctx.html(data, init)`      | Send HTML response         |
+| `ctx.redirect(url, status)` | Redirect to URL            |
+| `ctx.params`                | Route parameters           |
+| `ctx.query`                 | Query string parameters    |
+| `ctx.headers`               | Request headers            |
 
 ## Router Options
 
 ```typescript
 const router = new Router<Env, ExecutionContext>({
-  drawer: AppRoutes,           // RouteDrawer class
-  basePath: '/api',            // Base path for all routes
-  prefix: 'v1',                // URL prefix
-  strict: true,                // Strict path matching
-  onNotFound: handler,         // 404 handler
-  onError: handler             // Error handler
+  drawer: AppRoutes, // RouteDrawer class
+  basePath: "/api", // Base path for all routes
+  prefix: "v1", // URL prefix
+  strict: true, // Strict path matching
+  onNotFound: handler, // 404 handler
+  onError: handler, // Error handler
 });
 ```
 
@@ -290,27 +290,27 @@ const router = new Router<Env, ExecutionContext>({
 ### With OpenAPI
 
 ```typescript
-import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
-import { z } from 'zod';
+import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
+import { z } from "zod";
 
 const registry = new OpenAPIRegistry();
 registry.registerPath({
-  method: 'get',
-  path: '/posts/{id}',
+  method: "get",
+  path: "/posts/{id}",
   request: { params: z.object({ id: z.string() }) },
   responses: {
-    200: { 
-      description: 'Post found',
-      content: { 'application/json': { schema: z.object({ id: z.string(), title: z.string() }) } }
+    200: {
+      description: "Post found",
+      content: { "application/json": { schema: z.object({ id: z.string(), title: z.string() }) } },
     },
-    404: { description: 'Post not found' }
-  }
+    404: { description: "Post not found" },
+  },
 });
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const openApiDoc = generator.generateDocument({
-  openapi: '3.0.0',
-  info: { title: 'My API', version: '1.0.0' }
+  openapi: "3.0.0",
+  info: { title: "My API", version: "1.0.0" },
 });
 ```
 
@@ -320,5 +320,5 @@ The router includes OpenTelemetry support for distributed tracing:
 
 ```typescript
 // Automatic tracing enabled
-this.get('/users', handler); // Traced automatically
+this.get("/users", handler); // Traced automatically
 ```

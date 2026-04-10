@@ -7,7 +7,9 @@ export type CorsOptions = {
   credentials?: boolean;
 };
 
-export const cors = <Env = unknown, Ctx = unknown>(options: CorsOptions = {}): Middleware<Env, Ctx> => {
+export const cors = <Env = unknown, Ctx = unknown>(
+  options: CorsOptions = {},
+): Middleware<Env, Ctx> => {
   return async (req: Request, env: Env, ctx: RouterContext<Env, Ctx>, next: Next) => {
     const origin = options.origin || "*";
     const methods = options.methods || ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];

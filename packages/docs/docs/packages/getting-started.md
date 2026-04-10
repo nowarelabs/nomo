@@ -4,7 +4,7 @@ Build a full-stack blog application with Nomo on Cloudflare Workers.
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - A Cloudflare account
 - Wrangler CLI (`npm install -g wrangler`)
 
@@ -50,11 +50,13 @@ Add the binding to `wrangler.jsonc`:
 
 ```jsonc
 {
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "blog-db",
-    "database_id": "your-database-id"
-  }]
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "blog-db",
+      "database_id": "your-database-id",
+    },
+  ],
 }
 ```
 
@@ -63,22 +65,22 @@ Add the binding to `wrangler.jsonc`:
 Create `src/db/schema/schema.ts`:
 
 ```typescript
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
-export const posts = sqliteTable('posts', {
-  id: text('id').primaryKey(),
-  title: text('title').notNull(),
-  slug: text('slug').notNull().unique(),
-  content: text('content').notNull(),
-  published: integer('published', { mode: 'boolean' }).default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
+export const posts = sqliteTable("posts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  content: text("content").notNull(),
+  published: integer("published", { mode: "boolean" }).default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-export const authors = sqliteTable('authors', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull()
+export const authors = sqliteTable("authors", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
 });
 ```
 
@@ -87,9 +89,9 @@ export const authors = sqliteTable('authors', {
 Create `src/models/post.ts`:
 
 ```typescript
-import { BaseModel, type DatabaseInstance } from 'nomo/models';
-import { posts } from '../db/schema/schema';
-import type { Post, NewPost } from './types';
+import { BaseModel, type DatabaseInstance } from "nomo/models";
+import { posts } from "../db/schema/schema";
+import type { Post, NewPost } from "./types";
 
 export class PostModel extends BaseModel<typeof posts, Post, NewPost> {
   constructor(db: DatabaseInstance, req: Request, env: Env, ctx: any) {
@@ -103,7 +105,7 @@ export class PostModel extends BaseModel<typeof posts, Post, NewPost> {
   async findPublished(limit = 10, offset = 0) {
     return this.query()
       .where({ published: true })
-      .orderBy('createdAt', 'DESC')
+      .orderBy("createdAt", "DESC")
       .limit(limit)
       .offset(offset)
       .all();
@@ -114,8 +116,8 @@ export class PostModel extends BaseModel<typeof posts, Post, NewPost> {
 Create `src/models/types.ts`:
 
 ```typescript
-import { createSelectSchema, createInsertSchema } from 'drizzle-zod';
-import * as schema from '../db/schema/schema';
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import * as schema from "../db/schema/schema";
 
 export const postsSelectSchema = createSelectSchema(schema.posts);
 export const postsInsertSchema = createInsertSchema(schema.posts);
@@ -129,9 +131,9 @@ export type NewPost = typeof schema.posts.$inferInsert;
 Create `src/services/blog.ts`:
 
 ```typescript
-import { BaseService } from 'nomo/services';
-import { PostModel } from '../models/post';
-import type { Post, NewPost } from '../models/types';
+import { BaseService } from "nomo/services";
+import { PostModel } from "../models/post";
+import type { Post, NewPost } from "../models/types";
 
 export class BlogService extends BaseService {
   public posts: PostModel;
@@ -154,7 +156,7 @@ export class BlogService extends BaseService {
       ...data,
       id: crypto.randomUUID(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
   }
 
@@ -173,11 +175,11 @@ export class BlogService extends BaseService {
 Create `src/controllers/posts_controller.ts`:
 
 ```typescript
-import { RouterContext } from 'nomo/router';
-import { BaseResourceController } from 'nomo/controllers';
-import { BlogService } from '../services/blog';
-import { PostModel } from '../models/post';
-import type { Post, NewPost } from '../models/types';
+import { RouterContext } from "nomo/router";
+import { BaseResourceController } from "nomo/controllers";
+import { BlogService } from "../services/blog";
+import { PostModel } from "../models/post";
+import type { Post, NewPost } from "../models/types";
 
 export class PostsController extends BaseResourceController<
   Env,
@@ -208,11 +210,11 @@ export class PostsController extends BaseResourceController<
   async showBySlug() {
     const { slug } = this.pathParams;
     const post = await this.service.getPostBySlug(slug);
-    
+
     if (!post) {
-      return this.notFound('Post not found');
+      return this.notFound("Post not found");
     }
-    
+
     return this.json(post);
   }
 }
@@ -223,23 +225,23 @@ export class PostsController extends BaseResourceController<
 Create `src/routes.ts`:
 
 ```typescript
-import { RouteDrawer } from 'nomo/router';
-import type { AppExecutionContext } from 'nomo/router';
-import { PostsController } from './controllers/posts_controller';
+import { RouteDrawer } from "nomo/router";
+import type { AppExecutionContext } from "nomo/router";
+import { PostsController } from "./controllers/posts_controller";
 
 export class AppRoutes extends RouteDrawer<Env, AppExecutionContext> {
   draw() {
     // Public routes
-    this.get('/health', (req, env, ctx) => {
-      return ctx.json({ status: 'ok' });
+    this.get("/health", (req, env, ctx) => {
+      return ctx.json({ status: "ok" });
     });
 
-    this.get('/posts', PostsController.action('published'));
-    this.get('/posts/:slug', PostsController.action('showBySlug'));
+    this.get("/posts", PostsController.action("published"));
+    this.get("/posts/:slug", PostsController.action("showBySlug"));
 
     // Admin routes
-    this.namespace('admin', (admin) => {
-      admin.resources('posts', PostsController);
+    this.namespace("admin", (admin) => {
+      admin.resources("posts", PostsController);
     });
   }
 }
@@ -250,12 +252,12 @@ export class AppRoutes extends RouteDrawer<Env, AppExecutionContext> {
 Update `src/index.ts`:
 
 ```typescript
-import { Router } from 'nomo/router';
-import { BaseWorker } from 'nomo/entrypoints';
-import { AppRoutes } from './routes';
+import { Router } from "nomo/router";
+import { BaseWorker } from "nomo/entrypoints";
+import { AppRoutes } from "./routes";
 
 const router = new Router<Env, ExecutionContext>({
-  drawer: AppRoutes
+  drawer: AppRoutes,
 });
 
 export default class BlogWorker extends BaseWorker<Env> {
@@ -270,11 +272,13 @@ export default class BlogWorker extends BaseWorker<Env> {
   "name": "my-blog",
   "main": "src/index.ts",
   "compatibility_date": "2024-01-01",
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "blog-db",
-    "database_id": "your-database-id"
-  }]
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "blog-db",
+      "database_id": "your-database-id",
+    },
+  ],
 }
 ```
 

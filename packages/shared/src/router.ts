@@ -5,7 +5,10 @@ import type { ExecutionContext } from "@cloudflare/workers-types";
 import RouterTrieNode from "./lib/routerTrieNode";
 import { isValidPath, splitPath, tryDecode } from "./utils/url";
 
-export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<string, unknown> {
+export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<
+  string,
+  unknown
+> {
   params: Record<string, string>;
   query: Record<string, string>;
   headers: Record<string, string>;
@@ -309,7 +312,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
 
   onError(
     handler: (
-err: unknown,
+      err: unknown,
       request: Request,
       env: Env,
       ctx: RouterContext<Env, Ctx>,

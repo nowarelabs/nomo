@@ -6,9 +6,10 @@
   "type": "module",
   "scripts": {
     "publish": "node scripts/publish.js",
-    "format:check": "oxlint --import --jsx --typescript --format",
-    "format": "oxlint --import --jsx --typescript --format --write",
-    "lint": "oxlint --import --jsx --typescript",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "oxfmt": "^0.44.0",
     "oxlint": "^0.10.0",
     "tsx": "^4.21.0",
     "typescript": "^5.5.2",

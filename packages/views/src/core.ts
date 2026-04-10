@@ -15,12 +15,13 @@ function renderChild(c: ComponentChild): string {
   return String(c);
 }
 
-export const Fragment = ({ children }: { children?: ComponentChild }): unknown => renderChild(children);
+export const Fragment = ({ children }: { children?: ComponentChild }): unknown =>
+  renderChild(children);
 
 // --- DIRECT STRING JSX ---
 
 function renderTag<P extends Record<string, unknown>>(tag: string, props: P | null): string {
-  const p = (props || {}) as unknown;
+  const p = props ?? ({} as P);
   let h = `<${tag}`;
   let children = "";
 
@@ -29,11 +30,11 @@ function renderTag<P extends Record<string, unknown>>(tag: string, props: P | nu
     if (k === "dangerouslySetInnerHTML") continue;
 
     const attr = k === "className" || k === "class" ? "class" : k === "htmlFor" ? "for" : k;
-    let val = p[k];
+    let val: unknown = p[k];
 
     if (attr === "style" && typeof val === "object" && val !== null) {
       val =
-        Object.entries(val)
+        Object.entries(val as Record<string, unknown>)
           .map(([sk, sv]) => `${sk.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}:${sv}`)
           .join(";") + ";";
     }
@@ -61,10 +62,11 @@ function renderTag<P extends Record<string, unknown>>(tag: string, props: P | nu
   if (selfClosing) return h + " />";
 
   h += ">";
-  if (p.dangerouslySetInnerHTML?.__html) {
-    children = p.dangerouslySetInnerHTML.__html;
+  const htmlProp = p.dangerouslySetInnerHTML as { __html?: string } | null | undefined;
+  if (htmlProp?.__html) {
+    children = htmlProp.__html;
   } else {
-    children = renderChild(p.children);
+    children = renderChild(p.children as ComponentChild);
   }
 
   return h + children + `</${tag}>`;
@@ -75,15 +77,16 @@ export function jsx<P extends Record<string, unknown>>(
   props: P | null,
   _key?: string | number,
 ): string {
-  const p = (props || {}) as unknown;
+  const p = props ?? ({} as P);
 
   if (typeof tag === "function") {
-    // If it's a class component (BaseView descendant)
-    if (tag.prototype && tag.prototype.render && (tag as unknown).render) {
+    if (tag.prototype && tag.prototype.render) {
       const ctx = _ctx();
-      return (tag as unknown).render(p, ctx?.a, ctx?.r);
+      return (
+        tag.prototype as { render: (props: P, a?: unknown, r?: ContentRegistry) => string }
+      ).render.call(tag, p, ctx?.a, ctx?.r);
     }
-    return (tag as FC<unknown>)({ ...p, children: p.children });
+    return (tag as FC<P>)({ ...p, children: p.children });
   }
 
   return renderTag(tag as string, props);
@@ -92,9 +95,9 @@ export function jsx<P extends Record<string, unknown>>(
 export const jsxs = jsx;
 
 export const h = (tag: unknown, props: unknown, ...children: unknown[]): string => {
-  const p = props || {};
+  const p = (props ?? {}) as Record<string, unknown>;
   if (children.length > 0) p.children = children.length === 1 ? children[0] : children;
-  return jsx(tag, p);
+  return jsx(tag as string | FC<Record<string, unknown>>, p as never);
 };
 
 export const text = (value: string): string => esc(value);
@@ -124,14 +127,18 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]): strin
 
 // --- CONTEXT TRACKING ---
 
-const getGlobal = () =>
+interface GlobalCtx {
+  __NB_VIEWS_CTX__?: { r: ContentRegistry; a?: unknown };
+}
+
+const getGlobal = (): GlobalCtx =>
   typeof globalThis !== "undefined"
-    ? globalThis
+    ? (globalThis as GlobalCtx)
     : typeof self !== "undefined"
-      ? self
+      ? (self as GlobalCtx)
       : typeof window !== "undefined"
-        ? window
-        : ({} as unknown);
+        ? (window as GlobalCtx)
+        : {};
 const _g = getGlobal();
 
 export const withCtx = <T>(r: ContentRegistry, a: unknown, fn: () => T): T => {
@@ -198,10 +205,11 @@ export abstract class AssetHelpers {
 
   import_map_tag(customMap?: unknown) {
     const ctx = _ctx();
+    const ctxA = ctx?.a as { import_map_tag?: () => string } | undefined;
     const mapRaw = customMap
       ? JSON.stringify(customMap)
-      : ctx?.a?.import_map_tag
-        ? ctx.a.import_map_tag()
+      : ctxA?.import_map_tag
+        ? ctxA.import_map_tag()
         : JSON.stringify({
             imports: {
               capnweb: "/assets/vendor/capnweb/index.js",
@@ -213,10 +221,12 @@ export abstract class AssetHelpers {
   }
 
   stylesheet_link_tag(n: string) {
-    return jsx("link", { rel: "stylesheet", href: this.a?.path(n) || `/${n}` });
+    const pathFn = (this.a as { path?: (n: string) => string })?.path;
+    return jsx("link", { rel: "stylesheet", href: pathFn?.(n) || `/${n}` });
   }
   javascript_include_tag(n: string) {
-    return jsx("script", { src: this.a?.path(n) || `/${n}`, type: "module" });
+    const pathFn = (this.a as { path?: (n: string) => string })?.path;
+    return jsx("script", { src: pathFn?.(n) || `/${n}`, type: "module" });
   }
 
   custom_element(
@@ -245,8 +255,13 @@ export abstract class BaseView<P = unknown> extends AssetHelpers {
     r: ContentRegistry = new ContentRegistry(),
   ): string {
     return withCtx(r, a, () => {
-      const instance = new (this as unknown)(p, r, a);
-      return instance.render();
+      const Ctor = this as unknown as new (
+        p: P,
+        r: ContentRegistry,
+        a?: unknown,
+      ) => InstanceType<V>;
+      const instance = new Ctor(p, r, a);
+      return (instance as { render: () => string }).render();
     });
   }
 }
@@ -269,7 +284,13 @@ export abstract class BaseLayout<P = unknown> extends AssetHelpers {
   ): string {
     const r = new ContentRegistry();
     const c = View.render(p, a, r);
-    return withCtx(r, a, () => new (Layout as unknown)(c, p, r, a).render());
+    const LayoutCtor = Layout as unknown as new (
+      content: string,
+      props: P,
+      r: ContentRegistry,
+      a?: unknown,
+    ) => InstanceType<L>;
+    return withCtx(r, a, () => new LayoutCtor(c, p, r, a).render());
   }
 }
 
@@ -306,14 +327,16 @@ export abstract class BaseDtoView<T = unknown> {
   }
 
   static renderJson<V extends typeof BaseDtoView>(this: V, data: unknown): unknown {
-    return new (this as unknown)(data).json();
+    const Ctor = this as unknown as new (data: unknown) => InstanceType<V>;
+    return new Ctor(data).json();
   }
 
   static renderXml<V extends typeof BaseDtoView>(this: V, data: unknown): string {
-    return new (this as unknown)(data).xml();
+    const Ctor = this as unknown as new (data: unknown) => InstanceType<V>;
+    return new Ctor(data).xml();
   }
 }
 
 // Compatibility wrapper
-export const render = (v: unknown): string => v;
+export const render = (v: unknown): string => String(v);
 export const renderToString = render;

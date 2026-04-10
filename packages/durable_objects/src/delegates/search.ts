@@ -38,7 +38,10 @@ export class SearchDelegate extends DurableObjectBaseDelegate<SearchConfig> {
   /**
    * Paginated results
    */
-  async paginate(page: number = 1, perPage: number = 20): Promise<{ data: unknown[]; total: number }> {
+  async paginate(
+    page: number = 1,
+    perPage: number = 20,
+  ): Promise<{ data: unknown[]; total: number }> {
     const { table } = this.config;
     const offset = (page - 1) * perPage;
 

@@ -352,8 +352,8 @@ export class SchemaReflector {
       await fs.rm(this.tempSqlPath, { force: true });
       await fs.rm(this.tempDbPath, { force: true });
     } catch (e) {
-        console.log(e);
-      }
+      console.log(e);
+    }
   }
 
   private singularize(str: string) {

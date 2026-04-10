@@ -26,7 +26,10 @@ export abstract class QueueJob<T = unknown> extends BaseJob<T> {
     });
   }
 
-  static async performNow<T extends { new (...args: unknown[]): unknown }>(this: T, params: unknown) {
+  static async performNow<T extends { new (...args: unknown[]): unknown }>(
+    this: T,
+    params: unknown,
+  ) {
     const job = new (this as unknown)(params);
     await job.perform();
   }

@@ -5,13 +5,13 @@ Stateful coordination for real-time features and distributed state.
 ## BaseDurableObject
 
 ```typescript
-import { BaseDurableObject } from 'nomo/durable-objects';
+import { BaseDurableObject } from "nomo/durable-objects";
 
 export class ChatRoomDO extends BaseDurableObject {
   async onMessage(message: string) {
-    const messages = await this.storage.get('messages') || [];
+    const messages = (await this.storage.get("messages")) || [];
     messages.push(message);
-    await this.storage.put('messages', messages);
+    await this.storage.put("messages", messages);
   }
 
   async onConnect(request: Request): Promise<Response> {
@@ -41,7 +41,7 @@ async alarm() { /* handle alarm */ }
 ## With Drizzle ORM
 
 ```typescript
-import { drizzle } from 'drizzle-orm/durable-object-sqlite';
+import { drizzle } from "drizzle-orm/durable-object-sqlite";
 
 export class BlogDO extends BaseDurableObject {
   db: any;

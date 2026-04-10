@@ -5,11 +5,11 @@ Database migration utilities for Nomo applications.
 ## Basic Usage
 
 ```typescript
-import { MigrationRunner } from 'nomo/migrations';
+import { MigrationRunner } from "nomo/migrations";
 
 const runner = new MigrationRunner({
   db: env.DB,
-  tableName: '_migrations'
+  tableName: "_migrations",
 });
 
 // Run pending migrations
@@ -39,16 +39,16 @@ export const down = `
 
 ## Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `db` | `D1Database` | D1 database instance |
-| `tableName` | `string` | Migrations table name |
-| `directory` | `string` | Migration files directory |
+| Option      | Type         | Description               |
+| ----------- | ------------ | ------------------------- |
+| `db`        | `D1Database` | D1 database instance      |
+| `tableName` | `string`     | Migrations table name     |
+| `directory` | `string`     | Migration files directory |
 
 ## Durable Object Migration
 
 ```typescript
-import { DurableMigrationRunner } from 'nomo/migrations';
+import { DurableMigrationRunner } from "nomo/migrations";
 
 export class MigrationDO extends DurableObject {
   async onMessage(message: MigrationMessage) {

@@ -54,7 +54,7 @@ export class ApplicationLayout extends BaseLayout {
 ```typescript
 async show() {
   const post = await this.service.getPost(this.params.id);
-  
+
   return this.render({
     view: PostView,
     layout: ApplicationLayout,
@@ -66,7 +66,7 @@ async show() {
 ## BaseDtoView (JSON/XML)
 
 ```typescript
-import { BaseDtoView } from 'nomo/views';
+import { BaseDtoView } from "nomo/views";
 
 export class PostDtoView extends BaseDtoView {
   static renderJson(post: Post) {
@@ -76,7 +76,7 @@ export class PostDtoView extends BaseDtoView {
       slug: post.slug,
       excerpt: post.excerpt,
       author: { id: post.authorId },
-      createdAt: post.createdAt?.toISOString()
+      createdAt: post.createdAt?.toISOString(),
     };
   }
 

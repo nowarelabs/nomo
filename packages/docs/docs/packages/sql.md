@@ -5,31 +5,31 @@ SQL query builder with multi-dialect support.
 ## Basic Usage
 
 ```typescript
-import { sql, select, insert, update, del } from 'nomo/sql';
+import { sql, select, insert, update, del } from "nomo/sql";
 
 // Select
-const query = sql.select('users').where({ status: 'active' }).limit(10);
+const query = sql.select("users").where({ status: "active" }).limit(10);
 
 // Insert
-const result = await sql.insert('users', { name: 'John', email: 'john@example.com' });
+const result = await sql.insert("users", { name: "John", email: "john@example.com" });
 
 // Update
-await sql.update('users', { name: 'Jane' }).where({ id: '1' });
+await sql.update("users", { name: "Jane" }).where({ id: "1" });
 
 // Delete
-await sql.delete('users').where({ id: '1' });
+await sql.delete("users").where({ id: "1" });
 ```
 
 ## Query Builder
 
 ```typescript
-import { query } from 'nomo/sql';
+import { query } from "nomo/sql";
 
 const results = await query
-  .from('users')
-  .select('id', 'name', 'email')
-  .where({ status: 'active' })
-  .orderBy('createdAt', 'DESC')
+  .from("users")
+  .select("id", "name", "email")
+  .where({ status: "active" })
+  .orderBy("createdAt", "DESC")
   .limit(20)
   .offset(0)
   .execute();
@@ -40,7 +40,7 @@ const results = await query
 Supported dialects: `sqlite`, `postgres`, `mysql`
 
 ```typescript
-const q = new FluentQuery(db, table, logger, 'sqlite');
+const q = new FluentQuery(db, table, logger, "sqlite");
 ```
 
 ## Operators

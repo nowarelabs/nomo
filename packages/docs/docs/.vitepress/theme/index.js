@@ -5,5 +5,5 @@ export default {
   ...theme,
   enhanceApp({ app }) {
     console.log(app);
-  }
+  },
 };

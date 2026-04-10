@@ -9,12 +9,12 @@ The main worker entry point that handles HTTP requests and dispatches to the rou
 ### Basic Setup
 
 ```typescript
-import { Router } from 'nomo/router';
-import { BaseWorker } from 'nomo/entrypoints';
-import { AppRoutes } from './routes';
+import { Router } from "nomo/router";
+import { BaseWorker } from "nomo/entrypoints";
+import { AppRoutes } from "./routes";
 
 const router = new Router<Env, ExecutionContext>({
-  drawer: AppRoutes
+  drawer: AppRoutes,
 });
 
 export default class AppWorker extends BaseWorker<Env> {
@@ -25,14 +25,14 @@ export default class AppWorker extends BaseWorker<Env> {
 ### With Job Dispatcher
 
 ```typescript
-import { Router } from 'nomo/router';
-import { JobDispatcher } from 'nomo/jobs';
-import { BaseWorker } from 'nomo/entrypoints';
-import { AppRoutes } from './routes';
-import { JobRegistry } from './jobs';
+import { Router } from "nomo/router";
+import { JobDispatcher } from "nomo/jobs";
+import { BaseWorker } from "nomo/entrypoints";
+import { AppRoutes } from "./routes";
+import { JobRegistry } from "./jobs";
 
 const router = new Router<Env, ExecutionContext>({
-  drawer: AppRoutes
+  drawer: AppRoutes,
 });
 
 const dispatcher = new JobDispatcher(JobRegistry);
@@ -48,9 +48,9 @@ export default class AppWorker extends BaseWorker<Env> {
 Durable Object entry point for stateful coordination.
 
 ```typescript
-import { BaseDurableObject } from 'nomo/entrypoints';
-import { drizzle } from 'drizzle-orm/durable-object-sqlite';
-import * as schema from '../db/schema';
+import { BaseDurableObject } from "nomo/entrypoints";
+import { drizzle } from "drizzle-orm/durable-object-sqlite";
+import * as schema from "../db/schema";
 
 export class CounterDO extends BaseDurableObject {
   async onMessage(message: string) {
@@ -58,7 +58,7 @@ export class CounterDO extends BaseDurableObject {
   }
 
   async onConnect(request: Request): Promise<Response> {
-    return new Response('WebSocket connected');
+    return new Response("WebSocket connected");
   }
 }
 ```
@@ -68,21 +68,21 @@ export class CounterDO extends BaseDurableObject {
 Cloudflare Workflow entry point.
 
 ```typescript
-import { BaseWorkflow } from 'nomo/entrypoints';
+import { BaseWorkflow } from "nomo/entrypoints";
 
 export class UserOnboardingWorkflow extends BaseWorkflow<Env, { userId: string; email: string }> {
   async run(event, step) {
-    await step('send_welcome_email', async () => {
+    await step("send_welcome_email", async () => {
       // Send email
     });
-    
-    await step('create_user_record', async () => {
+
+    await step("create_user_record", async () => {
       // Create user
     });
-    
+
     await this.sleep(10); // Wait 10 seconds
-    
-    await step('send_follow_up', async () => {
+
+    await step("send_follow_up", async () => {
       // Send follow up
     });
   }
@@ -94,25 +94,25 @@ export class UserOnboardingWorkflow extends BaseWorkflow<Env, { userId: string; 
 ### src/index.ts
 
 ```typescript
-import { Router } from 'nomo/router';
-import { JobDispatcher } from 'nomo/jobs';
-import { BaseWorker } from 'nomo/entrypoints';
+import { Router } from "nomo/router";
+import { JobDispatcher } from "nomo/jobs";
+import { BaseWorker } from "nomo/entrypoints";
 
-import { AppRoutes } from './routes';
-import { JobRegistry } from './jobs';
-import { AccountsDO } from './durable_objects/accounts';
-import { UserOnboardingWorkflow } from './workflows/user_onboarding';
+import { AppRoutes } from "./routes";
+import { JobRegistry } from "./jobs";
+import { AccountsDO } from "./durable_objects/accounts";
+import { UserOnboardingWorkflow } from "./workflows/user_onboarding";
 
 // Initialize router with RouteDrawer
 const router = new Router<Env, ExecutionContext>({
   drawer: AppRoutes,
   onNotFound: (req, env, ctx) => {
-    return new Response('Not Found', { status: 404 });
+    return new Response("Not Found", { status: 404 });
   },
   onError: (err, req, env, ctx) => {
-    console.error('Worker error:', err);
-    return new Response('Internal Server Error', { status: 500 });
-  }
+    console.error("Worker error:", err);
+    return new Response("Internal Server Error", { status: 500 });
+  },
 });
 
 // Initialize job dispatcher
@@ -136,42 +136,38 @@ export { AccountsDO, UserOnboardingWorkflow };
   "main": "src/index.ts",
   "compatibility_date": "2024-01-01",
   "compatibility_flags": ["nodejs_compat", "nodejs_als"],
-  
+
   // D1 Database
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "my-app-db",
-    "database_id": "your-database-id"
-  }],
-  
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-app-db",
+      "database_id": "your-database-id",
+    },
+  ],
+
   // Durable Objects
   "durable_objects": {
-    "bindings": [
-      { "class_name": "AccountsDO", "name": "ACCOUNTS_DO" }
-    ]
+    "bindings": [{ "class_name": "AccountsDO", "name": "ACCOUNTS_DO" }],
   },
-  
+
   // Workflows
-  "workflows": [{
-    "name": "USER_ONBOARDING_WORKFLOW",
-    "binding": "USER_ONBOARDING_WORKFLOW",
-    "class_name": "UserOnboardingWorkflow"
-  }],
-  
-  // KV Namespaces
-  "kv_namespaces": [
-    { "binding": "CACHE", "id": "your-kv-id" }
+  "workflows": [
+    {
+      "name": "USER_ONBOARDING_WORKFLOW",
+      "binding": "USER_ONBOARDING_WORKFLOW",
+      "class_name": "UserOnboardingWorkflow",
+    },
   ],
-  
+
+  // KV Namespaces
+  "kv_namespaces": [{ "binding": "CACHE", "id": "your-kv-id" }],
+
   // Queues
   "queues": {
-    "producers": [
-      { "queue": "email-queue", "binding": "EMAIL_QUEUE" }
-    ],
-    "consumers": [
-      { "queue": "email-queue", "max_batch_size": 100 }
-    ]
-  }
+    "producers": [{ "queue": "email-queue", "binding": "EMAIL_QUEUE" }],
+    "consumers": [{ "queue": "email-queue", "max_batch_size": 100 }],
+  },
 }
 ```
 
@@ -194,29 +190,29 @@ export interface Env {
 
 ### BaseWorker Methods
 
-| Method | Description |
-|--------|-------------|
-| `fetch(request, env, ctx)` | Handle HTTP request |
-| `handle(request, env, ctx)` | Alias for fetch (service binding RPC) |
-| `runJob(jobName, params, env, ctx)` | Run background job |
-| `queue(batch, env, ctx)` | Handle queue messages |
-| `rpc(method, args, env, ctx)` | Internal RPC call |
+| Method                              | Description                           |
+| ----------------------------------- | ------------------------------------- |
+| `fetch(request, env, ctx)`          | Handle HTTP request                   |
+| `handle(request, env, ctx)`         | Alias for fetch (service binding RPC) |
+| `runJob(jobName, params, env, ctx)` | Run background job                    |
+| `queue(batch, env, ctx)`            | Handle queue messages                 |
+| `rpc(method, args, env, ctx)`       | Internal RPC call                     |
 
 ### BaseDurableObject Methods
 
-| Method | Description |
-|--------|-------------|
-| `onMessage(message)` | Handle incoming message |
+| Method               | Description              |
+| -------------------- | ------------------------ |
+| `onMessage(message)` | Handle incoming message  |
 | `onConnect(request)` | Handle WebSocket connect |
-| `alarm()` | Handle scheduled alarm |
+| `alarm()`            | Handle scheduled alarm   |
 
 ### BaseWorkflow Methods
 
-| Method | Description |
-|--------|-------------|
-| `run(event, step)` | Execute workflow |
-| `sleep(seconds)` | Wait for duration |
-| `step(name, fn)` | Define workflow step |
+| Method             | Description          |
+| ------------------ | -------------------- |
+| `run(event, step)` | Execute workflow     |
+| `sleep(seconds)`   | Wait for duration    |
+| `step(name, fn)`   | Define workflow step |
 
 ## Combining with Other Packages
 
@@ -227,7 +223,7 @@ const router = new Router<Env, ExecutionContext>({
   drawer: AppRoutes,
   drawerOptions: {
     // Custom options
-  }
+  },
 });
 ```
 

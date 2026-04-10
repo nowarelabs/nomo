@@ -172,7 +172,10 @@ export type RouterContextSource =
   | "service"
   | "model";
 
-export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<string, unknown> {
+export interface RouterContext<Env = unknown, Ctx = ExecutionContext> extends Record<
+  string,
+  unknown
+> {
   requestId: string;
   params: Record<string, string>;
   query: Record<string, unknown>;

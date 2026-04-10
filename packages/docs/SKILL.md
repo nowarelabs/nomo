@@ -52,31 +52,37 @@ Request → BaseWorker (src/index.ts)
 ## Key Packages
 
 ### @nomo/controllers
+
 - **BaseController**: HTTP request handling, response methods, validation/normalization hooks
 - **BaseResourceController**: RESTful CRUD automatically (index, show, create, update, destroy, trash, restore, etc.)
 - Response methods: `json()`, `text()`, `html()`, `xml()`, `csv()`, `xlsx()`, `redirect_to()`, `render()`
 - Error methods: `notFound()`, `unauthorized()`, `forbidden()`, `badRequest()`, `internalServerError()`
 
 ### @nomo/router
+
 - **Router**: Main router class
 - **RouteDrawer**: Fluent API for defining routes
 - Methods: `get()`, `post()`, `put()`, `patch()`, `delete()`, `all()`
 - Features: `resources()`, `resourceActions()`, `namespace()`, `version()`, `scope()`, `use()`
 
 ### @nomo/services
+
 - **BaseService**: Business logic layer
 - Provides: `db`, `logger`, `fetch()`, `createServiceContext()`
 
 ### @nomo/models
+
 - **BaseModel**: Database operations with Drizzle ORM
 - **FluentQuery**: Chainable query builder with operators (eq, neq, gt, gte, lt, lte, like, in, nin)
 
 ### @nomo/entrypoints
+
 - **BaseWorker**: Worker entry point
 - **BaseDurableObject**: DO entry point
 - **BaseWorkflow**: Workflow entry point
 
 ### @nomo/views
+
 - **BaseView**: JSX view component
 - **BaseLayout**: HTML layout wrapper
 - **BaseDtoView**: JSON/XML serialization
@@ -86,31 +92,34 @@ Request → BaseWorker (src/index.ts)
 ### Creating a New Resource (CRUD)
 
 1. **Define Schema** (`src/db/schema/schema.ts`):
-```typescript
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const posts = sqliteTable('posts', {
-  id: text('id').primaryKey(),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
-  published: integer('published', { mode: 'boolean' }).default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
+```typescript
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+
+export const posts = sqliteTable("posts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  published: integer("published", { mode: "boolean" }).default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 ```
 
 2. **Define Types** (`src/models/types.ts`):
+
 ```typescript
-import { createSelectSchema, createInsertSchema } from 'drizzle-zod';
-import * as schema from '../db/schema/schema';
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import * as schema from "../db/schema/schema";
 
 export type Post = typeof schema.posts.$inferSelect;
 export type NewPost = typeof schema.posts.$inferInsert;
 ```
 
 3. **Create Model** (`src/models/post.ts`):
+
 ```typescript
-import { BaseModel } from 'nomo/models';
-import { posts } from '../db/schema/schema';
+import { BaseModel } from "nomo/models";
+import { posts } from "../db/schema/schema";
 
 export class PostModel extends BaseModel<typeof posts, Post, NewPost> {
   constructor(db, req, env, ctx) {
@@ -124,9 +133,10 @@ export class PostModel extends BaseModel<typeof posts, Post, NewPost> {
 ```
 
 4. **Create Service** (`src/services/blog.ts`):
+
 ```typescript
-import { BaseService } from 'nomo/services';
-import { PostModel } from '../models/post';
+import { BaseService } from "nomo/services";
+import { PostModel } from "../models/post";
 
 export class BlogService extends BaseService {
   public posts: PostModel;
@@ -143,13 +153,19 @@ export class BlogService extends BaseService {
 ```
 
 5. **Create Controller** (`src/controllers/posts_controller.ts`):
+
 ```typescript
-import { BaseResourceController } from 'nomo/controllers';
-import { BlogService } from '../services/blog';
-import { PostModel } from '../models/post';
+import { BaseResourceController } from "nomo/controllers";
+import { BlogService } from "../services/blog";
+import { PostModel } from "../models/post";
 
 export class PostsController extends BaseResourceController<
-  Env, ExecutionContext, BlogService, PostModel, Post, NewPost
+  Env,
+  ExecutionContext,
+  BlogService,
+  PostModel,
+  Post,
+  NewPost
 > {
   protected service: BlogService;
 
@@ -165,21 +181,23 @@ export class PostsController extends BaseResourceController<
 ```
 
 6. **Define Routes** (`src/routes.ts`):
+
 ```typescript
-import { RouteDrawer } from 'nomo/router';
+import { RouteDrawer } from "nomo/router";
 
 export class AppRoutes extends RouteDrawer<Env, ExecutionContext> {
   draw() {
-    this.resources('posts', PostsController);
+    this.resources("posts", PostsController);
   }
 }
 ```
 
 7. **Set Up Worker** (`src/index.ts`):
+
 ```typescript
-import { Router } from 'nomo/router';
-import { BaseWorker } from 'nomo/entrypoints';
-import { AppRoutes } from './routes';
+import { Router } from "nomo/router";
+import { BaseWorker } from "nomo/entrypoints";
+import { AppRoutes } from "./routes";
 
 const router = new Router({ drawer: AppRoutes });
 
@@ -191,44 +209,40 @@ export default class AppWorker extends BaseWorker<Env> {
 ### Adding Validation
 
 ```typescript
-import { BaseValidator } from 'nomo/validators';
-import { z } from 'zod';
+import { BaseValidator } from "nomo/validators";
+import { z } from "zod";
 
 export class PostsValidator extends BaseValidator {
   protected schema = z.object({
     title: z.string().min(1).max(200),
-    content: z.string().min(1)
+    content: z.string().min(1),
   });
 }
 
 // In controller
 export class PostsController extends BaseResourceController {
-  static beforeActions = [
-    { validate: PostsValidator, only: ['create', 'update'] }
-  ];
+  static beforeActions = [{ validate: PostsValidator, only: ["create", "update"] }];
 }
 ```
 
 ### Adding Normalization
 
 ```typescript
-import { BaseNormalizer } from 'nomo/normalizers';
+import { BaseNormalizer } from "nomo/normalizers";
 
 export class PostsNormalizer extends BaseNormalizer {
   normalize() {
     return {
       ...this.data,
       title: this.data.title?.trim(),
-      slug: this.data.title?.toLowerCase().replace(/\s+/g, '-')
+      slug: this.data.title?.toLowerCase().replace(/\s+/g, "-"),
     };
   }
 }
 
 // In controller
 export class PostsController extends BaseResourceController {
-  static beforeActions = [
-    { normalize: PostsNormalizer, only: ['create', 'update'] }
-  ];
+  static beforeActions = [{ normalize: PostsNormalizer, only: ["create", "update"] }];
 }
 ```
 
@@ -243,17 +257,17 @@ export class PostsController extends BaseResourceController {
 }
 
 // In routes.ts
-this.get('/posts/published', PostsController.action('published'));
+this.get("/posts/published", PostsController.action("published"));
 ```
 
 ### Accessing Database
 
 ```typescript
 // Via service (recommended)
-this.service.posts.query().where({ id: '123' }).first();
+this.service.posts.query().where({ id: "123" }).first();
 
 // Via controller (direct)
-const results = await this.db.prepare('SELECT * FROM posts').all();
+const results = await this.db.prepare("SELECT * FROM posts").all();
 ```
 
 ### Accessing Durable Objects
@@ -281,7 +295,7 @@ async triggerJob() {
 ```typescript
 async show() {
   const post = await this.service.getPost(this.params.id);
-  
+
   return this.render({
     view: PostView,
     layout: ApplicationLayout,
@@ -317,7 +331,7 @@ export interface Env {
   "durable_objects": { "bindings": [{ "class_name": "MyDO", "name": "MY_DO" }] },
   "kv_namespaces": [{ "binding": "KV", "id": "..." }],
   "workflows": [{ "name": "MY_WORKFLOW", "binding": "MY_WORKFLOW" }],
-  "queues": { "producers": [{ "queue": "my-queue", "binding": "MY_QUEUE" }] }
+  "queues": { "producers": [{ "queue": "my-queue", "binding": "MY_QUEUE" }] },
 }
 ```
 

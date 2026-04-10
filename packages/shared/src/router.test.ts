@@ -137,7 +137,9 @@ describe("Router", () => {
 
     it("should handle encoded characters correctly and safely", async () => {
       const router = new Router();
-      router.get("/hello/:name", async (req: unknown, env: unknown, ctx: unknown) => ctx.text(ctx.params.name));
+      router.get("/hello/:name", async (req: unknown, env: unknown, ctx: unknown) =>
+        ctx.text(ctx.params.name),
+      );
 
       // %20 is space
       const req = new Request("http://localhost/hello/John%20Doe");
@@ -171,7 +173,9 @@ describe("Router", () => {
 
     it("should handle recursive wildcards (*)", async () => {
       const router = new Router();
-      router.get("/static/*", async (req: unknown, env: unknown, ctx: unknown) => ctx.text(ctx.params["*"]));
+      router.get("/static/*", async (req: unknown, env: unknown, ctx: unknown) =>
+        ctx.text(ctx.params["*"]),
+      );
 
       const req = new Request("http://localhost/static/css/main.css");
       const res = await router.handle(req, {}, mockCtx);

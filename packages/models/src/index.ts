@@ -832,7 +832,7 @@ export abstract class BaseModel<
         if (result === ABORT) {
           throw new CallbackAbortError(`Callback aborted: ${event}`);
         }
-} catch (err: unknown) {
+      } catch (err: unknown) {
         if (err instanceof CallbackAbortError) {
           throw err;
         }
@@ -982,7 +982,9 @@ export abstract class BaseModel<
 
   // ===== Mixin-style Query Helpers =====
 
-  async paginate(params: { page?: number; perPage?: number; filters?: Record<string, unknown> } = {}) {
+  async paginate(
+    params: { page?: number; perPage?: number; filters?: Record<string, unknown> } = {},
+  ) {
     let query = this.query();
     const { filters, ...paginationParams } = params;
     if (filters) {

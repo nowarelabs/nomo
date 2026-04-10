@@ -154,19 +154,20 @@ class TemplateEngine {
     // {{#each key}}...{{/each}}
     res = res.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (_match, key, content) => {
       const arr = vars[key];
-      if (!Array.isArray(arr) || arr.length === 0) return arr
-        .map((item: unknown) => {
-          let block = content;
-          block = block.replace(/\{\{this\}\}/g, String(item));
-          for (const [helperName, helperFn] of Object.entries(TEMPLATE_HELPERS)) {
-            block = block.replace(
-              new RegExp(`\\{\\{${helperName}\\s+this\\}\\}`, "g"),
-              helperFn(String(item)),
-            );
-          }
-          return block;
-        })
-        .join("");
+      if (!Array.isArray(arr) || arr.length === 0)
+        return arr
+          .map((item: unknown) => {
+            let block = content;
+            block = block.replace(/\{\{this\}\}/g, String(item));
+            for (const [helperName, helperFn] of Object.entries(TEMPLATE_HELPERS)) {
+              block = block.replace(
+                new RegExp(`\\{\\{${helperName}\\s+this\\}\\}`, "g"),
+                helperFn(String(item)),
+              );
+            }
+            return block;
+          })
+          .join("");
     });
 
     // {{helperName varName}}

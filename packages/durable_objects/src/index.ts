@@ -124,7 +124,10 @@ export class BaseDurableObject extends DurableObject {
     await this.storage.sql.exec(`DELETE FROM ${table?.name || table}`);
   }
 
-  async insertBatch<T extends Record<string, unknown>>(table: unknown, records: T[]): Promise<number> {
+  async insertBatch<T extends Record<string, unknown>>(
+    table: unknown,
+    records: T[],
+  ): Promise<number> {
     if (!records?.length) return 0;
 
     const tableName = table?.name || table;

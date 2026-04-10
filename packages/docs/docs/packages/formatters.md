@@ -5,7 +5,7 @@ Output formatting for responses.
 ## BaseFormatter
 
 ```typescript
-import { BaseFormatter } from 'nomo/formatters';
+import { BaseFormatter } from "nomo/formatters";
 
 export class DateFormatter extends BaseFormatter<Date> {
   format(): string {
@@ -15,9 +15,9 @@ export class DateFormatter extends BaseFormatter<Date> {
 
 export class CurrencyFormatter extends BaseFormatter<number> {
   format(): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(this.data as number);
   }
 }
