@@ -82,8 +82,8 @@ export async function migrateDO(
   });
 
   if (!fetchRes.success) return fetchRes as Result<never>;
-  const applied = fetchRes.data;
-  const appliedNames = new Set(applied.map((m: unknown) => m.name));
+  const applied = fetchRes.data as { name: string }[];
+  const appliedNames = new Set(applied.map((m) => m.name));
 
   logger.info(`Found ${appliedNames.size} applied migrations.`);
 

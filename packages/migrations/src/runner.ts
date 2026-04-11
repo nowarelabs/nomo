@@ -1,9 +1,18 @@
 import { type Result, ok } from "nomo/result";
 import { consola } from "consola";
 import { hash } from "ohash";
-import { sql as sqlTag } from "./index";
+import { sql as sqlTag, type Database, type SqlExpression } from "./index";
 import type { Migration } from "./index";
 import { sql as sqlBuilder, getDialectStrategy } from "nomo/sql";
+
+interface SchemaMigrationRow {
+  version: string;
+  checksum: string;
+}
+
+interface TableRow {
+  name: string;
+}
 
 /**
  * Migration Runner for Cloudflare environment (D1/DO)
@@ -11,7 +20,7 @@ import { sql as sqlBuilder, getDialectStrategy } from "nomo/sql";
 export class MigrationRunner {
   private migrations: Migration[] = [];
 
-  constructor(private db: unknown) {}
+  constructor(private db: Database) {}
 
   /**
    * Set the migrations to operate on
@@ -73,7 +82,7 @@ export class MigrationRunner {
       sqlTag`SELECT version FROM schema_migrations ORDER BY version ASC;`,
     );
     if (!res.success) return res as Result<never>;
-    return ok(res.data.map((r: unknown) => r.version));
+    return ok(res.data.map((r) => (r as SchemaMigrationRow).version));
   }
 
   /**
@@ -175,7 +184,7 @@ export class MigrationRunner {
       return ok(this);
     }
 
-    const batchStmts: unknown[] = [];
+    const batchStmts: SqlExpression[] = [];
     for (const m of pending) {
       const sqlsRes = await m.toSql("up");
       if (!sqlsRes.success) return sqlsRes as Result<never>;
@@ -189,7 +198,7 @@ export class MigrationRunner {
     }
 
     consola.info(`Running ${pending.length} migrations in batch...`);
-    const res = await this.db.batch(batchStmts);
+    const res = await this.db.batch!(batchStmts);
     if (!res.success) return res as Result<never>;
 
     consola.success("All migrations completed successfully via batch.");
@@ -237,7 +246,8 @@ export class MigrationRunner {
     const tables = tablesRes.data;
 
     for (const table of tables) {
-      const dropRes = await this.db.run(sqlTag.raw(`DROP TABLE IF EXISTS ${table.name};`));
+      const tableName = (table as TableRow).name;
+      const dropRes = await this.db.run(sqlTag.raw(`DROP TABLE IF EXISTS ${tableName};`));
       if (!dropRes.success) return dropRes as Result<never>;
     }
     consola.success("Database cleared.");

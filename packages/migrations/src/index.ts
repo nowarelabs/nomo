@@ -22,8 +22,17 @@ export const sql = (strings: TemplateStringsArray, ...values: unknown[]): SqlExp
 
 sql.raw = (str: string): SqlExpression => ({ sql: str, __isSql: true });
 
+export interface TableInfo {
+  cid: number;
+  name: string;
+  type: string;
+  notnull: number;
+  dflt_value: string | null;
+  pk: number;
+}
+
 /**
- * Migration direction
+ * Simple SQL tag for raw expressions in migrations
  */
 export type Direction = "up" | "down";
 
@@ -413,6 +422,7 @@ export interface MigrationCommand {
 
 import { type Result, ok, safeAsync } from "nomo/result";
 import { sql as sqlBuilder, Dialect } from "nomo/sql";
+import type { MigrationAction } from "./sql";
 
 /**
  * Interface for migrations that can be altered
@@ -568,10 +578,10 @@ export abstract class Migration implements TableAltererMigration {
   public readonly durableObjectClass?: string;
   public change(): void | Promise<void> | Promise<Result<void>> {}
 
-  protected _isUp = true;
-  protected _commands: MigrationCommand[] = [];
+  public _isUp = true;
+  public _commands: MigrationCommand[] = [];
   protected _sql: SqlGenerator;
-  protected _inChange: boolean = false;
+  public _inChange: boolean = false;
 
   constructor(
     protected db: Database,
@@ -774,7 +784,14 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as unknown[];
+      const info = infoRes.data as {
+        cid: number;
+        name: string;
+        type: string;
+        notnull: number;
+        dflt_value: string | null;
+        pk: number;
+      }[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -815,7 +832,14 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as unknown[];
+      const info = infoRes.data as {
+        cid: number;
+        name: string;
+        type: string;
+        notnull: number;
+        dflt_value: string | null;
+        pk: number;
+      }[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -854,7 +878,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as unknown[];
+      const info = infoRes.data as TableInfo[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -926,7 +950,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as unknown[];
+      const info = infoRes.data as TableInfo[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -965,7 +989,7 @@ export abstract class Migration implements TableAltererMigration {
       const pragma = `PRAGMA table_info(${this._sql.strategy.quoteIdentifier(tableName)})`;
       const infoRes = await this.db.all(sql.raw(pragma));
       if (!infoRes.success) return infoRes as Result<never>;
-      const info = infoRes.data as unknown[];
+      const info = infoRes.data as TableInfo[];
 
       await this.recreateTable(tableName, (t) => {
         for (const col of info) {
@@ -1064,7 +1088,7 @@ export abstract class Migration implements TableAltererMigration {
       if (typeof action === "string" && action) {
         statements.push(action);
       } else if (typeof action === "object" && action !== null) {
-        const res = this._sql.generate(action);
+        const res = this._sql.generate(action as MigrationAction);
         if (!res.success) return res as Result<never>;
         if (res.data) {
           statements.push(res.data);

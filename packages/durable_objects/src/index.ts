@@ -13,15 +13,18 @@ import { LogDelegate, LogConfig } from "./delegates/log";
 import { LogicDelegate, LogicConfig } from "./delegates/logic";
 import { ConfigDelegate, ConfigOptions } from "./delegates/config";
 
+export interface Env {
+  [key: string]: unknown;
+}
+
 export class BaseDurableObject extends DurableObject {
   storage: DurableObjectStorage;
-  db: DrizzleSqliteDODatabase<unknown>;
+  db: DrizzleSqliteDODatabase<Env>;
   protected delegates: Map<string, DurableObjectBaseDelegate> = new Map();
 
-  constructor(ctx: DurableObjectState, env: unknown) {
+  constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     this.storage = ctx.storage;
-    // @ts-ignore - Drizzle typed for DO storage
     this.db = drizzle(this.storage, { logger: false });
   }
 
@@ -29,18 +32,17 @@ export class BaseDurableObject extends DurableObject {
    * Register a delegate for a specific pattern.
    * If the delegate defines a name, it will be attached to the DO instance for RPC.
    */
-  protected use<T extends DurableObjectBaseDelegate>(
+  protected use<TConfig>(
     name: string,
-    delegateClass: new (owner: BaseDurableObject, config: unknown) => T,
-    config: unknown,
-  ): T {
-    const delegate = new delegateClass(this, config);
+    delegateClass: new (owner: BaseDurableObject, config: TConfig) => DurableObjectBaseDelegate,
+    config: TConfig,
+  ): DurableObjectBaseDelegate {
+    const delegate = new delegateClass(this, config as never);
     this.delegates.set(name, delegate);
 
-    // Bind the handle method to this[name] for RPC accessibility
-    (this as unknown)[name] = (...args: unknown[]) => delegate.handle(...args);
+    (this as Record<string, unknown>)[name] = (...args: unknown[]) =>
+      (delegate as { handle: (...args: unknown[]) => unknown }).handle(...args);
 
-    // Call onInit if it exists
     if (delegate.onInit) {
       delegate.onInit();
     }
@@ -49,88 +51,89 @@ export class BaseDurableObject extends DurableObject {
   }
 
   protected is_view(config: ViewConfig) {
-    return this.use("view", ViewDelegate, config);
+    return this.use<ViewConfig>("view", ViewDelegate as never, config);
   }
 
   protected can_populate(config: PopulateConfig) {
-    return this.use("populate", PopulateDelegate, config);
+    return this.use<PopulateConfig>("populate", PopulateDelegate as never, config);
   }
 
   protected is_queue(config: QueueConfig) {
-    return this.use("queue", QueueDelegate, config);
+    return this.use<QueueConfig>("queue", QueueDelegate as never, config);
   }
 
   protected is_check(config: CheckConfig) {
-    return this.use("check", CheckDelegate, config);
+    return this.use<CheckConfig>("check", CheckDelegate as never, config);
   }
 
   protected is_sequential(config: ExecutionConfig) {
-    return this.use("sequential", ExecutionDelegate, { ...config, mode: "sequential" });
+    return this.use("sequential", ExecutionDelegate as never, { ...config, mode: "sequential" });
   }
 
   protected is_parallel(config: ExecutionConfig) {
-    return this.use("parallel", ExecutionDelegate, { ...config, mode: "parallel" });
+    return this.use("parallel", ExecutionDelegate as never, { ...config, mode: "parallel" });
   }
 
   protected is_search(config: SearchConfig) {
-    return this.use("search", SearchDelegate, config);
+    return this.use<SearchConfig>("search", SearchDelegate as never, config);
   }
 
   protected is_lock(config: LockConfig) {
-    return this.use("lock", LockDelegate, config);
+    return this.use<LockConfig>("lock", LockDelegate as never, config);
   }
 
   protected is_event_log(config: LogConfig) {
-    return this.use("event_log", LogDelegate, config);
+    return this.use<LogConfig>("event_log", LogDelegate as never, config);
   }
 
   protected is_calculate(config: LogicConfig) {
-    return this.use("calculate", LogicDelegate, config);
+    return this.use<LogicConfig>("calculate", LogicDelegate as never, config);
   }
 
   protected is_trigger(config: LogicConfig) {
-    return this.use("trigger", LogicDelegate, config);
+    return this.use<LogicConfig>("trigger", LogicDelegate as never, config);
   }
 
   protected is_auto_log(config: LogConfig) {
-    return this.use("auto_log", LogDelegate, { ...config, autoLog: true });
+    return this.use("auto_log", LogDelegate as never, { ...config, autoLog: true });
   }
 
   protected is_adapter(config: ConfigOptions) {
-    return this.use("adapter", ConfigDelegate, config);
+    return this.use<ConfigOptions>("adapter", ConfigDelegate as never, config);
   }
 
   protected is_furnish(config: ConfigOptions) {
-    return this.use("furnish", ConfigDelegate, config);
+    return this.use<ConfigOptions>("furnish", ConfigDelegate as never, config);
   }
 
   protected is_decision_matrix(config: LogicConfig) {
-    return this.use("decision_matrix", LogicDelegate, config);
+    return this.use<LogicConfig>("decision_matrix", LogicDelegate as never, config);
   }
 
   protected is_configure(config: ConfigOptions) {
-    return this.use("configure", ConfigDelegate, config);
+    return this.use<ConfigOptions>("configure", ConfigDelegate as never, config);
   }
 
   protected is_paginate(config: SearchConfig) {
-    return this.use("paginate", SearchDelegate, config);
+    return this.use<SearchConfig>("paginate", SearchDelegate as never, config);
   }
 
   async execSql(sqlText: string) {
     return await this.storage.sql.exec(sqlText).toArray();
   }
 
-  async clear(table: unknown): Promise<void> {
-    await this.storage.sql.exec(`DELETE FROM ${table?.name || table}`);
+  async clear(table: string | { name: string }): Promise<void> {
+    const tableName = typeof table === "string" ? table : table.name;
+    await this.storage.sql.exec(`DELETE FROM ${tableName}`);
   }
 
   async insertBatch<T extends Record<string, unknown>>(
-    table: unknown,
+    table: string | { name: string },
     records: T[],
   ): Promise<number> {
     if (!records?.length) return 0;
 
-    const tableName = table?.name || table;
+    const tableName = typeof table === "string" ? table : table.name;
     const columns = Object.keys(records[0]);
     const placeholders = records
       .map((_, i) => `(${columns.map((_, j) => `$${i * columns.length + j + 1}`).join(", ")})`)

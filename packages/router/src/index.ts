@@ -9,12 +9,7 @@ import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-ho
 
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 
-import type {
-  ExecutionContext,
-  DurableObjectState,
-  MessageBatch,
-  HTMLRewriterElementContentHandlers,
-} from "@cloudflare/workers-types";
+import type { ExecutionContext, DurableObjectState, MessageBatch } from "@cloudflare/workers-types";
 
 import { Logger, LogLevel } from "nomo/logger";
 

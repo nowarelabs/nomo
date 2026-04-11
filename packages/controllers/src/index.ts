@@ -46,6 +46,10 @@ export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unk
   protected _actionName?: string;
   protected _controllerName?: string;
 
+  protected getService(): Service {
+    return this.service;
+  }
+
   constructor(
     protected request: Request,
     protected env: Env,
@@ -82,7 +86,7 @@ export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unk
   }
 
   protected get queryParams(): Record<string, string> {
-    return this.ctx.query;
+    return this.ctx.query as Record<string, string>;
   }
 
   protected get logger(): Logger {
@@ -94,14 +98,14 @@ export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unk
         : LogLevel.INFO;
 
     if (this.ctx.logger) {
-      // Create a new logger with updated service and context
       const baseLogger = this.ctx.logger;
+      const loggerRecord = baseLogger as unknown as Record<string, unknown>;
       return new Logger({
         service: "controllers",
-        environment: (baseLogger as unknown).environment,
-        level: (baseLogger as unknown).level,
+        environment: loggerRecord.environment as string | undefined,
+        level: loggerRecord.level as LogLevel | undefined,
         context: {
-          ...(baseLogger as unknown).context,
+          ...(loggerRecord.context as Record<string, unknown>),
           controller: this.controller_name,
           action: this.action_name,
         },
@@ -401,13 +405,15 @@ export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unk
   >(this: new (req: Request, env: Env, ctx: RouterContext<Env, Ctx>) => T, name: keyof T) {
     return async (req: Request, env: Env, ctx: RouterContext<Env, Ctx>): Promise<Response> => {
       const controller = new this(req, env, ctx);
-      (controller as Record<string, unknown>)._controllerName = this.name;
-      return await (controller as unknown).runAction(name);
+      (controller as unknown as Record<string, unknown>)._controllerName = this.name;
+      return (await (controller as unknown as BaseController).runAction(
+        name as string | symbol,
+      )) as Response;
     };
   }
 
   public async runAction(name: string | symbol, args: unknown[] = []): Promise<unknown> {
-    const action = (this as unknown)[name];
+    const action = (this as unknown as Record<string, unknown>)[name as string];
     if (typeof action !== "function") {
       this.logger.error(`[ACTION NOT FOUND] ${this.controller_name}#${String(name)}`, {
         controller: this.controller_name,
@@ -548,7 +554,8 @@ export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unk
     }
 
     const totalDuration = Date.now() - startTime;
-    const responseStatus = response?.status || "unknown";
+    const responseRecord = response as unknown as { status?: number };
+    const responseStatus = responseRecord?.status || "unknown";
     this.logger.info(`[DONE] ${this.controller_name}#${String(name)}`, {
       total_ms: totalDuration,
       status: responseStatus,
@@ -562,7 +569,7 @@ export abstract class BaseResourceController<
   Env = unknown,
   Ctx = unknown,
   Service = unknown,
-  TModel extends BaseModel<unknown, TSelect, TInsert> = BaseModel<unknown, unknown, unknown>,
+  TModel extends BaseModel<any, any, any> = BaseModel<any, any, any>,
   TSelect = unknown,
   TInsert = unknown,
 > extends BaseController<Env, Ctx, Service> {
@@ -590,7 +597,8 @@ export abstract class BaseResourceController<
 
   protected getScopeConditions(): Record<string, string> {
     const conditions: Record<string, string> = {};
-    const columns = (this as unknown).getModel().columnNames;
+    const model = this.getModel() as BaseModel<any, any, any>;
+    const columns = model.columnNames;
 
     for (const [key, value] of Object.entries(this.pathParams)) {
       if (key !== "id" && columns.includes(key)) {
@@ -627,7 +635,7 @@ export abstract class BaseResourceController<
         view: ViewComponent,
         layout: this.getLayout(),
         data: {
-          title: this.getTitle(Array.isArray(data) ? undefined : data),
+          title: this.getTitle(),
           item: Array.isArray(data) ? undefined : data,
           items: Array.isArray(data) ? data : undefined,
           ...this.getScopeConditions(),
@@ -694,7 +702,11 @@ export abstract class BaseResourceController<
     let query = this.getModel().query().where(conditions);
 
     if (orderBy?.column) {
-      query = query.orderBy(orderBy.column as unknown, orderBy.direction || "ASC");
+      const selectRecord = {} as TSelect;
+      query = query.orderBy(
+        orderBy.column as keyof typeof selectRecord,
+        orderBy.direction || "ASC",
+      );
     }
 
     if (limit) {
@@ -721,7 +733,9 @@ export abstract class BaseResourceController<
       return this.respondWith([]);
     }
 
-    const items: TSelect[] = await (this.service as unknown).findByIds(ids);
+    const items: TSelect[] = await (
+      this.getService() as { findByIds: (ids: (string | number)[]) => Promise<TSelect[]> }
+    ).findByIds(ids);
     this.logger.info(`[FIND_BY_IDS] ${this.controller_name}`, {
       count: items.length,
       idCount: ids.length,
@@ -740,7 +754,11 @@ export abstract class BaseResourceController<
       return this.badRequest("column is required");
     }
 
-    const values = await (this.service as unknown).pluck(column, conditions || {});
+    const values = await (
+      this.getService() as {
+        pluck: (column: string, conditions: Record<string, unknown>) => Promise<unknown[]>;
+      }
+    ).pluck(column, conditions || {});
     this.logger.info(`[PLUCK] ${this.controller_name}`, {
       column,
       count: values.length,
@@ -782,7 +800,7 @@ export abstract class BaseResourceController<
     });
     const item: TSelect = await this.getModel().create(dataWithScope as TInsert);
     this.logger.info(`[CREATED] ${this.controller_name}`, {
-      id: (item as unknown).id,
+      id: (item as { id?: string | number }).id,
     });
     return this.respondWith(item, { status: 201 });
   }
@@ -865,7 +883,7 @@ export abstract class BaseResourceController<
     const item = await this.getItemForLifecycle(identifier);
     if (!item) return this.notFound();
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.trash) {
       await model.trash(identifier);
     } else if (model.update) {
@@ -880,7 +898,7 @@ export abstract class BaseResourceController<
     const identifier = id || this.getIdentifier();
     this.logger.debug(`[RESTORE] ${this.controller_name}#${identifier}`);
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.restore) {
       await model.restore(identifier);
     } else if (model.update) {
@@ -898,7 +916,7 @@ export abstract class BaseResourceController<
     const item = await this.getItemForLifecycle(identifier);
     if (!item) return this.notFound();
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.hide) {
       await model.hide(identifier);
     } else if (model.update) {
@@ -913,7 +931,7 @@ export abstract class BaseResourceController<
     const identifier = id || this.getIdentifier();
     this.logger.debug(`[UNHIDE] ${this.controller_name}#${identifier}`);
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.unhide) {
       await model.unhide(identifier);
     } else if (model.update) {
@@ -931,7 +949,7 @@ export abstract class BaseResourceController<
     const item = await this.getItemForLifecycle(identifier);
     if (!item) return this.notFound();
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.flag) {
       await model.flag(identifier);
     } else if (model.update) {
@@ -946,7 +964,7 @@ export abstract class BaseResourceController<
     const identifier = id || this.getIdentifier();
     this.logger.debug(`[UNFLAG] ${this.controller_name}#${identifier}`);
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.unflag) {
       await model.unflag(identifier);
     } else if (model.update) {
@@ -961,7 +979,7 @@ export abstract class BaseResourceController<
     const identifier = id || this.getIdentifier();
     this.logger.debug(`[PURGE] ${this.controller_name}#${identifier}`);
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.purge) {
       await model.purge(identifier);
     } else {
@@ -979,7 +997,7 @@ export abstract class BaseResourceController<
     const item = await this.getItemForLifecycle(identifier);
     if (!item) return this.notFound();
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.retire) {
       await model.retire(identifier);
     } else if (model.update) {
@@ -994,7 +1012,7 @@ export abstract class BaseResourceController<
     const identifier = id || this.getIdentifier();
     this.logger.debug(`[UNRETIRE] ${this.controller_name}#${identifier}`);
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     if (model.unretire) {
       await model.unretire(identifier);
     } else if (model.update) {
@@ -1012,11 +1030,11 @@ export abstract class BaseResourceController<
     const data = await this.getRequestData();
     this.logger.debug(`[QUEUE] ${this.controller_name}#${identifier}`, { data });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     let result: unknown;
 
     if (model.queue) {
-      result = await model.queue(identifier, data);
+      result = await model.queue(identifier, data as Record<string, unknown> | undefined);
     } else {
       result = { queued: true, id: identifier, data };
     }
@@ -1030,11 +1048,11 @@ export abstract class BaseResourceController<
     const data = await this.getRequestData();
     this.logger.debug(`[CRON] ${this.controller_name}#${identifier}`, { data });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     let result: unknown;
 
     if (model.cron) {
-      result = await model.cron(identifier, data);
+      result = await model.cron(identifier, data as Record<string, unknown> | undefined);
     } else {
       result = { cron: true, id: identifier, data };
     }
@@ -1050,11 +1068,12 @@ export abstract class BaseResourceController<
     const data = await this.getRequestData();
     this.logger.debug(`[ADD] ${this.controller_name}#${identifier}`, { data });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     let result: unknown;
 
     if (model.add) {
-      result = await model.add(identifier, data);
+      const addData = data as { relation?: string };
+      result = await model.add(identifier, addData?.relation || "");
     } else {
       return this.badRequest("Add action not implemented");
     }
@@ -1068,11 +1087,12 @@ export abstract class BaseResourceController<
     const data = await this.getRequestData();
     this.logger.debug(`[REMOVE] ${this.controller_name}#${identifier}`, { data });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     let result: unknown;
 
     if (model.remove) {
-      result = await model.remove(identifier, data);
+      const removeData = data as { relation?: string; id?: string } | undefined;
+      result = await model.remove(identifier, removeData?.relation || "", removeData?.id || "");
     } else {
       return this.badRequest("Remove action not implemented");
     }
@@ -1086,11 +1106,12 @@ export abstract class BaseResourceController<
     const data = await this.getRequestData();
     this.logger.debug(`[ASSIGN] ${this.controller_name}#${identifier}`, { data });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     let result: unknown;
 
     if (model.assign) {
-      result = await model.assign(identifier, data);
+      const assignData = data as { relation?: string; id?: string } | undefined;
+      result = await model.assign(identifier, assignData?.relation || "", assignData?.id || "");
     } else {
       return this.badRequest("Assign action not implemented");
     }
@@ -1104,11 +1125,16 @@ export abstract class BaseResourceController<
     const data = await this.getRequestData();
     this.logger.debug(`[UNASSIGN] ${this.controller_name}#${identifier}`, { data });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     let result: unknown;
 
     if (model.unassign) {
-      result = await model.unassign(identifier, data);
+      const unassignData = data as { relation?: string; id?: string } | undefined;
+      result = await model.unassign(
+        identifier,
+        unassignData?.relation || "",
+        unassignData?.id || "",
+      );
     } else {
       return this.badRequest("Unassign action not implemented");
     }
@@ -1129,7 +1155,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_CHILD_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listChildIds(relation, identifier);
 
     this.logger.info(`[LIST_CHILD_IDS] ${this.controller_name}#${identifier}`, {
@@ -1149,7 +1175,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_PARENT_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listParentIds(relation, identifier);
 
     this.logger.info(`[LIST_PARENT_IDS] ${this.controller_name}#${identifier}`, {
@@ -1169,7 +1195,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_SIBLING_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listSiblingIds(relation, identifier);
 
     this.logger.info(`[LIST_SIBLING_IDS] ${this.controller_name}#${identifier}`, {
@@ -1189,7 +1215,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_COUSIN_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listCousinIds(relation, identifier);
 
     this.logger.info(`[LIST_COUSIN_IDS] ${this.controller_name}#${identifier}`, {
@@ -1209,7 +1235,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_ANCESTOR_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listAncestorIds(relation, identifier);
 
     this.logger.info(`[LIST_ANCESTOR_IDS] ${this.controller_name}#${identifier}`, {
@@ -1229,7 +1255,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_DESCENDANT_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listDescendantIds(relation, identifier);
 
     this.logger.info(`[LIST_DESCENDANT_IDS] ${this.controller_name}#${identifier}`, {
@@ -1256,7 +1282,7 @@ export abstract class BaseResourceController<
       through,
     });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listAssociatedThroughIds(relation, through, identifier);
 
     this.logger.info(`[LIST_ASSOCIATED_THROUGH_IDS] ${this.controller_name}#${identifier}`, {
@@ -1277,7 +1303,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[LIST_RELATED_IDS] ${this.controller_name}#${identifier}`, { relation });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const ids = await model.listRelatedIds(relation, identifier);
 
     this.logger.info(`[LIST_RELATED_IDS] ${this.controller_name}#${identifier}`, {
@@ -1304,7 +1330,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[FIND_ALL_WITH] ${this.controller_name}`, { includes, conditions });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const items = await model.findAllWith(conditions, includes, { orderBy, limit, offset });
 
     this.logger.info(`[FIND_ALL_WITH] ${this.controller_name}`, {
@@ -1326,7 +1352,7 @@ export abstract class BaseResourceController<
 
     this.logger.debug(`[FIND_WITH] ${this.controller_name}`, { includes, conditions });
 
-    const model = this.getModel() as unknown;
+    const model = this.getModel() as BaseModel<any, any, any>;
     const item = await model.findWith(conditions, includes);
 
     this.logger.info(`[FIND_WITH] ${this.controller_name}`, {

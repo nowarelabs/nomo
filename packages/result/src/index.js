@@ -454,8 +454,11 @@ export function jitterBackoff(attempt, baseDelayMs, maxDelayMs) {
   return Math.floor(Math.random() * attemptUpperBoundMs);
 }
 export function isErrorRetryable(err) {
+  const errObj = err;
   const msg = String(err);
   return (
-    Boolean(err?.retryable) && !err?.overloaded && !msg.includes("Durable Object is overloaded")
+    Boolean(errObj?.retryable) &&
+    !errObj?.overloaded &&
+    !msg.includes("Durable Object is overloaded")
   );
 }

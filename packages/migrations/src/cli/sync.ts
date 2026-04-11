@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
 import { MigrationCompiler } from "./compiler";
-import { SchemaReflector } from "./reflector";
+import { SchemaReflector, TableMetadata } from "./reflector";
 import * as fs from "node:fs/promises";
 import * as path from "pathe";
 import { WranglerConfigUpdater } from "./config";
@@ -47,10 +47,11 @@ export const syncCommand = defineCommand({
 
     // Read metadata if it exists
     const metadataPath = path.resolve(process.cwd(), ".nomo/temp_metadata.json");
-    let metadata: Record<string, unknown[]> = {};
+    let metadata: TableMetadata[] = [];
     try {
       const content = await fs.readFile(metadataPath, "utf-8");
-      metadata = JSON.parse(content);
+      const parsed = JSON.parse(content);
+      metadata = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       console.log(e);
     }
@@ -130,7 +131,7 @@ async function updateWranglerConfig() {
         }
       } else {
         const err = updateRes.error;
-        const errMsg = typeof err === "string" ? err : (err as unknown)?.message;
+        const errMsg = typeof err === "string" ? err : (err as Error)?.message;
         if (errMsg === "Migrations array not found in configuration") {
           consola.warn(
             "'migrations' array not found in wrangler.jsonc. You might need to add it manually.",
@@ -142,7 +143,8 @@ async function updateWranglerConfig() {
     } else {
       consola.warn(`Failed to read wrangler.jsonc: ${configRes.error}`);
     }
-  } catch (err: unknown) {
-    consola.warn(`Failed to update wrangler.jsonc: ${err}`);
+  } catch (err) {
+    const error = err as Error;
+    consola.warn(`Failed to update wrangler.jsonc: ${error.message}`);
   }
 }

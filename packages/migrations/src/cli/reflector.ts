@@ -4,9 +4,20 @@ import { spawnSync } from "node:child_process";
 import { CodeBuilder } from "./builder";
 import * as templates from "./templates";
 
+export interface TableMetadata {
+  name: string;
+  type: string;
+  targetTable: string;
+  options: {
+    foreignKey?: string;
+    through?: string;
+    sourceKey?: string;
+  };
+}
+
 export interface ReflectorOptions {
   outDir: string;
-  metadata?: Record<string, unknown[]>;
+  metadata?: TableMetadata[];
 }
 
 export class SchemaReflector {
@@ -15,11 +26,11 @@ export class SchemaReflector {
   private tempDbPath = path.resolve(process.cwd(), "temp_reflect.db");
   private tables: { name: string; sql: string }[] = [];
   private outDir: string;
-  private metadata: Record<string, unknown[]>;
+  private metadata: TableMetadata[];
 
   constructor(options: ReflectorOptions) {
     this.outDir = path.resolve(process.cwd(), options.outDir);
-    this.metadata = options.metadata || {};
+    this.metadata = options.metadata || [];
   }
 
   /**
@@ -267,7 +278,7 @@ export class SchemaReflector {
       // Model generation
       const modelName = `${typeName}Model`;
       let relationshipsStr = "";
-      const tableMetadata = this.metadata[table.name] || [];
+      const tableMetadata = this.metadata.filter((m) => m.name === table.name);
 
       for (const rel of tableMetadata) {
         const targetModel = `${this.capitalize(rel.targetTable)}Model`;

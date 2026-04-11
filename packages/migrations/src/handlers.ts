@@ -6,6 +6,7 @@ import {
   SqlExpression,
   Constraint,
   VirtualTableBuilder,
+  ColumnOptions,
 } from "./index";
 import { sql, Statement, SqlPart, DialectStrategy } from "nomo/sql";
 
@@ -123,10 +124,11 @@ export const STANDARD_HANDLERS: Record<string, HandlerFunc> = {
             );
           } else if (con.type === "check") {
             conParts.append(sql.key("CHECK ("));
-            if (typeof con.definition === "object" && "__isSql" in (con.definition as unknown)) {
-              conParts.append(sql.raw((con.definition as unknown).sql));
+            const def = con.definition;
+            if (typeof def === "object" && def !== null && "sql" in def) {
+              conParts.append(sql.raw((def as { sql: string }).sql));
             } else {
-              conParts.append(sql.raw(String(con.definition)));
+              conParts.append(sql.raw(String(def)));
             }
             conParts.append(sql.op(")"));
           }
@@ -188,7 +190,7 @@ export const STANDARD_HANDLERS: Record<string, HandlerFunc> = {
           tableName: string;
           name: string;
           columnType: string;
-          options: unknown;
+          options: ColumnOptions;
         };
         const stmt = sql
           .statement()

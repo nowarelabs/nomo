@@ -1,9 +1,9 @@
 import { DurableObjectBaseDelegate } from "../delegate";
 import { BaseDurableObject } from "../index";
 
-export interface PopulateConfig<T = unknown> {
-  from: (owner: BaseDurableObject, ...args: unknown[]) => Promise<T[]>;
-  into: unknown; // Drizzle table or table name
+export interface PopulateConfig {
+  from: (owner: BaseDurableObject, ...args: unknown[]) => Promise<Record<string, unknown>[]>;
+  into: string | { name: string };
   onBeforePopulate?: (owner: BaseDurableObject) => Promise<void>;
   onAfterPopulate?: (owner: BaseDurableObject, count: number) => Promise<void>;
 }
@@ -16,10 +16,9 @@ export class PopulateDelegate extends DurableObjectBaseDelegate<PopulateConfig> 
       await onBeforePopulate(this.durableObject);
     }
 
-    // Default: clear the table before populating
     await this.durableObject.clear(into);
 
-    const records = await from(this.durableObject, ...args);
+    const records = (await from(this.durableObject, ...args)) as Record<string, unknown>[];
 
     let count = 0;
     if (records && records.length > 0) {

@@ -56,8 +56,9 @@ export const rollbackCommand = defineCommand({
 
       // Since this is a specialized tool, we'll leave it as a placeholder or
       // instruction for now unless we implement the full custom runner connector.
-    } catch (err: unknown) {
-      consola.error(`Failed to rollback migrations: ${err.message}`);
+    } catch (err) {
+      const error = err as Error;
+      consola.error(`Failed to rollback migrations: ${error.message}`);
       process.exit(1);
     }
   },

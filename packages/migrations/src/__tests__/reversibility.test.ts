@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Migration } from "../index";
-import { SqlGenerator } from "../sql";
+import { Migration, type Database, type MigrationCommand } from "../index";
+import { SqlGenerator, type MigrationAction } from "../sql";
 import { type Result, ok } from "nomo/result";
 
 class ReversibleMigration extends Migration {
@@ -40,15 +40,16 @@ describe("Reversible Migrations", () => {
       run: async () => ok({}),
       all: async () => ok([]),
     };
-    const migration = new MockReversibleMigration(mockDb as unknown);
+    const migration = new MockReversibleMigration(mockDb as Database);
     const upRes = await migration.up();
     expect(upRes.success).toBe(true);
 
-    const commands = migration.getPreservedCommands();
-    const queries = commands.map((c: unknown) => {
-      const res = sql.generate(c.up);
+    const commands = migration.getPreservedCommands() as MigrationCommand[];
+    const queries = commands.map((c: MigrationCommand) => {
+      const up = c.up as MigrationAction;
+      const res = sql.generate(up);
       expect(res.success).toBe(true);
-      return (res as unknown).data;
+      return res.data;
     });
 
     expect(queries.join("\n")).toContain('ALTER TABLE "users" ADD COLUMN "bio" TEXT;');
@@ -60,17 +61,17 @@ describe("Reversible Migrations", () => {
   });
 
   it("generates correct reverse SQL for rollbacks", async () => {
-    const mockDb = { run: async () => ok({}) };
-    const migration = new MockReversibleMigration(mockDb as unknown);
+    const mockDb: Database = { run: async () => ok({}), all: async () => ok([]) };
+    const migration = new MockReversibleMigration(mockDb);
     const upRes = await migration.up(); // Record them
     expect(upRes.success).toBe(true);
 
-    const commands = migration.getPreservedCommands();
-    // Reverse commands are processed in reverse order by the runner
-    const reverseQueries = [...commands].reverse().map((c: unknown) => {
-      const res = sql.generate(c.down);
+    const commands = migration.getPreservedCommands() as MigrationCommand[];
+    const reverseQueries = [...commands].reverse().map((c: MigrationCommand) => {
+      const down = c.down as MigrationAction;
+      const res = sql.generate(down);
       expect(res.success).toBe(true);
-      return (res as unknown).data;
+      return res.data;
     });
 
     // 1. Recreate temp_logs

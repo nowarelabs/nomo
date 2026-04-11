@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { SchemaReflector } from "./reflector";
+import { SchemaReflector, TableMetadata } from "./reflector";
 import * as fs from "node:fs/promises";
 import * as path from "pathe";
 
@@ -35,10 +35,11 @@ export const reflectCommand = defineCommand({
     try {
       // Read metadata if it exists
       const metadataPath = path.resolve(process.cwd(), ".nomo/temp_metadata.json");
-      let metadata: Record<string, unknown[]> = {};
+      let metadata: TableMetadata[] = [];
       try {
         const content = await fs.readFile(metadataPath, "utf-8");
-        metadata = JSON.parse(content);
+        const parsed = JSON.parse(content);
+        metadata = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
         consola.log(e);
       }
@@ -55,8 +56,9 @@ export const reflectCommand = defineCommand({
         .then((r) => r.generate());
 
       await fs.rm(metadataPath, { force: true }).catch(() => {});
-    } catch (err: unknown) {
-      consola.error(`Failed to reflect schema: ${err.message}`);
+    } catch (err) {
+      const error = err as Error;
+      consola.error(`Failed to reflect schema: ${error.message}`);
       process.exit(1);
     }
   },

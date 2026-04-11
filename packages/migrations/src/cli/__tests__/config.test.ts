@@ -50,7 +50,8 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as unknown).data;
+    if (!updaterRes.success) throw new Error("Failed to load updater");
+    const updater = updaterRes.data;
 
     updater.addMigrations(["v2"]);
 
@@ -73,17 +74,14 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as unknown).data;
+    if (!updaterRes.success) throw new Error("Failed to load updater");
+    const updater = updaterRes.data;
 
     const updateRes = updater.addMigrations(["v1"]);
-    // It should return success but no changes in content (or at least no new entries)
-    // In our implementation, it returns ok(this) if no new entries.
     expect(updateRes.success).toBe(true);
 
-    // Check written content if we saved
     await updater.save();
     const writtenContent = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
-    // Count occurrences of "v1"
     const count = (writtenContent.match(/"v1"/g) || []).length;
     expect(count).toBe(1);
   });
@@ -95,7 +93,8 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as unknown).data;
+    if (!updaterRes.success) throw new Error("Failed to load updater");
+    const updater = updaterRes.data;
 
     updater.addMigrations(["v1"]);
     await updater.save();
@@ -111,10 +110,12 @@ describe("WranglerConfigUpdater", () => {
     vi.mocked(fs.readFile).mockResolvedValue(content);
 
     const updaterRes = await WranglerConfigUpdater.fromFile(mockPath);
-    const updater = (updaterRes as unknown).data;
+    if (!updaterRes.success) throw new Error("Failed to load updater");
+    const updater = updaterRes.data;
 
     const updateRes = updater.addMigrations(["v1"]);
     expect(updateRes.success).toBe(false);
-    expect((updateRes as unknown).error).toBe("Migrations array not found in configuration");
+    if (updateRes.success) throw new Error("Expected failure");
+    expect(updateRes.error).toBe("Migrations array not found in configuration");
   });
 });

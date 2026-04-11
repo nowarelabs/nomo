@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { Migration } from "../index";
-import { SqlGenerator } from "../sql";
+import { Migration, type Database } from "../index";
+import { SqlGenerator, type MigrationAction } from "../sql";
 import { ok } from "nomo/result";
+import type { MigrationCommand } from "../index";
 
 class MockMigration extends Migration {
   readonly version = "20260205120000";
@@ -56,15 +57,17 @@ describe("Migration Modification Methods", () => {
           },
         ]),
     };
-    const migration = new MockMigration(mockDb);
-    (migration as unknown)._inChange = true;
+    const migration = new MockMigration(mockDb as Database);
+    migration._inChange = true;
     await migration.change();
 
-    const commands = (migration as unknown)._commands;
-    const queries = commands.map((cmd: unknown) => {
-      const res = sql.generate(cmd.up);
-      expect(res.success).toBe(true);
-      return (res as unknown).data;
+    const commands = migration._commands;
+    const isObjWithType = (cmd: MigrationCommand): boolean =>
+      typeof cmd.up === "object" && cmd.up !== null && "type" in cmd.up;
+    const queries = commands.map((cmd) => {
+      const res = isObjWithType(cmd) ? sql.generate(cmd.up as MigrationAction) : null;
+      expect(res?.success).toBe(true);
+      return res?.data;
     });
 
     expect(queries).toContain('ALTER TABLE "users" RENAME TO "accounts";');
@@ -73,7 +76,9 @@ describe("Migration Modification Methods", () => {
     expect(queries).toContain('ALTER TABLE "accounts" RENAME COLUMN "name" TO "full_name";');
 
     // In SQLite mode, these now trigger recreateTable
-    expect(commands.some((c: unknown) => c.up.type === "recreateTable")).toBe(true);
+    expect(
+      commands.some((c) => isObjWithType(c) && (c.up as MigrationAction).type === "recreateTable"),
+    ).toBe(true);
 
     expect(queries).toContain(
       'CREATE UNIQUE INDEX IF NOT EXISTS "idx_accounts_email" ON "accounts" ("email");',

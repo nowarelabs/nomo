@@ -1,4 +1,4 @@
-import { eq, sql as drizzleSql, getTableName } from "drizzle-orm";
+import { getTableName } from "drizzle-orm";
 import { sqliteTable, SQLiteTableWithColumns } from "drizzle-orm/sqlite-core";
 import { Statement, sql, DialectStrategy, getDialectStrategy, SqlPart } from "nomo/sql";
 import { Logger } from "nomo/logger";
@@ -6,12 +6,39 @@ import { ConflictError, ConstraintError, BadRequestError, RouterContext } from "
 
 import type { ExecutionContext, D1Database, DurableObjectStorage } from "@cloudflare/workers-types";
 
-// The unified generic type for `this.db`
-export type DatabaseInstance = D1Database | DurableObjectStorage | unknown;
+interface D1Db {
+  prepare(sql: string): {
+    all: () => Promise<{ results?: unknown[]; success?: boolean; data?: unknown }>;
+  };
+}
+
+interface DoStorage {
+  exec(sql: string): { toArray: () => unknown[] };
+}
+
+interface RpcDb {
+  execSql(sql: string): Promise<unknown[]>;
+}
+
+interface ModelAccess {
+  [modelName: string]: {
+    where?: (conds: unknown) => {
+      all: () => Promise<unknown[]>;
+      pluck: (col: string) => Promise<unknown[]>;
+    };
+    all?: () => Promise<unknown[]>;
+    pluck?: (col: string) => Promise<unknown[]>;
+  };
+}
+
+export type DatabaseInstance =
+  | (D1Database & D1Db)
+  | (DurableObjectStorage & DoStorage)
+  | (RpcDb & ModelAccess);
 
 export class FluentQuery<
-  TTable extends SQLiteTableWithColumns<unknown>,
-  TSelect = TTable["$inferSelect"],
+  TTable extends SQLiteTableWithColumns<any>,
+  TSelect extends Record<string, any> = TTable["$inferSelect"],
 > {
   private stmt: Statement;
   private strategy: DialectStrategy;
@@ -49,7 +76,7 @@ export class FluentQuery<
     return this;
   }
 
-  join(table: unknown, on: string): this {
+  join(table: SQLiteTableWithColumns<any>, on: string): this {
     const tableName = getTableName(table);
     this.joinClauses.push(
       sql.composite(sql.key(" JOIN "), sql.id(tableName), sql.key(" ON "), sql.raw(on)),
@@ -245,34 +272,37 @@ export class FluentQuery<
     const start = Date.now();
     this.logger?.debug(`[QUERY] ${sqlText}`);
 
-    let results: TSelect[] = [];
-
-    // Support D1, Durable Object storage.exec, Drizzle or RPC execSql
-    if (this.db.execSql) {
-      results = await this.db.execSql(sqlText);
-    } else if (this.db.all) {
-      // If it's a Drizzle instance, use its all method with raw SQL
-      if (typeof this.db.session === "object" || this.db.$) {
-        results = await this.db.all(drizzleSql.raw(sqlText));
-      }
-      const res = await this.db.all({ sql: sqlText, __isSql: true });
-      results = (res.success ? res.data : res) as TSelect[];
-    } else if (this.db.prepare) {
-      const res = await this.db.prepare(sqlText).all();
-      results = (res.results || res) as TSelect[];
-    } else if (this.db.exec) {
-      results = this.db.exec(sqlText).toArray() as TSelect[];
-    }
+    const results = await this.executeQuery<TSelect[]>(sqlText);
 
     // Eager load relations
     if (this.loadWith.length > 0 && results.length > 0) {
-      results = await this.loadRelations(results);
+      return await this.loadRelations(results);
     }
 
     this.logger?.debug(
       `[QUERY RESULT] ${tableName} count=${results.length} duration_ms=${Date.now() - start}`,
     );
     return results;
+  }
+
+  private async executeQuery<T>(sqlText: string): Promise<T> {
+    const db = this.db;
+
+    if ("execSql" in db) {
+      return (await (db as RpcDb).execSql(sqlText)) as T;
+    }
+
+    if ("prepare" in db) {
+      const stmt = (db as D1Database & D1Db).prepare(sqlText);
+      const res = await stmt.all();
+      return (res.results || res) as T;
+    }
+
+    if ("exec" in db) {
+      return (db as DurableObjectStorage & DoStorage).exec(sqlText).toArray() as T;
+    }
+
+    throw new Error("No database driver available");
   }
 
   private async loadRelations(results: TSelect[]): Promise<TSelect[]> {
@@ -286,24 +316,20 @@ export class FluentQuery<
       const foreignKey = rel.foreignKey || `${relationName}_id`;
 
       if (this.loadStrategy === "joins") {
-        // Results are already joined - group by the parent record's id
-        // Each row may have related data in columns prefixed with relation name
-        const grouped = new Map<unknown, unknown[]>();
+        const grouped = new Map<string | number, Record<string, any>[]>();
         const relTableName = rel.model;
 
         for (const row of results) {
-          const unknownRow = row as unknown;
-          const parentId = unknownRow.id;
+          const parentId = row.id as string | number;
 
-          // Find the related row by checking for prefixed columns
-          const relColumns: unknown = {};
+          const relColumns: Record<string, any> = {};
           let hasRelatedData = false;
 
-          for (const key of Object.keys(unknownRow)) {
+          for (const key of Object.keys(row)) {
             if (key.startsWith(`${relTableName}_`)) {
               const originalKey = key.substring(relTableName.length + 1);
-              relColumns[originalKey] = unknownRow[key];
-              if (unknownRow[key] !== null && unknownRow[key] !== undefined) {
+              relColumns[originalKey] = row[key as keyof TSelect];
+              if (row[key as keyof TSelect] !== null && row[key as keyof TSelect] !== undefined) {
                 hasRelatedData = true;
               }
             }
@@ -315,50 +341,49 @@ export class FluentQuery<
           }
         }
 
-        // Attach to results
-        for (const item of results) {
-          const parentId = (item as unknown).id;
-          (item as unknown)[relationName] = grouped.get(parentId) || [];
+        for (let i = 0; i < results.length; i++) {
+          const item = results[i];
+          const parentId = item.id as string | number;
+          const relationData = grouped.get(parentId) || [];
+          results[i] = { ...item, [relationName]: relationData } as TSelect;
         }
 
         this.logger?.debug(`[LOAD JOIN] ${relationName}`);
       } else {
-        // Separate queries - collect all foreign key values
         const foreignKeys = [
-          ...new Set(results.map((r) => (r as unknown)[foreignKey]).filter(Boolean)),
+          ...new Set(results.map((r) => r[foreignKey as keyof TSelect]).filter(Boolean)),
         ];
 
         if (foreignKeys.length === 0) continue;
 
-        // Query related table
-        const relTable = this.db[rel.model] || this.db.query?.[rel.model];
+        const relDb = this.db as DatabaseInstance & { [key: string]: unknown };
+        const relTable = relDb[rel.model];
         if (!relTable) {
           this.logger?.warn(`[LOAD] Related model not found: ${rel.model}`);
           continue;
         }
 
-        let relatedResults: unknown[] = [];
-        const relQuery = relTable.where?.({ [foreignKey]: { in: foreignKeys } });
+        const relatedResults: unknown[] = [];
+        const relQuery = (
+          relTable as { where?: (conds: unknown) => { all: () => Promise<unknown[]> } }
+        ).where?.({ [foreignKey]: { in: foreignKeys } });
 
         if (relQuery?.all) {
-          relatedResults = await relQuery.all();
-        } else if (relTable.all) {
-          relatedResults = await relTable.all();
+          relatedResults.push(...(await relQuery.all()));
         }
 
-        // Group by foreign key
-        const grouped = new Map<unknown, unknown[]>();
+        const grouped = new Map<string | number, unknown[]>();
         for (const item of relatedResults) {
-          const fk = item[foreignKey];
-          if (!grouped.has(fk)) grouped.set(fk, []);
-          grouped.get(fk)!.push(item);
+          const itemRecord = item as Record<string, unknown>;
+          const fk = itemRecord[foreignKey];
+          if (!grouped.has(fk as string | number)) grouped.set(fk as string | number, []);
+          grouped.get(fk as string | number)!.push(item);
         }
 
-        // Attach to results
-        for (const item of results) {
-          const fk = (item as unknown)[foreignKey];
-          (item as unknown)[relationName] = grouped.get(fk) || [];
-        }
+        results = results.map((item) => {
+          const fk = item[foreignKey as keyof TSelect];
+          return { ...item, [relationName]: grouped.get(fk as string | number) || [] } as TSelect;
+        });
 
         this.logger?.debug(`[LOAD PRELOAD] ${relationName} count=${relatedResults.length}`);
       }
@@ -439,24 +464,8 @@ export class FluentQuery<
     const sqlRes = s.toSql(this.strategy);
     if (!sqlRes.success) throw new Error(sqlRes.message);
 
-    let res: unknown;
-    if (this.db.execSql) {
-      res = await this.db.execSql(sqlRes.data.value);
-    } else if (this.db.prepare) {
-      const out = await this.db.prepare(sqlRes.data.value).all();
-      res = out.results || out;
-    } else if (this.db.all) {
-      if (typeof this.db.session === "object" || this.db.$) {
-        res = await this.db.all(drizzleSql.raw(sqlRes.data.value));
-      } else {
-        res = await this.db.all({ sql: sqlRes.data.value, __isSql: true });
-        res = res.success ? res.data : res;
-      }
-    } else if (this.db.exec) {
-      res = this.db.exec(sqlRes.data.value).toArray();
-    }
-
-    return (res?.[0]?.count || 0) as number;
+    const res = await this.executeQuery<{ count: number }[]>(sqlRes.data.value);
+    return res?.[0]?.count || 0;
   }
 
   async countBy(conditions: Record<string, unknown>): Promise<number> {
@@ -502,24 +511,8 @@ export class FluentQuery<
     const sqlRes = s.toSql(this.strategy);
     if (!sqlRes.success) throw new Error(sqlRes.message);
 
-    let res: unknown;
-    if (this.db.execSql) {
-      res = await this.db.execSql(sqlRes.data.value);
-    } else if (this.db.prepare) {
-      const out = await this.db.prepare(sqlRes.data.value).all();
-      res = out.results || out;
-    } else if (this.db.all) {
-      if (typeof this.db.session === "object" || this.db.$) {
-        res = await this.db.all(drizzleSql.raw(sqlRes.data.value));
-      } else {
-        res = await this.db.all({ sql: sqlRes.data.value, __isSql: true });
-        res = res.success ? res.data : res;
-      }
-    } else if (this.db.exec) {
-      res = this.db.exec(sqlRes.data.value).toArray();
-    }
-
-    return res.map((row: unknown) => row[String(column)]) as TSelect[K][];
+    const rows = await this.executeQuery<Record<string, TSelect[K]>[]>(sqlRes.data.value);
+    return rows.map((row) => row[String(column)]);
   }
 
   toSql(): string {
@@ -616,10 +609,24 @@ export class CallbackAbortError extends Error {
   }
 }
 
+export interface ModelStaticConfig {
+  filterableBy?: string[];
+  searchableBy?: string[];
+}
+
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
 export abstract class BaseModel<
-  TTable extends SQLiteTableWithColumns<unknown>,
-  TSelect = TTable["$inferSelect"],
-  TInsert = TTable["$inferInsert"],
+  TTable extends SQLiteTableWithColumns<any>,
+  TSelect extends Record<string, any> = TTable["$inferSelect"],
+  TInsert extends Record<string, any> = TTable["$inferInsert"],
+  TStatic extends ModelStaticConfig = ModelStaticConfig,
+  TModel extends Record<string, (this: unknown, ...args: unknown[]) => unknown> = Record<
+    string,
+    (this: unknown, ...args: unknown[]) => unknown
+  >,
   Env = unknown,
   Ctx = ExecutionContext,
 > {
@@ -813,30 +820,33 @@ export abstract class BaseModel<
 
       if (options?.if) {
         const condition =
-          typeof options.if === "string" ? (this as unknown)[options.if]?.bind(this) : options.if;
+          typeof options.if === "string"
+            ? (this as unknown as TModel)[options.if]?.bind(this)
+            : options.if;
         if (condition && !(await condition.call(this, data))) continue;
       }
 
       if (options?.unless) {
         const condition =
           typeof options.unless === "string"
-            ? (this as unknown)[options.unless]?.bind(this)
+            ? (this as unknown as TModel)[options.unless]?.bind(this)
             : options.unless;
         if (condition && (await condition.call(this, data))) continue;
       }
 
       try {
-        const callback = typeof fn === "string" ? (this as unknown)[fn] : fn;
+        const callback = typeof fn === "string" ? (this as unknown as TModel)[fn] : fn;
         const result = await callback.call(data, data);
 
         if (result === ABORT) {
           throw new CallbackAbortError(`Callback aborted: ${event}`);
         }
-      } catch (err: unknown) {
+      } catch (err) {
         if (err instanceof CallbackAbortError) {
           throw err;
         }
-        this.logger?.error(`[CALLBACK ERROR] ${event}`, { error: err.message });
+        const error = err as Error;
+        this.logger?.error(`[CALLBACK ERROR] ${event}`, { error: error.message });
         throw err;
       }
     }
@@ -974,13 +984,12 @@ export abstract class BaseModel<
     }
 
     if (cols.length === 1) {
-      return query.pluck(cols[0] as unknown) as Promise<unknown[]>;
+      const col = cols[0] as keyof TSelect;
+      return query.pluck(col) as Promise<unknown[]>;
     }
 
-    return query.select(...(cols as unknown)).all() as Promise<unknown[]>;
+    return query.select(...(cols as (keyof TSelect)[])).all() as Promise<unknown[]>;
   }
-
-  // ===== Mixin-style Query Helpers =====
 
   async paginate(
     params: { page?: number; perPage?: number; filters?: Record<string, unknown> } = {},
@@ -988,7 +997,8 @@ export abstract class BaseModel<
     let query = this.query();
     const { filters, ...paginationParams } = params;
     if (filters) {
-      const allowed = (this.constructor as unknown).filterableBy || [];
+      const staticConfig = this.constructor as new (...args: unknown[]) => TStatic;
+      const allowed = (staticConfig.prototype?.filterableBy as string[]) || [];
       for (const [key, value] of Object.entries(filters)) {
         if (!allowed.includes(key)) continue;
         if (value === undefined || value === null || value === "") continue;
@@ -1000,14 +1010,11 @@ export abstract class BaseModel<
 
   async search(term: string, columns?: string[]) {
     if (!term) return this.query();
-    const cols = columns || (this.constructor as unknown).searchableBy || [];
+    const staticConfig = this.constructor as new (...args: unknown[]) => TStatic;
+    const cols = columns || (staticConfig.prototype?.searchableBy as string[]) || [];
     if (cols.length === 0) return this.query();
-    return this.query().where((q: unknown) => {
-      cols.forEach((col: string, i: number) => {
-        if (i === 0) q.where({ [col]: { like: `%${term}%` } });
-        else q.orWhere({ [col]: { like: `%${term}%` } });
-      });
-      return q;
+    return this.query().where({
+      $or: cols.map((col: string) => ({ [col]: { like: `%${term}%` } })),
     });
   }
 
@@ -1056,35 +1063,35 @@ export abstract class BaseModel<
   // ===== Lifecycle Mutations =====
 
   async trash(id: number | string): Promise<TSelect> {
-    return this.update(id, { trashed_at: new Date().toISOString() } as unknown);
+    return this.update(id, { trashed_at: new Date().toISOString() } as Record<string, any>);
   }
 
   async restore(id: number | string): Promise<TSelect> {
-    return this.update(id, { trashed_at: null } as unknown);
+    return this.update(id, { trashed_at: null } as Record<string, any>);
   }
 
   async hide(id: number | string): Promise<TSelect> {
-    return this.update(id, { hidden_at: new Date().toISOString() } as unknown);
+    return this.update(id, { hidden_at: new Date().toISOString() } as Record<string, any>);
   }
 
   async unhide(id: number | string): Promise<TSelect> {
-    return this.update(id, { hidden_at: null } as unknown);
+    return this.update(id, { hidden_at: null } as Record<string, any>);
   }
 
   async flag(id: number | string): Promise<TSelect> {
-    return this.update(id, { flagged_at: new Date().toISOString() } as unknown);
+    return this.update(id, { flagged_at: new Date().toISOString() } as Record<string, any>);
   }
 
   async unflag(id: number | string): Promise<TSelect> {
-    return this.update(id, { flagged_at: null } as unknown);
+    return this.update(id, { flagged_at: null } as Record<string, any>);
   }
 
   async retire(id: number | string): Promise<TSelect> {
-    return this.update(id, { retired_at: new Date().toISOString() } as unknown);
+    return this.update(id, { retired_at: new Date().toISOString() } as Record<string, any>);
   }
 
   async unretire(id: number | string): Promise<TSelect> {
-    return this.update(id, { retired_at: null } as unknown);
+    return this.update(id, { retired_at: null } as Record<string, any>);
   }
 
   async purge(id: number | string): Promise<boolean> {
@@ -1119,7 +1126,7 @@ export abstract class BaseModel<
 
   async add(id: number | string, relation: string): Promise<TSelect> {
     this.logger?.info(`[ADD] ${getTableName(this.table)}#${id} to ${relation}`);
-    return this.findBy({ id } as unknown) as Promise<TSelect>;
+    return this.findBy({ id } as Record<string, unknown>) as Promise<TSelect>;
   }
 
   async remove(
@@ -1128,7 +1135,7 @@ export abstract class BaseModel<
     relatedId: number | string,
   ): Promise<TSelect> {
     this.logger?.info(`[REMOVE] ${relatedId} from ${getTableName(this.table)}#${id}`);
-    return this.findBy({ id } as unknown) as Promise<TSelect>;
+    return this.findBy({ id } as Record<string, unknown>) as Promise<TSelect>;
   }
 
   async assign(
@@ -1137,7 +1144,7 @@ export abstract class BaseModel<
     relatedId: number | string,
   ): Promise<TSelect> {
     this.logger?.info(`[ASSIGN] ${relation}#${relatedId} to ${getTableName(this.table)}#${id}`);
-    return this.findBy({ id } as unknown) as Promise<TSelect>;
+    return this.findBy({ id } as Record<string, unknown>) as Promise<TSelect>;
   }
 
   async unassign(
@@ -1146,7 +1153,7 @@ export abstract class BaseModel<
     relatedId: number | string,
   ): Promise<TSelect> {
     this.logger?.info(`[UNASSIGN] ${relation}#${relatedId} from ${getTableName(this.table)}#${id}`);
-    return this.findBy({ id } as unknown) as Promise<TSelect>;
+    return this.findBy({ id } as Record<string, unknown>) as Promise<TSelect>;
   }
 
   // ===== Relationship Traversal =====
@@ -1155,18 +1162,23 @@ export abstract class BaseModel<
     const rel = this.relationships[relationName];
     if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
-    const relatedModel = this.db.query(rel.model);
-    return relatedModel.where({ [rel.foreignKey]: id }).pluck("id");
+    const db = this.db as DatabaseInstance &
+      Record<string, { where: (conds: unknown) => { pluck: (col: string) => Promise<unknown[]> } }>;
+    const relatedModel = db[rel.model];
+    if (!relatedModel?.where) return [];
+
+    const result = await relatedModel.where({ [rel.foreignKey]: id }).pluck("id");
+    return result as (string | number)[];
   }
 
   async listParentIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
     if (!rel || rel.type !== "belongs_to" || !rel.foreignKey) return [];
 
-    const item = await this.findBy({ id } as unknown);
+    const item = await this.findBy({ id } as Record<string, unknown>);
     if (!item) return [];
 
-    const parentId = (item as unknown)[rel.foreignKey];
+    const parentId = item[rel.foreignKey as keyof TSelect];
     return parentId ? [parentId] : [];
   }
 
@@ -1174,25 +1186,32 @@ export abstract class BaseModel<
     const rel = this.relationships[relationName];
     if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
-    const item = await this.findBy({ id } as unknown);
+    const item = await this.findBy({ id } as Record<string, unknown>);
     if (!item) return [];
 
-    const parentId = (item as unknown)[rel.foreignKey];
+    const parentId = item[rel.foreignKey as keyof TSelect];
     if (!parentId) return [];
 
     const foreignKey = rel.foreignKey;
-    const relatedModel = this.db.query(rel.model);
-    return relatedModel.where({ [foreignKey]: parentId, id: { neq: id } }).pluck("id");
+    const db = this.db as DatabaseInstance &
+      Record<string, { where: (conds: unknown) => { pluck: (col: string) => Promise<unknown[]> } }>;
+    const relatedModel = db[rel.model];
+    if (!relatedModel?.where) return [];
+
+    const result = await relatedModel
+      .where({ [foreignKey]: parentId, id: { neq: id } })
+      .pluck("id");
+    return result as (string | number)[];
   }
 
   async listCousinIds(relationName: string, id: number | string): Promise<(string | number)[]> {
     const rel = this.relationships[relationName];
     if (!rel || rel.type !== "has_munknown" || !rel.foreignKey) return [];
 
-    const item = await this.findBy({ id } as unknown);
+    const item = await this.findBy({ id } as Record<string, unknown>);
     if (!item) return [];
 
-    const parentId = (item as unknown)[rel.foreignKey];
+    const parentId = item[rel.foreignKey as keyof TSelect];
     if (!parentId) return [];
 
     const parentRel = Object.values(this.relationships).find(
@@ -1200,13 +1219,16 @@ export abstract class BaseModel<
     ) as RelationshipMetadata | undefined;
     if (!parentRel || !parentRel.foreignKey) return [];
 
-    const parent = await this.findBy({ id: parentId } as unknown);
+    const parent = await this.findBy({ id: parentId } as Record<string, unknown>);
     if (!parent) return [];
 
-    const grandparentId = (parent as unknown)[parentRel.foreignKey];
+    const grandparentId = parent[parentRel.foreignKey as keyof TSelect];
     if (!grandparentId) return [];
 
     const cousins: (string | number)[] = [];
+    const db = this.db as DatabaseInstance &
+      Record<string, { where: (conds: unknown) => { pluck: (col: string) => Promise<unknown[]> } }>;
+
     for (const [siblingRelName, siblingRel] of Object.entries(this.relationships)) {
       if (
         typeof siblingRelName === "string" &&
@@ -1214,11 +1236,13 @@ export abstract class BaseModel<
         siblingRelName !== relationName &&
         siblingRel.foreignKey
       ) {
-        const siblingModel = this.db.query(siblingRel.model);
+        const siblingModel = db[siblingRel.model];
+        if (!siblingModel?.where) continue;
+
         const siblings = await siblingModel
           .where({ [siblingRel.foreignKey]: grandparentId, id: { neq: id } })
           .pluck("id");
-        cousins.push(...siblings);
+        cousins.push(...(siblings as (string | number)[]));
       }
     }
 
@@ -1233,10 +1257,10 @@ export abstract class BaseModel<
     let currentId: string | number | null = id;
 
     while (currentId) {
-      const item = await this.findBy({ id: currentId } as unknown);
+      const item = await this.findBy({ id: currentId } as Record<string, unknown>);
       if (!item) break;
 
-      currentId = (item as unknown)[rel.foreignKey];
+      currentId = item[rel.foreignKey as keyof TSelect] as string | number | null;
       if (currentId) {
         ancestors.push(currentId);
       }
@@ -1251,14 +1275,20 @@ export abstract class BaseModel<
 
     const descendants: (string | number)[] = [];
     const foreignKey = rel.foreignKey;
+    const db = this.db as DatabaseInstance &
+      Record<string, { where: (conds: unknown) => { pluck: (col: string) => Promise<unknown[]> } }>;
+    const relatedModel = db[rel.model];
+    if (!relatedModel?.where) return [];
 
     const collectDescendants = async (parentId: string | number) => {
-      const relatedModel = this.db.query(rel.model);
-      const children = await relatedModel.where({ [foreignKey]: parentId }).pluck("id");
+      const children = (await relatedModel.where({ [foreignKey]: parentId }).pluck("id")) as (
+        | string
+        | number
+      )[];
 
       for (const childId of children) {
-        descendants.push(childId as string | number);
-        await collectDescendants(childId as string | number);
+        descendants.push(childId);
+        await collectDescendants(childId);
       }
     };
 
@@ -1267,18 +1297,13 @@ export abstract class BaseModel<
   }
 
   async listAssociatedThroughIds(
-    relationName: string,
-    throughTable: string,
-    id: number | string,
+    _relationName: string,
+    _throughTable: string,
+    _id: number | string,
   ): Promise<(string | number)[]> {
-    const rel = this.relationships[relationName];
-    if (!rel || !rel.foreignKey) return [];
-
-    const dbWithSelect = this.db as unknown;
-    const through = dbWithSelect.select().from(throughTable);
-    const junctionItems = await through.where({ [rel.foreignKey]: id });
-
-    return junctionItems.map((item: unknown) => item.id as string | number);
+    throw new Error(
+      "listAssociatedThroughIds requires Drizzle - not supported in current configuration",
+    );
   }
 
   async listRelatedIds(relationName: string, id: number | string): Promise<(string | number)[]> {
@@ -1291,9 +1316,9 @@ export abstract class BaseModel<
 
     if (rel.type === "has_one") {
       if (!rel.foreignKey) return [];
-      const item = await this.findBy({ id } as unknown);
+      const item = await this.findBy({ id } as Record<string, unknown>);
       if (!item) return [];
-      const childId = (item as unknown)[rel.foreignKey];
+      const childId = item[rel.foreignKey as keyof TSelect];
       return childId ? [childId] : [];
     }
 
@@ -1315,35 +1340,45 @@ export abstract class BaseModel<
       limit?: number;
       offset?: number;
     },
-  ): Promise<unknown[]> {
-    const items = await this.findAllBy(conditions, options as unknown);
+  ): Promise<TSelect[]> {
+    const items = await this.findAllBy(
+      conditions,
+      options as {
+        orderBy?: { column: keyof TSelect; direction?: "ASC" | "DESC" };
+        limit?: number;
+        offset?: number;
+      },
+    );
     if (!items?.length || !includes || Object.keys(includes).length === 0) {
       return items;
     }
 
+    const db = this.db as DatabaseInstance & ModelAccess;
     const includeEntries = Object.entries(includes);
     const results = await Promise.all(
       items.map(async (item) => {
         const enriched = { ...item };
         for (const [includeKey, includeConfig] of includeEntries) {
           const rel = this.relationships[includeKey];
-          const foreignKeyValue = (item as unknown)[includeConfig.foreignKey];
+          const foreignKeyValue = item[includeConfig.foreignKey as keyof TSelect];
 
           if (rel?.type === "has_munknown") {
-            const relatedModel = this.db.query(includeConfig.model);
-            const relatedItems = await relatedModel
-              .where({ [includeConfig.foreignKey]: (item as unknown).id })
-              .all();
-            (enriched as unknown)[includeKey] = relatedItems;
+            const relatedModel = db[includeConfig.model];
+            if (!relatedModel) continue;
+            const query = relatedModel.where?.({ [includeConfig.foreignKey]: item.id });
+            const relatedItems = query ? await query.all() : [];
+            (enriched as Record<string, unknown>)[includeKey] = relatedItems;
           } else if (foreignKeyValue) {
-            const relatedModel = this.db.query(includeConfig.model);
-            const relatedItems = await relatedModel.where({ id: foreignKeyValue }).all();
-            (enriched as unknown)[includeKey] = relatedItems;
+            const relatedModel = db[includeConfig.model];
+            if (!relatedModel) continue;
+            const query = relatedModel.where?.({ id: foreignKeyValue });
+            const relatedItems = query ? await query.all() : [];
+            (enriched as Record<string, unknown>)[includeKey] = relatedItems;
           } else {
-            (enriched as unknown)[includeKey] = [];
+            (enriched as Record<string, unknown>)[includeKey] = [];
           }
         }
-        return enriched;
+        return enriched as TSelect;
       }),
     );
 
@@ -1353,37 +1388,43 @@ export abstract class BaseModel<
   async findWith(
     conditions: Record<string, unknown>,
     includes: Record<string, { model: string; foreignKey: string }>,
-  ): Promise<unknown> {
+  ): Promise<TSelect | null> {
     const item = await this.findBy(conditions);
     if (!item || !includes || Object.keys(includes).length === 0) {
       return item;
     }
 
+    const db = this.db as DatabaseInstance & ModelAccess;
     const enriched = { ...item };
+
     for (const [includeKey, includeConfig] of Object.entries(includes)) {
-      const foreignKeyValue = (item as unknown)[includeConfig.foreignKey];
+      const foreignKeyValue = item[includeConfig.foreignKey as keyof TSelect];
       if (foreignKeyValue) {
-        const relatedModel = this.db.query(includeConfig.model);
-        const relatedItems = await relatedModel.where({ id: foreignKeyValue }).all();
-        (enriched as unknown)[includeKey] = relatedItems;
+        const relatedModel = db[includeConfig.model];
+        if (!relatedModel) continue;
+        const query = relatedModel.where?.({ id: foreignKeyValue });
+        const relatedItems = query ? await query.all() : [];
+        (enriched as Record<string, unknown>)[includeKey] = relatedItems;
       } else {
-        (enriched as unknown)[includeKey] = [];
+        (enriched as Record<string, unknown>)[includeKey] = [];
       }
     }
 
-    return enriched;
+    return enriched as TSelect;
   }
 
   // --- Lifecycle Hooks ---
   protected async _beforeValidation(
     data: TInsert | Partial<TInsert>,
   ): Promise<TInsert | Partial<TInsert>> {
-    await this.runCallbacks("beforeValidation", (data as unknown).id ? "update" : "create", data);
+    const hasId = "id" in data && data.id != null;
+    await this.runCallbacks("beforeValidation", hasId ? "update" : "create", data);
     return data;
   }
 
   protected async _afterValidation(data: TInsert | Partial<TInsert>): Promise<void> {
-    await this.runCallbacks("afterValidation", (data as unknown).id ? "update" : "create", data);
+    const hasId = "id" in data && data.id != null;
+    await this.runCallbacks("afterValidation", hasId ? "update" : "create", data);
   }
 
   protected async _beforeCreate(data: TInsert): Promise<TInsert> {
@@ -1391,18 +1432,20 @@ export abstract class BaseModel<
     this.logger?.debug(`[BEFORE CREATE] ${tableName}`, { data });
     await this.runCallbacks("beforeCreate", "create", data);
 
-    const idColumn = (this.table as unknown).id;
+    const tableConfig = this.table as unknown as { id?: { autoIncrement?: boolean } };
+    const idColumn = tableConfig?.id;
     const hasAutoIncrement = idColumn?.autoIncrement;
 
-    if (!(data as unknown).id && !hasAutoIncrement) {
-      (data as unknown).id = crypto.randomUUID();
+    if (!data.id && !hasAutoIncrement) {
+      (data as TInsert & { id: string }).id = crypto.randomUUID();
     }
     return data;
   }
 
   protected async _afterCreate(record: TSelect): Promise<void> {
     const tableName = getTableName(this.table);
-    this.logger?.debug(`[AFTER CREATE] ${tableName}#${(record as unknown).id}`, {
+    const recordWithId = record as TSelect & { id: string | number };
+    this.logger?.debug(`[AFTER CREATE] ${tableName}#${recordWithId.id}`, {
       record,
     });
     await this.runCallbacks("afterCreate", "create", record);
@@ -1417,28 +1460,30 @@ export abstract class BaseModel<
 
   protected async _afterUpdate(record: TSelect): Promise<void> {
     const tableName = getTableName(this.table);
-    this.logger?.debug(`[AFTER UPDATE] ${tableName}#${(record as unknown).id}`, {
+    const recordWithId = record as TSelect & { id: string | number };
+    this.logger?.debug(`[AFTER UPDATE] ${tableName}#${recordWithId.id}`, {
       record,
     });
     await this.runCallbacks("afterUpdate", "update", record);
   }
 
   protected async _beforeSave(
-    data: TInsert | Partial<TInsert>,
-  ): Promise<TInsert | Partial<TInsert>> {
+    data: TInsert | Partial<TInsert> | DeepPartial<TInsert>,
+  ): Promise<TInsert | Partial<TInsert> | DeepPartial<TInsert>> {
     const tableName = getTableName(this.table);
     this.logger?.debug(`[BEFORE SAVE] ${tableName}`, { data });
-    const context = (data as unknown).id ? "update" : "create";
+    const context = "id" in data && data.id != null ? "update" : "create";
     await this.runCallbacks("beforeSave", context, data);
     return data;
   }
 
   protected async _afterSave(record: TSelect): Promise<void> {
     const tableName = getTableName(this.table);
-    this.logger?.debug(`[AFTER SAVE] ${tableName}#${(record as unknown).id}`, {
+    const recordWithId = record as TSelect & { id: string | number };
+    this.logger?.debug(`[AFTER SAVE] ${tableName}#${recordWithId.id}`, {
       record,
     });
-    const context = (record as unknown).id ? "update" : "create";
+    const context = "id" in record && record.id != null ? "update" : "create";
     await this.runCallbacks("afterSave", context, record);
   }
 
@@ -1463,15 +1508,15 @@ export abstract class BaseModel<
 
     let record: TSelect;
 
-    const filtered: unknown = {};
+    const filtered: Partial<TInsert> = {};
     for (const k in finalData) {
       if (k in this.table && finalData[k] !== undefined && finalData[k] !== null) {
-        filtered[k] = finalData[k];
+        filtered[k as keyof TInsert] = finalData[k];
       }
     }
 
-    const keys = Object.keys(filtered);
-    const vals = keys.map((k) => filtered[k]);
+    const keys = Object.keys(filtered) as string[];
+    const vals = keys.map((k) => filtered[k as keyof TInsert]);
 
     const s = sql.statement([
       sql.key("INSERT INTO "),
@@ -1496,27 +1541,24 @@ export abstract class BaseModel<
     await this.runCallbacks("afterCommit", "create", record);
     await this.runCallbacks("afterCreateCommit", "create", record);
     await this.runCallbacks("afterSaveCommit", "create", record);
-    this.logger?.info(`[CREATED] ${tableName}#${(record as unknown).id}`);
+    const recordWithId = record as TSelect & { id: string | number };
+    this.logger?.info(`[CREATED] ${tableName}#${recordWithId.id}`);
     return record;
   }
 
-  async update(id: number | string, data: Partial<TInsert>): Promise<TSelect> {
+  async update(id: number | string, data: DeepPartial<TInsert>): Promise<TSelect> {
     const tableName = getTableName(this.table);
     this.logger?.info(`[UPDATE] ${tableName}#${id}`, { data });
 
-    let finalData = (await this._beforeSave(data)) as Partial<TInsert>;
-    finalData = await this._beforeUpdate(finalData);
+    const processedData = await this._beforeSave(data as Partial<TInsert>);
+    const finalData = await this._beforeUpdate(processedData as Partial<TInsert>);
 
     let record: TSelect;
 
-    const filtered: unknown = {};
+    const filtered: Partial<TInsert> = {};
     for (const k in finalData) {
-      if (
-        k in this.table &&
-        (finalData as unknown)[k] !== undefined &&
-        (finalData as unknown)[k] !== null
-      ) {
-        filtered[k] = (finalData as unknown)[k];
+      if (k in this.table && finalData[k] !== undefined && finalData[k] !== null) {
+        filtered[k as keyof TInsert] = finalData[k];
       }
     }
 
@@ -1587,18 +1629,7 @@ export abstract class BaseModel<
     const tableName = getTableName(this.table);
     this.logger?.debug(`[FIND] ${tableName}#${id}`);
 
-    let record: TSelect | null = null;
-
-    if (this.db.select && !this.db.execSql) {
-      const result = await this.db
-        .select()
-        .from(this.table)
-        .where(eq((this.table as unknown).id, id))
-        .limit(1);
-      record = (result[0] as TSelect) || null;
-    } else {
-      record = await this.where({ id }).first();
-    }
+    const record = await this.where({ id }).first();
 
     if (record) {
       this.logger?.debug(`[FOUND] ${tableName}#${id}`);
@@ -1613,13 +1644,7 @@ export abstract class BaseModel<
     const tableName = getTableName(this.table);
     this.logger?.debug(`[ALL] ${tableName}`);
 
-    let records: TSelect[] = [];
-
-    if (this.db.select && !this.db.execSql) {
-      records = (await this.db.select().from(this.table)) as TSelect[];
-    } else {
-      records = await this.query().all();
-    }
+    const records = await this.query().all();
 
     this.logger?.debug(`[ALL RESULT] ${tableName} count=${records.length}`);
     return records;
@@ -1632,45 +1657,41 @@ export abstract class BaseModel<
     const sqlText = sqlRes.data.value;
 
     this.logger?.debug(`[SQL] ${sqlText}`);
+    const db = this.db;
 
     try {
-      if (this.db.execSql) return await this.db.execSql(sqlText);
-      if (this.db.all) {
-        if (typeof this.db.session === "object" || this.db.$) {
-          return await this.db.all(drizzleSql.raw(sqlText));
-        }
-        const res = await this.db.all({ sql: sqlText, __isSql: true });
-        return res.success ? res.data : res;
-      }
-      if (this.db.prepare) {
-        const res = await this.db.prepare(sqlText).all();
+      if ("execSql" in db) return await (db as RpcDb).execSql(sqlText);
+      if ("prepare" in db) {
+        const res = await (db as D1Database & D1Db).prepare(sqlText).all();
         return (res.results || res) as unknown[];
       }
-    } catch (err: unknown) {
-      this.logger?.error(`[SQL ERROR]`, { sql: sqlText, error: err.message });
+      if ("exec" in db) return (db as DurableObjectStorage & DoStorage).exec(sqlText).toArray();
+    } catch (err) {
+      const error = err as Error;
+      this.logger?.error(`[SQL ERROR]`, { sql: sqlText, error: error.message });
 
-      const errorMsg = err.message || "";
+      const errorMsg = error.message || "";
 
       if (errorMsg.includes("UNIQUE constraint failed")) {
-        throw new ConflictError(`Unique constraint violated: ${err.message}`);
+        throw new ConflictError(`Unique constraint violated: ${errorMsg}`);
       }
       if (errorMsg.includes("FOREIGN KEY constraint failed")) {
         throw new ConstraintError("Foreign key constraint violated", "FOREIGN_KEY", {
-          originalError: err.message,
+          originalError: errorMsg,
         });
       }
       if (errorMsg.includes("NOT NULL constraint failed")) {
         throw new ConstraintError("Not null constraint violated", "NOT_NULL", {
-          originalError: err.message,
+          originalError: errorMsg,
         });
       }
       if (errorMsg.includes("CHECK constraint failed")) {
         throw new ConstraintError("Check constraint violated", "CHECK", {
-          originalError: err.message,
+          originalError: errorMsg,
         });
       }
       if (errorMsg.includes("datatype mismatch")) {
-        throw new BadRequestError(`Datatype mismatch: ${err.message}`);
+        throw new BadRequestError(`Datatype mismatch: ${errorMsg}`);
       }
       throw err;
     }
@@ -1689,19 +1710,18 @@ export abstract class BaseModel<
       await this.runCallbacks("afterSaveCommit", "create", result);
       this.logger?.info(`[TRANSACTION COMMIT] ${tableName}`);
       return result;
-    } catch (err: unknown) {
-      await this.runCallbacks("afterRollback", "create", { error: err.message });
-      this.logger?.error(`[TRANSACTION ROLLBACK] ${tableName}`, { error: err.message });
+    } catch (err) {
+      const error = err as Error;
+      await this.runCallbacks("afterRollback", "create", { error: error.message });
+      this.logger?.error(`[TRANSACTION ROLLBACK] ${tableName}`, { error: error.message });
       throw err;
     }
   }
 }
 
-export function defineModel<TTableName extends string, TColumnsMap extends Record<string, unknown>>(
+export function defineModel<TTableName extends string, TColumnsMap extends Record<string, any>>(
   name: TTableName,
   columns: TColumnsMap,
 ) {
-  // This remains for back-compat or simple use cases,
-  // but migrations will now generate classes extending BaseModel.
   return sqliteTable(name, columns);
 }

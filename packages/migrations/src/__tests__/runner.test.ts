@@ -1,19 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MigrationRunner } from "../runner";
-import { Migration } from "../index";
+import { Migration, type Database } from "../index";
 import { ok } from "nomo/result";
 
 vi.mock("drizzle-orm", () => {
-  const sqlMock = (chunks: unknown, ...vals: unknown[]) => ({
-    sql: chunks.reduce((acc: string, chunk: string, i: number) => {
-      const val = vals[i];
-      const valStr =
-        typeof val === "object" && val?.sql ? val.sql : val !== undefined ? String(val) : "";
-      return acc + chunk + valStr;
-    }, ""),
-    __isSql: true,
-  });
-  (sqlMock as unknown).raw = (str: string) => ({ sql: str, __isSql: true });
+  const sqlMock = (chunks: TemplateStringsArray, ...vals: unknown[]) => {
+    let sql = "";
+    for (let i = 0; i < chunks.length; i++) {
+      sql += chunks[i];
+      if (i < vals.length) {
+        const val = vals[i];
+        sql +=
+          typeof val === "object" && val !== null && "sql" in val
+            ? (val as { sql: string }).sql
+            : val !== undefined
+              ? String(val)
+              : "";
+      }
+    }
+    return { sql, __isSql: true };
+  };
+  (sqlMock as unknown as { raw: (str: string) => { sql: string; __isSql: true } }).raw = (
+    str: string,
+  ) => ({ sql: str, __isSql: true });
   return { sql: sqlMock };
 });
 
@@ -28,8 +37,13 @@ class Migration2 extends Migration {
   async change() {}
 }
 
+type MockDb = Database & {
+  run: ReturnType<typeof vi.fn>;
+  all: ReturnType<typeof vi.fn>;
+};
+
 describe("MigrationRunner", () => {
-  let mockDb: unknown;
+  let mockDb: MockDb;
   let runner: MigrationRunner;
   let migrations: Migration[];
 
@@ -37,7 +51,7 @@ describe("MigrationRunner", () => {
     mockDb = {
       run: vi.fn().mockResolvedValue(ok({})),
       all: vi.fn().mockResolvedValue(ok([])),
-    };
+    } as MockDb;
     runner = new MigrationRunner(mockDb);
     migrations = [new Migration1(mockDb), new Migration2(mockDb)];
   });

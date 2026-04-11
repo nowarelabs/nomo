@@ -2,6 +2,15 @@ import { type Result, ok } from "nomo/result";
 import { Dialect, Statement, DialectStrategy, getDialectStrategy } from "nomo/sql";
 import { HandlerFunc, STANDARD_HANDLERS } from "./handlers";
 
+export interface MigrationAction {
+  type: string;
+  [key: string]: unknown;
+}
+
+export interface DialectStrategyWithRegister extends DialectStrategy {
+  registerType?: (type: string, dbType: string) => void;
+}
+
 /**
  * Generates SQL for migration commands.
  * Delegating all logic to DialectStrategy (Strategy Pattern)
@@ -27,12 +36,13 @@ export class SqlGenerator {
    * Register or override a type mapping.
    */
   registerType(type: string, dbType: string) {
-    if ("registerType" in this.strategy) {
-      (this.strategy as unknown).registerType(type, dbType);
+    const strategyWithRegister = this.strategy as DialectStrategyWithRegister;
+    if (strategyWithRegister.registerType) {
+      strategyWithRegister.registerType(type, dbType);
     }
   }
 
-  generate(action: unknown): Result<string> {
+  generate(action: MigrationAction): Result<string> {
     const res = this.generateStatement(action);
     if (!res.success) return res as Result<never>;
     const statement = res.data;
@@ -47,7 +57,7 @@ export class SqlGenerator {
     });
   }
 
-  generateStatement(action: unknown): Result<Statement | null> {
+  generateStatement(action: MigrationAction): Result<Statement | null> {
     const { type } = action;
     const handler = this.handlers.get(type);
 

@@ -1,59 +1,54 @@
 import { DurableObjectBaseDelegate } from "../delegate";
-import { eq } from "drizzle-orm";
 
 export interface ViewConfig {
-  table: unknown; // Drizzle table
+  table: string | { name: string };
   primaryKey?: string;
 }
 
 export class ViewDelegate extends DurableObjectBaseDelegate<ViewConfig> {
-  /**
-   * Default handle returns all records from the view table.
-   * Can be extended or configured to support filtering.
-   */
   async handle(
     options: {
-      where?: unknown;
+      where?: Record<string, unknown>;
       limit?: number;
       offset?: number;
-      orderBy?: unknown;
     } = {},
   ): Promise<unknown[]> {
     const { table } = this.config;
-    let query: unknown = this.durableObject.db.select().from(table);
+    const tableName = typeof table === "string" ? table : table.name;
 
-    if (options.where) {
-      // Simple where logic for now, can be expanded
-      Object.entries(options.where).forEach(([key, value]) => {
-        // @ts-ignore - Drizzle typed where support
-        query = query.where(eq(table[key], value));
+    let sql = `SELECT * FROM ${tableName}`;
+    const params: unknown[] = [];
+
+    if (options.where && Object.keys(options.where).length > 0) {
+      const conditions = Object.entries(options.where).map(([key, value]) => {
+        params.push(value);
+        return `${key} = $${params.length}`;
       });
+      sql += ` WHERE ${conditions.join(" AND ")}`;
     }
 
     if (options.limit) {
-      query = query.limit(options.limit);
+      params.push(options.limit);
+      sql += ` LIMIT $${params.length}`;
     }
 
     if (options.offset) {
-      query = query.offset(options.offset);
+      params.push(options.offset);
+      sql += ` OFFSET $${params.length}`;
     }
 
-    return await query.execute();
+    const result = await this.durableObject.storage.sql.exec(sql, params);
+    return result.toArray();
   }
 
-  /**
-   * Find a single record by primary key
-   */
   async find(id: unknown): Promise<unknown | null> {
     const { table, primaryKey = "id" } = this.config;
-    const results = await this.durableObject.db
-      .select()
-      .from(table)
-      // @ts-ignore - Drizzle table index
-      .where(eq(table[primaryKey], id))
-      .limit(1)
-      .execute();
+    const tableName = typeof table === "string" ? table : table.name;
 
-    return results[0] || null;
+    const result = await this.durableObject.storage.sql
+      .exec(`SELECT * FROM ${tableName} WHERE ${primaryKey} = ? LIMIT 1`, [id])
+      .toArray();
+
+    return result[0] || null;
   }
 }

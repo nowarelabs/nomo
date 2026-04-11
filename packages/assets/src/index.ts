@@ -65,7 +65,10 @@ export class AssetInjector {
     private entries: { styles: string[]; scripts: string[] },
   ) {}
 
-  element(element: unknown) {
+  element(element: {
+    tagName: string;
+    append: (content: string, options?: { html?: boolean }) => void;
+  }) {
     if (element.tagName === "head") {
       for (const style of this.entries.styles) {
         element.append(this.pipeline.stylesheet_link_tag(style), {

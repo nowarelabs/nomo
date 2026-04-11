@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { Migration } from "../index";
+import { Migration, type Database } from "../index";
 import { type Result, ok } from "nomo/result";
 
 class ReversibleMigration extends Migration {
@@ -10,7 +10,7 @@ class ReversibleMigration extends Migration {
     });
     await this.addColumn("users", "tag_id", "integer");
 
-    await (this as unknown).reversible({
+    await (this as any).reversible({
       up: async () => {
         await this.execute("CREATE VIEW user_tags AS SELECT * FROM users");
       },
@@ -40,7 +40,7 @@ describe("Migration Reversibility", () => {
       run: vi.fn().mockResolvedValue(ok({})),
       all: vi.fn().mockResolvedValue(ok([])),
     };
-    const migration = new ReversibleMigration(mockDb as unknown);
+    const migration = new ReversibleMigration(mockDb as Database);
 
     // Test UP
     const upRes = await migration.up();
@@ -95,7 +95,7 @@ describe("Migration Reversibility", () => {
       run: vi.fn().mockResolvedValue(ok({})),
       all: vi.fn().mockResolvedValue(ok([])),
     };
-    const migration = new ExplicitMigration(mockDb as unknown);
+    const migration = new ExplicitMigration(mockDb as Database);
 
     const upRes = await migration.up();
     expect(upRes.success).toBe(true);
