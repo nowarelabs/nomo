@@ -1,4 +1,4 @@
-import { Middleware, Next, RouterContext } from "../types";
+import { Middleware, Next, RouterContext } from "../index";
 
 export const secureHeaders = <Env = unknown, Ctx = unknown>(): Middleware<Env, Ctx> => {
   return async (req: Request, env: Env, ctx: RouterContext<Env, Ctx>, next: Next) => {

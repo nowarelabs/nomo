@@ -29,7 +29,7 @@ export abstract class BaseService<Env = unknown, Ctx = ExecutionContext> {
   }
 
   protected get db(): D1Database {
-    return (this.env as unknown).DB;
+    return (this.env as Record<string, unknown>).DB as D1Database;
   }
 
   protected createServiceContext(

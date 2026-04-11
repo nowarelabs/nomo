@@ -377,12 +377,12 @@ function tagged<TagValue extends string | number | boolean>(
 ): <T extends Record<string, unknown>>(data: T) => T & { tag: TagValue };
 function tagged(value: unknown, arg2?: unknown, arg3?: unknown): unknown {
   if (typeof arg2 === "object" && arg2 !== null) {
-    const data = arg2;
-    const tagName = arg3 || "tag";
+    const data = arg2 as Record<string, unknown>;
+    const tagName = (arg3 as string) || "tag";
     return { ...data, [tagName]: value };
   }
-  const tagName = arg2 || "tag";
-  return (data: unknown) => ({ ...data, [tagName]: value });
+  const tagName = (arg2 as string) || "tag";
+  return (data: unknown) => ({ ...(data as Record<string, unknown>), [tagName]: value });
 }
 
 function taggedWith<
@@ -396,10 +396,10 @@ function taggedWith<Tag extends string, TagValue extends string | number | boole
 ): <T extends Record<string, unknown>>(data: T) => T & { [K in Tag]: TagValue };
 function taggedWith(tag: unknown, value: unknown, arg3?: unknown): unknown {
   if (typeof arg3 === "object" && arg3 !== null) {
-    const data = arg3;
-    return { ...data, [tag]: value };
+    const data = arg3 as Record<string, unknown>;
+    return { ...data, [tag as string]: value };
   }
-  return (data: unknown) => ({ ...data, [tag]: value });
+  return (data: unknown) => ({ ...(data as Record<string, unknown>), [tag as string]: value });
 }
 
 type MatchHandlers<
@@ -671,10 +671,11 @@ export function jitterBackoff(attempt: number, baseDelayMs: number, maxDelayMs: 
 }
 
 export function isErrorRetryable(err: unknown): boolean {
+  const errObj = err as Record<string, unknown> | null;
   const msg = String(err);
   return (
-    Boolean((err as unknown)?.retryable) &&
-    !(err as unknown)?.overloaded &&
+    Boolean(errObj?.retryable) &&
+    !errObj?.overloaded &&
     !msg.includes("Durable Object is overloaded")
   );
 }

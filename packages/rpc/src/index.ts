@@ -97,11 +97,11 @@ export abstract class BaseResourceRpcTarget<
   }
 
   protected async runAction<T = unknown>(
-    action: Action,
+    action: string,
     params: Record<string, unknown> = {},
   ): Promise<T> {
     try {
-      const res = await this.controller().withParams(params).runAction(action);
+      const res = await this.controller().withParams(params).runAction(action as Action);
       return await res.json();
     } catch (error) {
       this.logger.error(`[${action.toUpperCase()} ERROR]`, {
@@ -149,8 +149,8 @@ export abstract class BaseResourceRpcTarget<
     this.logger.debug(`[CREATE]`, { data });
     try {
       const res = await this.controller().withParams(data).runAction("create");
-      const jsonResult = await res.json();
-      this.logger.info(`[CREATE] ${(jsonResult as unknown)?.id}`);
+      const jsonResult = (await res.json()) as Record<string, unknown>;
+      this.logger.info(`[CREATE] ${jsonResult.id}`);
       return jsonResult;
     } catch (error) {
       this.logger.error(`[CREATE ERROR]`, { data, error: (error as Error).message });
@@ -317,7 +317,7 @@ export abstract class BaseResourceRpcTarget<
   // Returns raw IDs for use with .map() in capnweb
 
   async pluck(column: string, conditions?: Record<string, unknown>): Promise<unknown[]> {
-    return this.runAction("pluck" as unknown, { column, conditions });
+    return this.runAction("pluck", { column, conditions });
   }
 
   async findAllBy(
@@ -328,11 +328,11 @@ export abstract class BaseResourceRpcTarget<
       offset?: number;
     },
   ): Promise<unknown[]> {
-    return this.runAction("findAllBy" as unknown, { conditions, options });
+    return this.runAction("findAllBy", { conditions, options });
   }
 
   async findByIds(ids: (string | number)[]): Promise<unknown[]> {
-    return this.runAction("findByIds" as unknown, { ids });
+    return this.runAction("findByIds", { ids });
   }
 
   // ===== Include Methods for Eager Loading =====
@@ -346,14 +346,14 @@ export abstract class BaseResourceRpcTarget<
       offset?: number;
     },
   ): Promise<unknown[]> {
-    return this.runAction("findAllWith" as unknown, { conditions, includes, options });
+    return this.runAction("findAllWith", { conditions, includes, options });
   }
 
   async findWith(
     conditions: Record<string, unknown>,
     includes: Record<string, { model: string; foreignKey: string }>,
   ): Promise<unknown> {
-    return this.runAction("findWith" as unknown, { conditions, includes });
+    return this.runAction("findWith", { conditions, includes });
   }
 }
 
@@ -389,13 +389,13 @@ export abstract class BaseResourceInstanceRpcTarget<
   }
 
   protected async runAction<T = unknown>(
-    action: Action,
+    action: string,
     params: Record<string, unknown> = {},
   ): Promise<T> {
     try {
       const res = await this.controller()
         .withParams({ id: this.id, ...params })
-        .runAction(action);
+        .runAction(action as Action);
       return await res.json();
     } catch (error) {
       this.logger.error(`[${action.toUpperCase()} ERROR]`, {
@@ -577,7 +577,7 @@ export abstract class BaseResourceInstanceRpcTarget<
   // ===== Pluck for RPC chain mapping =====
 
   async pluck(column: string, conditions?: Record<string, unknown>): Promise<unknown[]> {
-    return this.runAction("pluck" as unknown, { column, conditions });
+    return this.runAction("pluck", { column, conditions });
   }
 
   async findAllBy(
@@ -588,7 +588,7 @@ export abstract class BaseResourceInstanceRpcTarget<
       offset?: number;
     },
   ): Promise<unknown[]> {
-    return this.runAction("findAllBy" as unknown, { conditions, options });
+    return this.runAction("findAllBy", { conditions, options });
   }
 }
 

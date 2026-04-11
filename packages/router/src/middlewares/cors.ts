@@ -1,4 +1,4 @@
-import { Middleware, Next, RouterContext } from "../types";
+import { Middleware, Next, RouterContext } from "../index";
 
 export type CorsOptions = {
   origin?: string;

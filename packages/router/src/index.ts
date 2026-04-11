@@ -9,7 +9,7 @@ import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-ho
 
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 
-import type { ExecutionContext, DurableObjectState, MessageBatch } from "@cloudflare/workers-types";
+import type { ExecutionContext, DurableObjectState, MessageBatch, HTMLRewriterElementContentHandlers } from "@cloudflare/workers-types";
 
 import { Logger, LogLevel } from "nomo/logger";
 
@@ -204,15 +204,15 @@ export interface RouteConfig {
     body?: {
       content: {
         "application/json": {
-          schema: z.ZodTypeunknown;
+          schema: z.ZodType<unknown>;
         };
       };
       description?: string;
       required?: boolean;
     };
-    params?: z.ZodObject<unknown>;
-    query?: z.ZodObject<unknown>;
-    headers?: z.ZodObject<unknown>;
+    params?: z.ZodRawShape;
+    query?: z.ZodRawShape;
+    headers?: z.ZodRawShape;
   };
   responses: Record<
     string,
@@ -220,7 +220,7 @@ export interface RouteConfig {
       description: string;
       content?: {
         "application/json": {
-          schema: z.ZodTypeunknown;
+          schema: z.ZodType<unknown>;
         };
       };
     }
@@ -254,8 +254,8 @@ export interface IDrawableRouter<Env = unknown, Ctx = ExecutionContext> extends 
   patch(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   delete(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
   all(path: string, ...handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[]): void;
-  resources(path: string, controller: unknown): void;
-  resourceActions(path: string, controller: unknown): void;
+  resources(path: string, controller: ActionController): void;
+  resourceActions(path: string, controller: ActionController): void;
   provide(name: string, service: unknown): void;
   inject<T = unknown>(name: string): T;
   use(middleware: Middleware<Env, Ctx>): void;
@@ -302,7 +302,7 @@ export class BadRequestError extends HttpError {
 }
 
 export class ConstraintError extends HttpError {
-  constructor(message: string = "Constraint Violation", constraintType: string, details?: unknown) {
+  constructor(message: string = "Constraint Violation", constraintType: string, details?: Record<string, unknown>) {
     super(message, 409, { constraintType, ...details });
     this.name = "ConstraintError";
   }
@@ -320,6 +320,10 @@ export class UnprocessableEntityError extends HttpError {
     super(message, 422, details);
     this.name = "UnprocessableEntityError";
   }
+}
+
+export interface ActionController {
+  action(name: string): RouteHandler<unknown, unknown>;
 }
 
 export abstract class RouteDrawer<Env = unknown, Ctx = unknown> {
@@ -358,7 +362,7 @@ export abstract class RouteDrawer<Env = unknown, Ctx = unknown> {
     this.router.all(this.join(path), ...handlers);
   }
 
-  resources(path: string, controller: unknown) {
+  resources(path: string, controller: ActionController) {
     const resourcePath = path;
 
     this.get(resourcePath, controller.action("index"));
@@ -369,7 +373,7 @@ export abstract class RouteDrawer<Env = unknown, Ctx = unknown> {
     this.delete(`${resourcePath}/:id`, controller.action("destroy"));
   }
 
-  resourceActions(path: string, controller: unknown) {
+  resourceActions(path: string, controller: ActionController) {
     const resourcePath = path;
 
     // Basic CRUD (collection)
@@ -422,11 +426,12 @@ export abstract class RouteDrawer<Env = unknown, Ctx = unknown> {
   }
 
   inject<T = unknown>(name: string): T {
-    return this.providers.get(name);
+    return this.providers.get(name) as T;
   }
 
   scope(path: string, callback: (drawer: this) => void) {
-    const scopedDrawer = new (this.constructor as unknown)(this.router, this.join(path));
+    const Ctor = this.constructor as new (router: IDrawableRouter<Env, Ctx>, prefix: string) => this;
+    const scopedDrawer = new Ctor(this.router, this.join(path));
     this.providers.forEach((val, key) => scopedDrawer.provide(key, val));
     callback(scopedDrawer);
   }
@@ -595,7 +600,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     }
   }
 
-  static zValidator<S extends z.ZodTypeunknown, Env = unknown, Ctx = ExecutionContext>(
+  static zValidator<S extends z.ZodType<unknown>, Env = unknown, Ctx = ExecutionContext>(
     target: "json" | "query" | "header" | "param",
     schema: S,
   ): Middleware<Env, Ctx> {
@@ -627,7 +632,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
         );
       }
 
-      (ctx as unknown)[`valid${target.charAt(0).toUpperCase() + target.slice(1)}`] = result.data;
+      const ctxAny = ctx as Record<string, unknown>;
+      ctxAny[`valid${target.charAt(0).toUpperCase() + target.slice(1)}`] = result.data;
 
       ctx.logger.debug(`[VALIDATION PASSED] ${target}`);
       return await next();
@@ -714,13 +720,13 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     const handlers: (Middleware<Env, Ctx> | RouteHandler<Env, Ctx>)[] = [];
 
     if (config.request?.params) {
-      handlers.push(Router.zValidator("param", config.request.params));
+      handlers.push(Router.zValidator("param", z.object(config.request.params)));
     }
     if (config.request?.query) {
-      handlers.push(Router.zValidator("query", config.request.query));
+      handlers.push(Router.zValidator("query", z.object(config.request.query)));
     }
     if (config.request?.headers) {
-      handlers.push(Router.zValidator("header", config.request.headers));
+      handlers.push(Router.zValidator("header", z.object(config.request.headers)));
     }
     if (config.request?.body?.content["application/json"]?.schema) {
       handlers.push(
@@ -735,7 +741,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     this.registerOpenApiRoute(config);
   }
 
-  resources(path: string, controller: unknown) {
+  resources(path: string, controller: ActionController) {
     const resourcePath = path.startsWith("/") ? path : `/${path}`;
 
     this.get(resourcePath, controller.action("index"));
@@ -745,7 +751,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     this.delete(`${resourcePath}/:id`, controller.action("destroy"));
   }
 
-  resourceActions(path: string, controller: unknown) {
+  resourceActions(path: string, controller: ActionController) {
     const resourcePath = path.startsWith("/") ? path : `/${path}`;
 
     // Basic CRUD (collection)
@@ -801,7 +807,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   }
 
   private registerOpenApiRoute(config: RouteConfig) {
-    const responses: unknown = {};
+    const responses: { [statusCode: string]: { description: string; content?: unknown } } = {};
     for (const [code, res] of Object.entries(config.responses)) {
       responses[code] = {
         description: res.description,
@@ -809,17 +815,28 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       };
     }
 
-    this.openAPIRegistry.registerPath({
-      method: config.method as unknown,
+    this.openAPIRegisterPath({
+      method: config.method.toUpperCase() as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
       path: config.path,
-      request: {
-        params: config.request?.params,
-        query: config.request?.query,
-        headers: config.request?.headers,
-        body: config.request?.body,
-      },
+      request: config.request
+        ? {
+            params: config.request.params ? z.object(config.request.params) : undefined,
+            query: config.request.query ? z.object(config.request.query) : undefined,
+            headers: config.request.headers ? z.object(config.request.headers) : undefined,
+            body: config.request.body,
+          }
+        : undefined,
       responses,
     });
+  }
+
+  private openAPIRegisterPath(config: {
+    method: string;
+    path: string;
+    request?: unknown;
+    responses: { [statusCode: string]: { description: string; content?: unknown } };
+  }): void {
+    this.openAPIRegistry.registerPath(config as Parameters<typeof this.openAPIRegistry.registerPath>[0]);
   }
 
   getOpenApiDocument(info: { title: string; version: string; description?: string }): unknown {
@@ -886,12 +903,13 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
   }
 
   async handle(request: Request, env: Env, executionCtx: Ctx): Promise<Response> {
-    if ((env as unknown).ENVIRONMENT) {
-      Logger.ENVIRONMENT = (env as unknown).ENVIRONMENT;
+    const envObj = env as Record<string, unknown>;
+    if (envObj.ENVIRONMENT) {
+      Logger.ENVIRONMENT = envObj.ENVIRONMENT as string;
     }
 
-    if ((env as unknown).LOG_LEVEL) {
-      Logger.LEVEL = (env as unknown).LOG_LEVEL;
+    if (envObj.LOG_LEVEL) {
+      Logger.LEVEL = envObj.LOG_LEVEL as LogLevel;
     } else if (Logger.ENVIRONMENT === "development") {
       Logger.LEVEL = LogLevel.DEBUG;
     }
@@ -924,8 +942,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       executionCtx,
       logger: new Logger({
         service: "router",
-        environment: (env as unknown).ENVIRONMENT || "production",
-        level: (env as unknown).LOG_LEVEL || LogLevel.DEBUG,
+        environment: (env as Record<string, unknown>).ENVIRONMENT as string || "production",
+        level: (env as Record<string, unknown>).LOG_LEVEL as LogLevel || LogLevel.DEBUG,
         context: {
           request_id: requestId,
           method: request.method,
@@ -957,10 +975,11 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       cache: (seconds) => {
         responseHeaders.set("Cache-Control", `public, max-age=${seconds}`);
       },
-      parseJson: async () => {
-        if ((ctx as unknown).validJson) return (ctx as unknown).validJson;
+      parseJson: async <T = unknown>() => {
+        const ctxAny = ctx as Record<string, unknown>;
+        if (ctxAny.validJson) return ctxAny.validJson as T;
         try {
-          return await request.json();
+          return await request.json() as T;
         } catch {
           return null;
         }
@@ -974,15 +993,15 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       isCapnwebRpc: !!request.headers.get("Capnweb-RPC"),
       source: "http" as RouterContextSource,
       rewrite: (response: Response, handlers: unknown) => {
-        // @ts-ignore - HTMLRewriter is available in Cloudflare Workers
         const rewriter = new HTMLRewriter();
+        const handlersObj = handlers as Record<string, unknown>;
         if (Array.isArray(handlers)) {
           for (const { selector, handler } of handlers) {
-            rewriter.on(selector, handler);
+            rewriter.on(selector, handler as unknown as Parameters<typeof rewriter.on>[1]);
           }
         } else {
-          for (const [selector, handler] of Object.entries(handlers)) {
-            rewriter.on(selector, handler as unknown);
+          for (const [selector, handler] of Object.entries(handlersObj)) {
+            rewriter.on(selector, handler as unknown as Parameters<typeof rewriter.on>[1]);
           }
         }
         const transformed = rewriter.transform(response);
@@ -1006,7 +1025,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     if (!isRpcEndpoint && ctx.headers["content-type"]?.includes("application/json")) {
       try {
         const body = await request.json();
-        (ctx as unknown).validJson = parseNestedParams(body as unknown);
+        const ctxAny = ctx as Record<string, unknown>;
+        ctxAny.validJson = parseNestedParams(body as Record<string, unknown>);
       } catch (e) {
         console.log(e);
         return new Response("Malformed JSON", { status: 400 });
@@ -1083,7 +1103,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
           span.recordException(err as Error);
           span.setStatus({
             code: SpanStatusCode.ERROR,
-            message: err.message,
+            message: (err as Error).message,
           });
 
           if (err instanceof HttpError) {
@@ -1109,7 +1129,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
             {
               method,
               pattern: decodedPath,
-              error: err.message,
+              error: (err as Error).message,
               request_id: ctx.requestId,
             },
             err as Error,

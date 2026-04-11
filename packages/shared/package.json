@@ -15,10 +15,6 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
-  "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.4.0",
-    "zod": "^4.3.6"
-  },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260203.0",
     "typescript": "^5.9.3",
