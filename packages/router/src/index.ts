@@ -9,7 +9,12 @@ import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-ho
 
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 
-import type { ExecutionContext, DurableObjectState, MessageBatch, HTMLRewriterElementContentHandlers } from "@cloudflare/workers-types";
+import type {
+  ExecutionContext,
+  DurableObjectState,
+  MessageBatch,
+  HTMLRewriterElementContentHandlers,
+} from "@cloudflare/workers-types";
 
 import { Logger, LogLevel } from "nomo/logger";
 
@@ -302,7 +307,11 @@ export class BadRequestError extends HttpError {
 }
 
 export class ConstraintError extends HttpError {
-  constructor(message: string = "Constraint Violation", constraintType: string, details?: Record<string, unknown>) {
+  constructor(
+    message: string = "Constraint Violation",
+    constraintType: string,
+    details?: Record<string, unknown>,
+  ) {
     super(message, 409, { constraintType, ...details });
     this.name = "ConstraintError";
   }
@@ -430,7 +439,10 @@ export abstract class RouteDrawer<Env = unknown, Ctx = unknown> {
   }
 
   scope(path: string, callback: (drawer: this) => void) {
-    const Ctor = this.constructor as new (router: IDrawableRouter<Env, Ctx>, prefix: string) => this;
+    const Ctor = this.constructor as new (
+      router: IDrawableRouter<Env, Ctx>,
+      prefix: string,
+    ) => this;
     const scopedDrawer = new Ctor(this.router, this.join(path));
     this.providers.forEach((val, key) => scopedDrawer.provide(key, val));
     callback(scopedDrawer);
@@ -836,7 +848,9 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
     request?: unknown;
     responses: { [statusCode: string]: { description: string; content?: unknown } };
   }): void {
-    this.openAPIRegistry.registerPath(config as Parameters<typeof this.openAPIRegistry.registerPath>[0]);
+    this.openAPIRegistry.registerPath(
+      config as Parameters<typeof this.openAPIRegistry.registerPath>[0],
+    );
   }
 
   getOpenApiDocument(info: { title: string; version: string; description?: string }): unknown {
@@ -942,8 +956,8 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
       executionCtx,
       logger: new Logger({
         service: "router",
-        environment: (env as Record<string, unknown>).ENVIRONMENT as string || "production",
-        level: (env as Record<string, unknown>).LOG_LEVEL as LogLevel || LogLevel.DEBUG,
+        environment: ((env as Record<string, unknown>).ENVIRONMENT as string) || "production",
+        level: ((env as Record<string, unknown>).LOG_LEVEL as LogLevel) || LogLevel.DEBUG,
         context: {
           request_id: requestId,
           method: request.method,
@@ -979,7 +993,7 @@ export class Router<Env = unknown, Ctx = ExecutionContext> {
         const ctxAny = ctx as Record<string, unknown>;
         if (ctxAny.validJson) return ctxAny.validJson as T;
         try {
-          return await request.json() as T;
+          return (await request.json()) as T;
         } catch {
           return null;
         }

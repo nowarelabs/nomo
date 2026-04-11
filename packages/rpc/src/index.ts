@@ -101,7 +101,9 @@ export abstract class BaseResourceRpcTarget<
     params: Record<string, unknown> = {},
   ): Promise<T> {
     try {
-      const res = await this.controller().withParams(params).runAction(action as Action);
+      const res = await this.controller()
+        .withParams(params)
+        .runAction(action as Action);
       return await res.json();
     } catch (error) {
       this.logger.error(`[${action.toUpperCase()} ERROR]`, {
