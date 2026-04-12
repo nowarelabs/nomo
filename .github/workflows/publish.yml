@@ -27,11 +27,15 @@ jobs:
       version: ${{ steps.set-version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: voidzero-dev/setup-vp@v1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: true
-      - run: vp install
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install
 
       - id: set-packages
         name: Determine packages to publish
@@ -60,14 +64,18 @@ jobs:
     environment: npm
     steps:
       - uses: actions/checkout@v4
-      - uses: voidzero-dev/setup-vp@v1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: true
-      - run: vp install
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install
 
       - name: Build packages
-        run: vp build
+        run: pnpm build
         env:
           NODE_ENV: production
 
