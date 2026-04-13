@@ -1,12 +1,12 @@
 /**
- * nomo/gateways - BaseInfrastructureAdapter for external service integrations
+ * noware-gateways - BaseInfrastructureAdapter for external service integrations
  * 
- * Standard Gauge: Gateways implement ports and connect to external services
+ * Standard Gauge: Infrastructure adapters (implement ports)
  * 
- * Connection: Infrastructure → External Services (Stripe, SendGrid, etc.)
+ * Connection: This layer → implements BasePort → External Services (Stripe, SendGrid, etc.)
  */
 
-import { BaseOutboundPort, IOrderRepository, IPaymentGateway, IEmailService, PortInput, PortOutput } from "nomo/ports";
+import { BaseOutboundPort, IOrderRepository, IPaymentGateway, IEmailService, PortInput, PortOutput } from "../ports/index.ts";
 
 /* ============================================================================
  * Circuit Breaker

@@ -1,4 +1,4 @@
-import { type Result, ok, safe, all, tagged } from "nomo/result";
+import { type Result, ok, safe, all, tagged } from "../result/index.ts";
 import { DialectStrategy } from "./dialects";
 
 /**

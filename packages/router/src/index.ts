@@ -11,7 +11,7 @@ import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-open
 
 import type { ExecutionContext, DurableObjectState, MessageBatch } from "@cloudflare/workers-types";
 
-import { Logger, LogLevel } from "nomo/logger";
+import { Logger, LogLevel } from "../logger/index.ts";
 
 interface MiddlewareEntry<Env = unknown, Ctx = ExecutionContext> {
   path: string;

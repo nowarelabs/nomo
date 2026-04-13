@@ -1,5 +1,5 @@
-import { type Result, ok } from "nomo/result";
-import { Dialect, Statement, DialectStrategy, getDialectStrategy } from "nomo/sql";
+import { type Result, ok } from "../result/index.ts";
+import { Dialect, Statement, DialectStrategy, getDialectStrategy } from "../sql/index.ts";
 import { HandlerFunc, STANDARD_HANDLERS } from "./handlers";
 
 export interface MigrationAction {

@@ -1,6 +1,6 @@
-import { type Result, ok, safe } from "nomo/result";
-import { sql, Statement, getDialectStrategy } from "nomo/sql";
-import { Logger } from "nomo/logger";
+import { type Result, ok, safe } from "../result/index.ts";
+import { sql, Statement, getDialectStrategy } from "../sql/index.ts";
+import { Logger } from "../logger/index.ts";
 
 /**
  * Utility for running SQL migrations within a Cloudflare Durable Object using ctx.storage.sql.

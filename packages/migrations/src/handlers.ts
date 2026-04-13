@@ -1,4 +1,4 @@
-import { type Result, ok } from "nomo/result";
+import { type Result, ok } from "../result/index.ts";
 import {
   Column,
   ForeignKey,
@@ -8,7 +8,7 @@ import {
   VirtualTableBuilder,
   ColumnOptions,
 } from "./index";
-import { sql, Statement, SqlPart, DialectStrategy } from "nomo/sql";
+import { sql, Statement, SqlPart, DialectStrategy } from "../sql/index.ts";
 
 export type HandlerFunc = (action: unknown, strategy: DialectStrategy) => Result<Statement | null>;
 

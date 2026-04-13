@@ -5,8 +5,8 @@ import {
   WorkflowEvent,
   WorkflowStep,
 } from "cloudflare:workers";
-import { IRouter } from "nomo/router";
-import { IJobDispatcher } from "nomo/jobs";
+import { IRouter } from "../router/index.ts";
+import { IJobDispatcher } from "../jobs/index.ts";
 
 export abstract class BaseWorker<Env = Cloudflare.Env> extends WorkerEntrypoint<Env> {
   router?: IRouter<Env, ExecutionContext>;

@@ -1,9 +1,9 @@
-import { type Result, ok } from "nomo/result";
+import { type Result, ok } from "../result/index.ts";
 import { consola } from "consola";
 import { hash } from "ohash";
 import { sql as sqlTag, type Database, type SqlExpression } from "./index";
 import type { Migration } from "./index";
-import { sql as sqlBuilder, getDialectStrategy } from "nomo/sql";
+import { sql as sqlBuilder, getDialectStrategy } from "../sql/index.ts";
 
 interface SchemaMigrationRow {
   version: string;

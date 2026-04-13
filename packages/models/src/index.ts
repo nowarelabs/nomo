@@ -1,8 +1,19 @@
+/**
+ * noware-models - BaseModel with Drizzle ORM
+ * 
+ * Standard Gauge: Model layer (M in RCSM)
+ * 
+ * Connection Flow:
+ * BaseService → BaseModel → BasePersistence
+ * 
+ * Connection: This layer → BasePersistence (RCSM - ONE call only)
+ */
+
 import { getTableName } from "drizzle-orm";
 import { sqliteTable, SQLiteTableWithColumns } from "drizzle-orm/sqlite-core";
-import { Statement, sql, DialectStrategy, getDialectStrategy, SqlPart } from "nomo/sql";
-import { Logger } from "nomo/logger";
-import { ConflictError, ConstraintError, BadRequestError, RouterContext } from "nomo/router";
+import { Statement, sql, DialectStrategy, getDialectStrategy, SqlPart } from "../sql/index.ts";
+import { Logger } from "../logger/index.ts";
+import { ConflictError, ConstraintError, BadRequestError, RouterContext } from "../router/index.ts";
 
 import type { ExecutionContext, D1Database, DurableObjectStorage } from "@cloudflare/workers-types";
 
@@ -617,6 +628,12 @@ export interface ModelStaticConfig {
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
+
+/* ============================================================================
+ * BaseModel
+ * 
+ * Connection: This layer → BasePersistence (RCSM - ONE call only)
+ * ============================================================================ */
 
 export abstract class BaseModel<
   TTable extends SQLiteTableWithColumns<any>,

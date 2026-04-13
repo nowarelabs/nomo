@@ -1,13 +1,15 @@
 /**
- * nomo/features - FeatureHandler, Feature contracts, and orchestration layer
+ * noware-features - BaseFeatureHandler for workflow orchestration
  * 
- * Standard Gauge: FeatureHandler is the orchestration layer that can call multiple BaseRpc instances.
+ * Standard Gauge: Feature layer (Orchestrator)
  * 
  * Connection Flow:
- * BaseRpcServer → FeatureHandler → BaseRpc (Tier 2) → Controller → Service → Model → Persistence
+ * BaseRpcServer (Tier 1) → BaseFeatureHandler → BaseRpc (Tier 2) → Controller → Service → Model → Persistence
+ * 
+ * Connection: This layer → BaseRpc (multiple allowed - orchestrates multiple RCSM chains)
  */
 
-import { BaseRpc } from "nomo/rpc";
+import { BaseRpc } from "../rpc/index.ts";
 
 /* ============================================================================
  * Types

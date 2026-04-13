@@ -1,7 +1,22 @@
-import { RouterContext } from "nomo/router";
+/**
+ * noware-controllers - BaseController and BaseResourceController
+ * 
+ * Standard Gauge: Controller layer (C in RCSM)
+ * 
+ * Connection Flow:
+ * BaseRpc (Tier 2) → BaseController → BaseService → BaseModel → BasePersistence
+ * 
+ * Connection: This layer → BaseService (RCSM - ONE call only)
+ */
+
+import { RouterContext } from "../router/index.ts";
 import status from "http-status";
-import { Logger, LogLevel } from "nomo/logger";
-import { BaseModel } from "nomo/models";
+import { Logger, LogLevel } from "../logger/index.ts";
+import { BaseModel } from "../models/index.ts";
+
+/* ============================================================================
+ * Interfaces
+ * ============================================================================ */
 
 export interface INormalizer<T = unknown> {
   normalize(): T;
@@ -33,28 +48,43 @@ export type HookConfig<T = unknown, Env = unknown, Ctx = unknown> = {
   except?: (string | symbol)[];
 };
 
-export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unknown> {
-  static beforeActions: HookConfig<BaseController<unknown, unknown, unknown>, unknown, unknown>[] =
-    [];
-  static afterActions: HookConfig<BaseController<unknown, unknown, unknown>, unknown, unknown>[] =
-    [];
+/* ============================================================================
+ * BaseController
+ * 
+ * Connection: This layer → BaseService (RCSM - ONE call only)
+ * ============================================================================ */
 
+export abstract class BaseController<
+  Env = unknown, 
+  Ctx = unknown, 
+  Service = unknown
+> {
+  // Static plugin points
+  static beforeActions: HookConfig<BaseController<unknown, unknown, unknown>, unknown, unknown>[] = [];
+  static afterActions: HookConfig<BaseController<unknown, unknown, unknown>, unknown, unknown>[] = [];
+
+  // REFERENCE - the ONE service this controller manages (RCSM pattern)
   protected abstract service: Service;
+
   protected responseHeaders: Headers = new Headers();
   protected responseCookies: string[] = [];
   protected _paramsOverride: Record<string, unknown> = {};
   protected _actionName?: string;
   protected _controllerName?: string;
 
-  protected getService(): Service {
-    return this.service;
-  }
-
+  /**
+   * Constructor (expected input)
+   */
   constructor(
     protected request: Request,
     protected env: Env,
     protected ctx: RouterContext<Env, Ctx>,
   ) {}
+
+  // Abstract - must return the service
+  protected getService(): Service {
+    return this.service;
+  }
 
   /**
    * Inject parameters manually (useful for RPC method arguments).
@@ -565,6 +595,12 @@ export abstract class BaseController<Env = unknown, Ctx = unknown, Service = unk
   }
 }
 
+/* ============================================================================
+ * BaseResourceController
+ * 
+ * Connection: This layer → BaseService (RCSM - ONE call only)
+ * ============================================================================ */
+
 export abstract class BaseResourceController<
   Env = unknown,
   Ctx = unknown,
@@ -573,6 +609,8 @@ export abstract class BaseResourceController<
   TSelect = unknown,
   TInsert = unknown,
 > extends BaseController<Env, Ctx, Service> {
+  
+  // REFERENCE - the ONE model this controller manages (RCSM pattern)
   protected abstract getModel(): TModel;
 
   protected getDtoView(): unknown {

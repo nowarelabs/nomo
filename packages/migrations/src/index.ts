@@ -420,8 +420,8 @@ export interface MigrationCommand {
   down: string | object;
 }
 
-import { type Result, ok, safeAsync } from "nomo/result";
-import { sql as sqlBuilder, Dialect } from "nomo/sql";
+import { type Result, ok, safeAsync } from "../result/index.ts";
+import { sql as sqlBuilder, Dialect } from "../sql/index.ts";
 import type { MigrationAction } from "./sql";
 
 /**
@@ -1142,4 +1142,4 @@ export {
   Keyword,
   Raw,
   sql as sqlBuilder,
-} from "nomo/sql";
+} from "../sql/index.ts";

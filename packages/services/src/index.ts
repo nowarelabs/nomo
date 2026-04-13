@@ -1,10 +1,41 @@
-import { Logger } from "nomo/logger";
+/**
+ * noware-services - BaseService
+ * 
+ * Standard Gauge: Service layer (S in RCSM)
+ * 
+ * Connection Flow:
+ * BaseController → BaseService → BaseModel → BasePersistence
+ * 
+ * Connection: This layer → BaseModel (RCSM - ONE call only)
+ */
+
+import { Logger } from "../logger/index.ts";
 import type { ExecutionContext, D1Database } from "@cloudflare/workers-types";
-import type { RouterContext, RouterContextSource } from "nomo/router";
+import type { RouterContext, RouterContextSource } from "../router/index.ts";
 
 export type { RouterContextSource };
 
-export abstract class BaseService<Env = unknown, Ctx = ExecutionContext> {
+/* ============================================================================
+ * BaseService
+ * 
+ * Connection: This layer → BaseModel (RCSM - ONE call only)
+ * ============================================================================ */
+
+export abstract class BaseService<
+  Env = unknown, 
+  Ctx = ExecutionContext
+> {
+  // Static plugin points
+  static beforeCreates: Array<(data: unknown) => Promise<unknown>> = [];
+  static afterCreates: Array<(entity: unknown) => Promise<void>> = [];
+  static beforeUpdates: Array<(id: string, data: unknown) => Promise<unknown>> = [];
+  static afterUpdates: Array<(entity: unknown) => Promise<void>> = [];
+  static beforeDeletes: Array<(id: string) => Promise<void>> = [];
+  static afterDeletes: Array<(id: string) => Promise<void>> = [];
+
+  /**
+   * Constructor (expected input)
+   */
   constructor(
     protected req: Request,
     protected env: Env,
@@ -24,6 +55,7 @@ export abstract class BaseService<Env = unknown, Ctx = ExecutionContext> {
     );
   }
 
+  // HTTP fetching (external calls)
   protected async fetch(input: string | Request | URL, init?: RequestInit): Promise<Response> {
     return this.ctx.fetch(input, init);
   }
@@ -32,6 +64,7 @@ export abstract class BaseService<Env = unknown, Ctx = ExecutionContext> {
     return (this.env as Record<string, unknown>).DB as D1Database;
   }
 
+  // Create child context for nested operations
   protected createServiceContext(
     serviceName: string,
     metadata?: Record<string, unknown>,

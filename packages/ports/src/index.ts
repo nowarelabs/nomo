@@ -1,9 +1,9 @@
 /**
- * nomo/ports - BasePort interfaces for hexagonal architecture
+ * noware-ports - BasePort interfaces for hexagonal architecture
  * 
- * Standard Gauge: Ports define interfaces, Adapters implement them
+ * Standard Gauge: Domain ports (Interfaces)
  * 
- * Connection: Core/ports → Infrastructure/adapters
+ * Connection: Domain → Outbound Ports → Infrastructure/adapters
  */
 
 export type PortInput = Record<string, unknown>;

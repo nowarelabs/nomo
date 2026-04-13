@@ -1,5 +1,5 @@
 import * as fs from "node:fs/promises";
-import { Result, ok, err, tryAsync } from "nomo/result";
+import { Result, ok, err, tryAsync } from "../result/index.ts";
 
 export interface MigrationEntry {
   tag: string;

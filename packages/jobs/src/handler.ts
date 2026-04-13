@@ -1,6 +1,6 @@
 import type { ExecutionContext } from "@cloudflare/workers-types";
 import { BaseJob } from "./index";
-import { Logger, LogLevel } from "nomo/logger";
+import { Logger, LogLevel } from "../logger/index.ts";
 import { trace, context, propagation, SpanStatusCode } from "@opentelemetry/api";
 
 export type JobConstructor<T = unknown> = new (params: T) => BaseJob<T>;

@@ -1,6 +1,6 @@
-export const WORKFLOW_TEMPLATE = (name: string) => `import { BaseWorkflow } from "nomo/entrypoints";
+export const WORKFLOW_TEMPLATE = (name: string) => `import { BaseWorkflow } from "noware-entrypoints";
 import { WorkflowEvent, WorkflowStep } from "cloudflare:workers";
-import { JobDispatcher } from "nomo/jobs";
+import { JobDispatcher } from "noware-jobs";
 import { JobRegistry } from "../jobs";
 
 const dispatcher = new JobDispatcher(JobRegistry);

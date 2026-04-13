@@ -7,7 +7,7 @@
  * BaseContext → BaseModule → BaseFeatureHandler
  */
 
-import { BaseFeatureHandler, FeatureInput, FeatureOutput } from "nomo/features";
+import { BaseFeatureHandler, FeatureInput, FeatureOutput } from "../features/index.ts";
 
 /* ============================================================================
  * Types

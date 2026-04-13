@@ -1,3 +1,17 @@
+/**
+ * noware-rpc - BaseRpcServer and BaseRpc for Tier 1 & Tier 2 RPC
+ * 
+ * Standard Gauge: RPC layer (API entry points)
+ * 
+ * Connection Flow:
+ * Tier 1 (BaseRpcServer): Frontend → FeatureHandler
+ * Tier 2 (BaseRpc): FeatureHandler → BaseController
+ * 
+ * Connection: 
+ *   - Tier 1 → BaseFeatureHandler (multiple allowed)
+ *   - Tier 2 → BaseController (RCSM - ONE call only)
+ */
+
 import {
   RpcTarget,
   RpcStub,
@@ -7,8 +21,8 @@ import {
   newWorkersRpcResponse,
   newMessagePortRpcSession,
 } from "capnweb";
-import { Logger } from "nomo/logger";
-import { RouterContext } from "nomo/router";
+import { Logger } from "../logger/index.ts";
+import { RouterContext } from "../router/index.ts";
 
 // ============================================================================
 // ACTION TYPES

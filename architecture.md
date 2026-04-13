@@ -63,7 +63,43 @@ This architecture handles every case:
 
 ---
 
-## Directory Structure
+## Noware Packages
+
+| Package | Description | Layer |
+| :--- | :--- | :--- |
+| `aggregates` | BaseAggregate for event sourcing | Domain |
+| `assets` | AssetPipeline for static assets | Infrastructure |
+| `controllers` | BaseController, BaseResourceController | RCSM (C) |
+| `contexts` | BaseContext - bounded context container | Context |
+| `docs` | Documentation | - |
+| `domains` | Domain utilities | Domain |
+| `durable_objects` | BaseDurableObject for Cloudflare DO | Infrastructure |
+| `entrypoints` | Worker entry points | API |
+| `events` | BaseDomainEvent, DomainEventBus | Domain |
+| `features` | BaseFeatureHandler, SimpleFeatureHandler | Orchestration |
+| `formatters` | BaseFormatter for output formatting | View |
+| `gateways` | BaseInfrastructureAdapter, CircuitBreaker | Infrastructure |
+| `integration-events` | BaseIntegrationEvent, EventBus | API |
+| `jobs` | JobRunner for background jobs | Infrastructure |
+| `logger` | Logger for logging | Infrastructure |
+| `maintenance` | TaskRegistry for maintenance tasks | Infrastructure |
+| `migrations` | MigrationRunner for database migrations | Infrastructure |
+| `models` | BaseModel with Drizzle ORM | RCSM (M) |
+| `modules` | BaseModule for feature registration | Context |
+| `normalizers` | BaseNormalizer for input normalization | Controller |
+| `persistence` | BasePersistence, D1Persistence | Infrastructure |
+| `plugins` | BaseGlobalPlugin, PluginRegistry | Microkernel |
+| `ports` | BasePort interfaces for hexagonal architecture | Domain |
+| `query` | BaseQueryController, BaseQueryProjection | CQRS |
+| `result` | Result type for error handling | Shared |
+| `router` | Router, RouteDrawer for routing | API |
+| `rpc` | BaseRpcServer, BaseRpc for RPC | API |
+| `scripts` | Script utilities | - |
+| `services` | BaseService for business logic | RCSM (S) |
+| `shared` | Value objects, shared types | Shared |
+| `sql` | SQL query builder, dialects | Infrastructure |
+| `validators` | BaseValidator for input validation | Controller |
+| `views` | BaseView, BaseLayout for JSX rendering | View |
 
 ```
 app/
@@ -116,22 +152,40 @@ app/
     └── validation-rules.ts
 ```
 
-### Maps to Existing Nomo Packages
+### Maps to Existing Noware Packages
 
-| Directory | Package | Base Classes |
+| Directory | Package (noware-*) | Base Classes |
 | :--- | :--- | :--- |
-| `core/commands/controllers` | `nomo/controllers` | `BaseController`, `BaseResourceController` |
-| `core/commands/services` | `nomo/services` | `BaseService` |
-| `core/commands/models` | `nomo/models` | `BaseModel` |
-| `core/queries/controllers` | `nomo/controllers` | `BaseQueryController` |
-| `core/queries/projections` | `nomo/models` | `BaseQueryProjection` |
-| `api/rpc` | `nomo/rpc` | `BaseRpcServer`, `BaseRpc` |
-| `api/events` | `nomo/events` | `BaseIntegrationEvent` |
-| - | `nomo/views` | `BaseView`, `BaseLayout` |
-| - | `nomo/validators` | `BaseValidator` |
-| - | `nomo/normalizers` | `BaseNormalizer` |
-| `infrastructure/persistence` | `nomo/sql` | `BasePersistence` |
-| `plugins/global` | `nomo/plugins` | `BaseGlobalPlugin` |
+| `core/commands/controllers` | `controllers` | `BaseController`, `BaseResourceController` |
+| `core/commands/services` | `services` | `BaseService` |
+| `core/commands/models` | `models` | `BaseModel` |
+| `core/commands/aggregates` | `aggregates` | `BaseAggregate` |
+| `core/commands/ports` | `ports` | `BasePort`, `BaseInboundPort`, `BaseOutboundPort` |
+| `core/queries/controllers` | `query` | `BaseQueryController` |
+| `core/queries/projections` | `query` | `BaseQueryProjection` |
+| `core/events` | `events` | `BaseDomainEvent`, `DomainEventBus` |
+| `api/rpc` | `rpc` | `BaseRpcServer`, `BaseRpc` |
+| `api/events` | `integration-events` | `BaseIntegrationEvent`, `EventBus` |
+| `features` | `features` | `BaseFeatureHandler`, `SimpleFeatureHandler` |
+| `modules` | `modules` | `BaseModule` |
+| `contexts` | `contexts` | `BaseContext` |
+| `infrastructure/persistence` | `persistence` | `BasePersistence`, `D1Persistence` |
+| `infrastructure/gateways` | `gateways` | `BaseInfrastructureAdapter`, `CircuitBreaker` |
+| `plugins/global` | `plugins` | `BaseGlobalPlugin`, `PluginRegistry` |
+| - | `views` | `BaseView`, `BaseLayout` |
+| - | `validators` | `BaseValidator` |
+| - | `normalizers` | `BaseNormalizer` |
+| - | `formatters` | `BaseFormatter` |
+| - | `router` | `Router`, `RouteDrawer` |
+| - | `logger` | `Logger` |
+| - | `sql` | `Dialect`, `QueryBuilder` |
+| - | `migrations` | `MigrationRunner` |
+| - | `durable_objects` | `BaseDurableObject` |
+| - | `assets` | `AssetPipeline` |
+| - | `jobs` | `JobRunner` |
+| - | `maintenance` | `TaskRegistry` |
+| - | `result` | `Result` |
+| - | `shared` | Value Objects |
 
 ### Convention Over Configuration
 

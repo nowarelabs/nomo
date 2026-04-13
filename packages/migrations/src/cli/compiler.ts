@@ -1,4 +1,4 @@
-import { type Result, ok, err, safeAsync } from "nomo/result";
+import { type Result, ok, err, safeAsync } from "../result/index.ts";
 import { Migration } from "../index";
 import * as fs from "node:fs/promises";
 import * as path from "pathe";

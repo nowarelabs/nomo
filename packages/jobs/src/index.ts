@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from "nomo/logger";
+import { Logger, LogLevel } from "../logger/index.ts";
 import { context, propagation } from "@opentelemetry/api";
 
 export interface QueueSender {
