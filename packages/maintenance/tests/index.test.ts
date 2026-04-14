@@ -1,6 +1,21 @@
-import { expect, test } from "vite-plus/test";
-import { fn } from "../src/index.ts";
+import { describe, expect, test, vi } from "vite-plus/test";
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import { Maintenance } from "../src/index.ts";
 
-test("fn", () => {
-  expect(fn()).toBe("Hello, tsdown!");
+describe("Maintenance", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = {} as ExecutionContext;
+    
+    const maintenance = new Maintenance(mockRequest, mockEnv, mockCtx);
+    
+    expect(maintenance).toBeDefined();
+  });
+  
+  test("healthCheck returns true by default", async () => {
+    const maintenance = new Maintenance(new Request("http://localhost"), {}, {});
+    const result = await maintenance.healthCheck();
+    expect(result).toBe(true);
+  });
 });

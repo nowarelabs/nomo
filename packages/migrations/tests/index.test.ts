@@ -1,6 +1,40 @@
-import { expect, test } from "vite-plus/test";
-import { fn } from "../src/index.ts";
+import { describe, expect, test, vi } from "vite-plus/test";
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import { Migration } from "../src/index.ts";
 
-test("fn", () => {
-  expect(fn()).toBe("Hello, tsdown!");
+describe("Migration", () => {
+  class TestMigration extends Migration {
+    async up() {}
+    async down() {}
+  }
+  
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = { DB: {} } as Record<string, unknown>;
+    const mockCtx = {} as ExecutionContext;
+    
+    const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
+    
+    expect(migration).toBeDefined();
+  });
+  
+  test("up can be implemented", async () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = {} as ExecutionContext;
+    
+    const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
+    
+    await expect(migration.up()).resolves.toBeUndefined();
+  });
+  
+  test("down can be implemented", async () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = {} as ExecutionContext;
+    
+    const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
+    
+    await expect(migration.down()).resolves.toBeUndefined();
+  });
 });

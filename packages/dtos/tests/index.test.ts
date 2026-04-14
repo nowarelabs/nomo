@@ -1,6 +1,20 @@
-import { expect, test } from "vite-plus/test";
-import { fn } from "../src/index.ts";
+import { describe, expect, test, vi } from "vite-plus/test";
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import { Dto } from "../src/index.ts";
 
-test("fn", () => {
-  expect(fn()).toBe("Hello, tsdown!");
+describe("Dto", () => {
+  test("constructor accepts optional params", () => {
+    const dto = new Dto();
+    expect(dto).toBeDefined();
+  });
+  
+  test("toJSON returns empty object by default", () => {
+    const dto = new Dto();
+    expect(dto.toJSON()).toEqual({});
+  });
+  
+  test("fromJSON creates Dto instance", () => {
+    const dto = Dto.fromJSON({ name: "test" });
+    expect(dto).toBeDefined();
+  });
 });
