@@ -13,10 +13,19 @@
  * - dialects: Record<string, Dialect>
  */
 
-export abstract class BasePersistence<Env = unknown, Ctx = unknown> {
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
+export abstract class BasePersistence<
+  Env extends Record<string, unknown> = Record<string, unknown>,
+  Ctx extends ExecutionContext = ExecutionContext
+> {
   protected db: unknown;
   
-  constructor(protected env: Env, protected ctx: Ctx) {}
+  constructor(
+    protected request: Request,
+    protected env: Env,
+    protected ctx: Ctx,
+  ) {}
   
   protected abstract connect(): Promise<void>;
 }

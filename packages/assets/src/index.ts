@@ -9,8 +9,15 @@
  * - loaders: Record<string, LoaderFunction>
  */
 
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
 export class AssetPipeline {
-  constructor(config: unknown) {}
+  constructor(
+    protected config: unknown,
+    protected request?: Request,
+    protected env?: Record<string, unknown>,
+    protected ctx?: ExecutionContext,
+  ) {}
   
   get(path: string): string | null {
     return null;

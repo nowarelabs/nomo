@@ -12,14 +12,20 @@
  * - hooks: Record<string, Function>
  */
 
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
 export abstract class BaseService<
-  Env = unknown,
-  Ctx = unknown,
+  Env extends Record<string, unknown> = Record<string, unknown>,
+  Ctx extends ExecutionContext = ExecutionContext,
   Model = unknown
 > {
   protected abstract model: Model;
   
-  constructor(protected env: Env, protected ctx: Ctx) {}
+  constructor(
+    protected request: Request,
+    protected env: Env,
+    protected ctx: Ctx,
+  ) {}
   
   protected abstract getModel(): Model;
 }

@@ -6,6 +6,8 @@
  * Connection: Used by all layers for error handling
  */
 
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
 export type Result<T> = 
   | { ok: true; value: T }
   | { ok: false; error: string };
@@ -16,4 +18,12 @@ export function ok<T>(value: T): Result<T> {
 
 export function err<T>(error: string): Result<T> {
   return { ok: false, error };
+}
+
+export class ResultFactory {
+  constructor(
+    protected request?: Request,
+    protected env?: Record<string, unknown>,
+    protected ctx?: ExecutionContext,
+  ) {}
 }

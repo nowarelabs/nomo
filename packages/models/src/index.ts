@@ -13,14 +13,20 @@
  * - relations: Record<string, RelationConfig>
  */
 
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
 export abstract class BaseModel<
-  Env = unknown,
-  Ctx = unknown,
+  Env extends Record<string, unknown> = Record<string, unknown>,
+  Ctx extends ExecutionContext = ExecutionContext,
   Persistence = unknown
 > {
   protected abstract persistence: Persistence;
   
-  constructor(protected env: Env, protected ctx: Ctx) {}
+  constructor(
+    protected request: Request,
+    protected env: Env,
+    protected ctx: Ctx,
+  ) {}
   
   protected abstract getPersistence(): Persistence;
 }

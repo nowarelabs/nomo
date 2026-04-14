@@ -13,9 +13,11 @@
  * - afterActions: HookConfig[]
  */
 
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
 export abstract class BaseController<
-  Env = unknown,
-  Ctx = unknown,
+  Env extends Record<string, unknown> = Record<string, unknown>,
+  Ctx extends ExecutionContext = ExecutionContext,
   Service = unknown
 > {
   protected abstract service: Service;

@@ -6,6 +6,14 @@
  * Connection: Handles incoming requests, delegates to Router
  */
 
-export abstract class BaseWorker<Env = unknown> {
-  abstract fetch(request: Request, env: Env, ctx: unknown): Promise<Response>;
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
+export abstract class BaseWorker<
+  Env extends Record<string, unknown> = Record<string, unknown>
+> {
+  abstract fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response>;
 }

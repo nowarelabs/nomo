@@ -6,6 +6,8 @@
  * Connection: Used by all layers for logging
  */
 
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -14,7 +16,12 @@ export enum LogLevel {
 }
 
 export class Logger {
-  constructor(config: unknown) {}
+  constructor(
+    protected config: unknown,
+    protected request?: Request,
+    protected env?: Record<string, unknown>,
+    protected ctx?: ExecutionContext,
+  ) {}
   
   debug(message: string, context?: unknown): void {}
   info(message: string, context?: unknown): void {}

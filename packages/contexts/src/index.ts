@@ -12,10 +12,19 @@
  * - modules: Map<string, BaseModule>
  */
 
-export abstract class BaseContext<Env = unknown, Ctx = unknown> {
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
+export abstract class BaseContext<
+  Env extends Record<string, unknown> = Record<string, unknown>,
+  Ctx extends ExecutionContext = ExecutionContext
+> {
   protected modules: Map<string, unknown> = new Map();
   
-  constructor(protected env: Env, protected ctx: Ctx) {}
+  constructor(
+    protected request: Request,
+    protected env: Env,
+    protected ctx: Ctx,
+  ) {}
   
   async loadModule(name: string, module: unknown): Promise<void> {
     this.modules.set(name, module);

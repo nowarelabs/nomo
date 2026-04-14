@@ -12,8 +12,17 @@
  * - routes: RouteConfig[]
  */
 
-export abstract class BaseRouter<Env = unknown, Ctx = unknown> {
-  constructor(protected env: Env, protected ctx: Ctx) {}
+import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+
+export abstract class BaseRouter<
+  Env extends Record<string, unknown> = Record<string, unknown>,
+  Ctx extends ExecutionContext = ExecutionContext
+> {
+  constructor(
+    protected request: Request,
+    protected env: Env,
+    protected ctx: Ctx,
+  ) {}
   
   async handle(request: Request): Promise<Response> {
     throw new Error("Not implemented");
