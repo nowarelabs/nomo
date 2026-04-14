@@ -1,8 +1,8 @@
 /**
  * noware-maintenance - Maintenance Utilities
- * 
+ *
  * Standard Gauge: Maintenance (Tier 1)
- * 
+ *
  * Connection: System health checks, cleanup
  */
 
@@ -14,7 +14,7 @@ export class Maintenance {
     protected env: Record<string, unknown>,
     protected ctx: ContextLike,
   ) {}
-  
+
   async healthCheck(): Promise<boolean> {
     return true;
   }

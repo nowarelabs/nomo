@@ -1,8 +1,8 @@
 /**
  * noware-normalizers - BaseNormalizer
- * 
+ *
  * Standard Gauge: Normalizer (middleware)
- * 
+ *
  * Connection: Used by controllers to normalize input
  */
 
@@ -14,7 +14,7 @@ export interface Normalizer<T = unknown> {
 
 export abstract class BaseNormalizer<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ContextLike = ContextLike
+  Ctx extends ContextLike = ContextLike,
 > {
   constructor(
     protected request: RequestLike,

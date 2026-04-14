@@ -1,8 +1,8 @@
 /**
  * noware-scripts - Build Scripts
- * 
+ *
  * Standard Gauge: Build Scripts (Tier 0)
- * 
+ *
  * Connection: CLI tools for project setup
  */
 

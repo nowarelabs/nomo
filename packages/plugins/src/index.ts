@@ -1,8 +1,8 @@
 /**
  * noware-plugins - Plugin Registry
- * 
+ *
  * Standard Gauge: Plugin System (infrastructure)
- * 
+ *
  * Connection: Extends functionality at static points
  */
 
@@ -13,19 +13,20 @@ export interface Plugin {
   install(): void;
 }
 
-export abstract class PluginRegistry<
+export class PluginRegistry<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ContextLike = ContextLike
+  Ctx extends ContextLike = ContextLike,
 > {
   constructor(
     protected request: RequestLike,
     protected env: Env,
     protected ctx: Ctx,
   ) {}
-  
+
   static plugins: Plugin[] = [];
-  
+
   static register(plugin: Plugin): void {
+    plugin.install();
     this.plugins.push(plugin);
   }
 }

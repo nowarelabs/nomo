@@ -1,8 +1,8 @@
 /**
  * noware-formatters - BaseFormatter
- * 
+ *
  * Standard Gauge: Formatter (middleware)
- * 
+ *
  * Connection: Used by controllers to format output
  */
 
@@ -14,7 +14,7 @@ export interface Formatter<T = unknown> {
 
 export abstract class BaseFormatter<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ContextLike = ContextLike
+  Ctx extends ContextLike = ContextLike,
 > {
   constructor(
     protected request: RequestLike,

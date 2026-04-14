@@ -7,7 +7,7 @@ describe("Entity", () => {
       id: "entity-1",
       name: "Test",
     };
-    
+
     expect(entity.id).toBe("entity-1");
     expect(entity.name).toBe("Test");
   });
@@ -25,12 +25,12 @@ describe("EntityFactory", () => {
     const factory = new EntityFactory();
     expect(factory).toBeDefined();
   });
-  
+
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
     const mockCtx = {} as any;
-    
+
     const factory = new EntityFactory(mockRequest, mockEnv, mockCtx);
     expect(factory).toBeDefined();
   });

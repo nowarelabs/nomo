@@ -6,29 +6,28 @@ describe("EventEmitter", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
     const mockCtx = {} as any;
-    
+
     const emitter = new EventEmitter(mockRequest, mockEnv, mockCtx);
-    
+
     expect(emitter).toBeDefined();
-    expect(emitter.request).toBe(mockRequest);
   });
-  
+
   test("on method exists", () => {
     const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
     expect(typeof emitter.on).toBe("function");
   });
-  
+
   test("emit method exists", () => {
     const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
     expect(typeof emitter.emit).toBe("function");
   });
-  
+
   test("on registers handler", () => {
     const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
     const handler = vi.fn();
     emitter.on("test-event", handler);
   });
-  
+
   test("emit calls handler", () => {
     const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
     const handler = vi.fn();

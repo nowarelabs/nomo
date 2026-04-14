@@ -1,8 +1,8 @@
 /**
  * noware-logger - Logger
- * 
+ *
  * Standard Gauge: Logging (Tier 1 - infrastructure)
- * 
+ *
  * Connection: Used by all layers for logging
  */
 
@@ -22,7 +22,7 @@ export class Logger {
     protected env?: Record<string, unknown>,
     protected ctx?: ContextLike,
   ) {}
-  
+
   debug(message: string, context?: unknown): void {}
   info(message: string, context?: unknown): void {}
   warn(message: string, context?: unknown): void {}

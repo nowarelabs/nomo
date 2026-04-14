@@ -1,10 +1,10 @@
 /**
  * noware-durable-objects - DurableObject Utilities
- * 
+ *
  * Standard Gauge: Durable Object Utilities (Tier 1)
- * 
+ *
  * Connection: Used for Cloudflare Durable Objects
- * 
+ *
  * Note: This package is Cloudflare-specific due to DurableObjectState.
  * Other types use noware-shared for runtime-agnostic compatibility.
  */
@@ -20,7 +20,10 @@ export type DurableObjectState = {
     get<T>(key: string): Promise<T | undefined>;
     put(key: string, value: unknown): Promise<void>;
     delete(key: string): Promise<boolean>;
-    list<T>(options?: { prefix?: string; limit?: number }): Promise<{ keys: Array<{ name: string }> }>;
+    list<T>(options?: {
+      prefix?: string;
+      limit?: number;
+    }): Promise<{ keys: Array<{ name: string }> }>;
   };
 };
 
@@ -31,7 +34,7 @@ export abstract class DurableObject {
     protected request?: RequestLike,
     protected ctx?: ContextLike,
   ) {}
-  
+
   async fetch(request: RequestLike): Promise<Response> {
     throw new Error("Not implemented");
   }

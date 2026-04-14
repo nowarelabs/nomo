@@ -7,26 +7,26 @@ describe("DurableObject", () => {
       return new Response("OK");
     }
   }
-  
+
   test("constructor accepts state, env, request, ctx", () => {
     const mockState = {} as any;
     const mockEnv = {} as Record<string, unknown>;
     const mockRequest = new Request("http://localhost");
     const mockCtx = {} as any;
-    
+
     const doInstance = new TestDO(mockState, mockEnv, mockRequest, mockCtx);
-    
+
     expect(doInstance).toBeDefined();
   });
-  
+
   test("fetch can be overridden", async () => {
     const mockState = {} as any;
     const mockEnv = {} as Record<string, unknown>;
     const mockRequest = new Request("http://localhost");
     const mockCtx = {} as any;
-    
+
     const doInstance = new TestDO(mockState, mockEnv, mockRequest, mockCtx);
-    
+
     const response = await doInstance.fetch(mockRequest);
     expect(response.status).toBe(200);
   });

@@ -1,8 +1,8 @@
 /**
  * noware-dtos - Data Transfer Objects
- * 
+ *
  * Standard Gauge: DTOs (Tier 3)
- * 
+ *
  * Connection: Define data transfer structures
  */
 
@@ -14,11 +14,11 @@ export abstract class Dto {
     protected env?: Record<string, unknown>,
     protected ctx?: ContextLike,
   ) {}
-  
+
   toJSON(): Record<string, unknown> {
     return {};
   }
-  
+
   static fromJSON(data: Record<string, unknown>): Dto {
     return new Dto();
   }

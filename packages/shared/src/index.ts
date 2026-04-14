@@ -1,11 +1,11 @@
 /**
  * noware-shared - Shared Types
- * 
+ *
  * Standard Gauge: Core Types (Tier 0)
- * 
+ *
  * These types abstract away the runtime environment.
  * Works with any runtime that provides: Request, Env, Context
- * 
+ *
  * Uses structural typing - compatible with Cloudflare Workers, Bun, and Node.js
  */
 
@@ -17,7 +17,7 @@ export interface FlattenedRequest<Cf = unknown> {
   readonly url: string;
   readonly signal: AbortSignal;
   readonly cf?: Cf;
-  
+
   json<T = unknown>(): Promise<T>;
   text(): Promise<string>;
   arrayBuffer(): Promise<ArrayBuffer>;

@@ -1,8 +1,8 @@
 /**
  * noware-domains - Domain Types
- * 
+ *
  * Standard Gauge: Domain Types (Tier 3)
- * 
+ *
  * Connection: Defines core domain types
  */
 

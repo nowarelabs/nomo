@@ -1,8 +1,8 @@
 /**
  * noware-adapters - Adapters
- * 
+ *
  * Standard Gauge: Adapters (implementation layer)
- * 
+ *
  * Connection: Defines interfaces that gateways must implement
  */
 
@@ -14,7 +14,7 @@ export interface Adapter<T = unknown> {
 
 export abstract class BaseAdapter<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ContextLike = ContextLike
+  Ctx extends ContextLike = ContextLike,
 > {
   constructor(
     protected request: RequestLike,

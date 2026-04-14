@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vite-plus/test";
+import { describe, expect, test } from "vite-plus/test";
 import { Logger, LogLevel } from "../src/index.ts";
 
 describe("Logger", () => {
@@ -8,12 +8,12 @@ describe("Logger", () => {
     expect(LogLevel.WARN).toBe(2);
     expect(LogLevel.ERROR).toBe(3);
   });
-  
+
   test("constructor accepts config", () => {
     const logger = new Logger({ service: "test" });
     expect(logger).toBeDefined();
   });
-  
+
   test("logger methods exist", () => {
     const logger = new Logger({});
     expect(typeof logger.debug).toBe("function");
@@ -21,7 +21,7 @@ describe("Logger", () => {
     expect(typeof logger.warn).toBe("function");
     expect(typeof logger.error).toBe("function");
   });
-  
+
   test("logger methods can be called", () => {
     const logger = new Logger({});
     logger.debug("debug message");
@@ -29,7 +29,7 @@ describe("Logger", () => {
     logger.warn("warn message");
     logger.error("error message");
   });
-  
+
   test("logger methods accept context", () => {
     const logger = new Logger({});
     logger.info("message", { key: "value" });

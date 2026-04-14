@@ -1,8 +1,8 @@
 /**
  * noware-validators - BaseValidator
- * 
+ *
  * Standard Gauge: Validator (middleware)
- * 
+ *
  * Connection: Used by controllers to validate input
  */
 
@@ -14,7 +14,7 @@ export interface Validator<T = unknown> {
 
 export abstract class BaseValidator<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ContextLike = ContextLike
+  Ctx extends ContextLike = ContextLike,
 > {
   constructor(
     protected request: RequestLike,
