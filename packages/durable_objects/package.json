@@ -30,9 +30,7 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
-  "dependencies": {
-    "noware-result": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@cloudflare/workers-types": "4.20260414.1",
     "@types/node": "^25.5.0",
@@ -42,5 +40,8 @@
     "vite-plus": "^0.1.14"
   },
   "peerDependencies": {},
-  "optionalDependencies": {}
+  "optionalDependencies": {},
+  "inlinedDependencies": {
+    "@cloudflare/workers-types": "4.20260414.1"
+  }
 }

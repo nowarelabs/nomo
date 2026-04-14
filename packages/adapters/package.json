@@ -1,7 +1,7 @@
 {
-  "name": "noware-controllers",
+  "name": "noware-adapters",
   "version": "0.0.1",
-  "description": "BaseController for Standard Gauge RCSM pattern",
+  "description": "Adapters for Standard Gauge",
   "homepage": "https://github.com/nowarelabs/noware#readme",
   "bugs": {
     "url": "https://github.com/nowarelabs/noware/issues"
