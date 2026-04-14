@@ -1,25 +1,17 @@
 {
   "name": "noware-durable-objects",
   "version": "1.0.0",
-  "description": "Traceable Durable Objects for nomo applications",
+  "description": "Durable Object utilities for Standard Gauge",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@cloudflare/workers-types": "^4.20260203.0",
-    "drizzle-orm": "^0.45.1",
-    "noware-logger": "workspace:*",
-    "noware-router": "workspace:*"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "typescript": "^5.9.3"
   }
 }

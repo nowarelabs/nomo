@@ -1,24 +1,17 @@
 {
   "name": "noware-jobs",
   "version": "1.0.0",
-  "description": "Rails-adjacent jobs (Queues) for nomo applications",
+  "description": "Job dispatcher for Standard Gauge",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "noware-logger": "workspace:*"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260203.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "typescript": "^5.9.3"
   }
 }

@@ -1,22 +1,17 @@
 {
   "name": "noware-result",
   "version": "1.0.0",
-  "description": "Result pattern for nomo applications",
-  "keywords": [],
-  "license": "ISC",
-  "author": "",
+  "description": "Result type for Standard Gauge",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "typescript": "^5.9.3"
   }
 }

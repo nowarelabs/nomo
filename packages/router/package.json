@@ -1,31 +1,17 @@
 {
   "name": "noware-router",
   "version": "1.0.0",
-  "description": "Rails-adjacent router for nomo applications",
-  "keywords": [],
-  "license": "ISC",
-  "author": "",
+  "description": "BaseRouter for Standard Gauge Tier 2",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run src/**/*.test.ts src/**/*.spec.ts --passWithNoTests ",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.4.0",
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/context-async-hooks": "^1.30.0",
-    "@opentelemetry/sdk-trace-base": "^1.30.0",
-    "noware-logger": "workspace:*",
-    "zod": "^4.3.6"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260203.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "typescript": "^5.9.3"
   }
 }

@@ -1,22 +1,13 @@
-export abstract class BaseDomain {
-  constructor(
-    protected env: Record<string, unknown>,
-    protected ctx: Record<string, unknown>,
-  ) {}
+/**
+ * noware-domains - Domain Types
+ * 
+ * Standard Gauge: Domain Types (Tier 3)
+ * 
+ * Connection: Defines core domain types
+ */
 
-  async perform<R>(callback: () => Promise<R>): Promise<R> {
-    await this.beforePerform();
-    try {
-      const result = await callback();
-      await this.afterPerform();
-      return result;
-    } catch (error) {
-      await this.onPerformError(error);
-      throw error;
-    }
-  }
+export type Entity<T = unknown> = {
+  id: string;
+} & T;
 
-  protected async beforePerform(): Promise<void> {}
-  protected async afterPerform(): Promise<void> {}
-  protected async onPerformError(_error: unknown): Promise<void> {}
-}
+export type ValueObject<T = unknown> = T;

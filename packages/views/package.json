@@ -1,33 +1,17 @@
 {
   "name": "noware-views",
   "version": "1.0.0",
-  "description": "Rails-adjacent views (UI/Components) for nomo applications",
+  "description": "BaseView for Standard Gauge Tier 3",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./jsx-runtime": {
-      "types": "./dist/jsx-runtime.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^25.2.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "typescript": "^5.9.3"
   }
 }

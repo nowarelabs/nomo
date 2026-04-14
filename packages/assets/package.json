@@ -1,24 +1,17 @@
 {
   "name": "noware-assets",
   "version": "1.0.0",
-  "description": "Asset pipeline for nomo applications with HTMLRewriter support",
+  "description": "Asset pipeline for Standard Gauge",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@cloudflare/workers-types": "^4.20260203.0"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260203.0",
-    "@types/node": "^25.2.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "typescript": "^5.9.3"
   }
 }

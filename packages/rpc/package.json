@@ -1,31 +1,17 @@
 {
   "name": "noware-rpc",
   "version": "1.0.0",
-  "description": "RPC for nomo applications",
+  "description": "BaseRpcServer for Standard Gauge Tier 2",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@cloudflare/workers-types": "^4.20260203.0",
-    "noware-controllers": "workspace:*",
-    "noware-logger": "workspace:*",
-    "noware-result": "workspace:*",
-    "noware-router": "workspace:*"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^25.2.0",
-    "capnweb": "^0.5.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
-  },
-  "peerDependencies": {
-    "capnweb": "^0.5.0"
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "typescript": "^5.9.3"
   }
 }

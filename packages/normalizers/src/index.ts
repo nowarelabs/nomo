@@ -1,9 +1,11 @@
-export abstract class BaseNormalizer<T = unknown> {
-  constructor(protected data: T) {}
+/**
+ * noware-normalizers - BaseNormalizer
+ * 
+ * Standard Gauge: Normalizer (middleware)
+ * 
+ * Connection: Used by controllers to normalize input
+ */
 
-  abstract normalize(): T;
-
-  static normalize<N extends BaseNormalizer>(this: new (data: unknown) => N, data: unknown) {
-    return new this(data).normalize();
-  }
+export interface Normalizer<T = unknown> {
+  normalize(data: unknown): T;
 }

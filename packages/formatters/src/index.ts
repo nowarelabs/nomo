@@ -1,9 +1,11 @@
-export abstract class BaseFormatter<T = unknown, R = unknown> {
-  constructor(protected data: T) {}
+/**
+ * noware-formatters - BaseFormatter
+ * 
+ * Standard Gauge: Formatter (middleware)
+ * 
+ * Connection: Used by controllers to format output
+ */
 
-  abstract format(): R;
-
-  static format<F extends BaseFormatter>(this: new (data: unknown) => F, data: unknown) {
-    return new this(data).format();
-  }
+export interface Formatter<T = unknown> {
+  format(data: unknown): T;
 }

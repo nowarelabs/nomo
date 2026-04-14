@@ -1,29 +1,17 @@
 {
   "name": "noware-controllers",
   "version": "1.0.0",
-  "description": "Rails-adjacent controllers for nomo applications",
+  "description": "BaseController for Standard Gauge RCSM pattern",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "http-status": "^2.1.0",
-    "noware-assets": "workspace:*",
-    "noware-logger": "workspace:*",
-    "noware-models": "workspace:*",
-    "noware-router": "workspace:*",
-    "noware-views": "workspace:*"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260203.0",
-    "@types/http-status": "^1.1.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "typescript": "^5.9.3"
   }
 }

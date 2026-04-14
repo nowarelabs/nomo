@@ -1,25 +1,17 @@
 {
   "name": "noware-services",
   "version": "1.0.0",
-  "description": "Rails-adjacent services for nomo applications",
+  "description": "BaseService for Standard Gauge RCSM pattern",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@cloudflare/workers-types": "^4.20260219.0",
-    "noware-logger": "workspace:*",
-    "noware-router": "workspace:*"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^25.2.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "@cloudflare/workers-types": "^4.20260203.0",
+    "typescript": "^5.9.3"
   }
 }
