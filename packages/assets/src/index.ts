@@ -9,14 +9,14 @@
  * - loaders: Record<string, LoaderFunction>
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export class AssetPipeline {
   constructor(
     protected config: unknown,
-    protected request?: Request,
+    protected request?: RequestLike,
     protected env?: Record<string, unknown>,
-    protected ctx?: ExecutionContext,
+    protected ctx?: ContextLike,
   ) {}
   
   get(path: string): string | null {

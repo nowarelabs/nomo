@@ -6,7 +6,7 @@
  * Connection: External system event handlers
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export interface IntegrationEvent {
   type: string;
@@ -17,8 +17,8 @@ export interface IntegrationEvent {
 
 export abstract class BaseIntegrationHandler {
   constructor(
-    protected request: Request,
+    protected request: RequestLike,
     protected env: Record<string, unknown>,
-    protected ctx: ExecutionContext,
+    protected ctx: ContextLike,
   ) {}
 }

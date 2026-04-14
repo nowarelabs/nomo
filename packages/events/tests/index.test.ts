@@ -1,12 +1,11 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { EventEmitter } from "../src/index.ts";
 
 describe("EventEmitter", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const emitter = new EventEmitter(mockRequest, mockEnv, mockCtx);
     

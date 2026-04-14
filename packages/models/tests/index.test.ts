@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { BaseModel } from "../src/index.ts";
 
 describe("BaseModel", () => {
@@ -14,7 +13,7 @@ describe("BaseModel", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const model = new TestModel(mockRequest, mockEnv, mockCtx);
     
@@ -27,7 +26,7 @@ describe("BaseModel", () => {
   test("getPersistence returns the persistence", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const model = new TestModel(mockRequest, mockEnv, mockCtx);
     

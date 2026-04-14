@@ -12,19 +12,19 @@
  * - routes: RouteConfig[]
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export abstract class BaseRouter<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ExecutionContext = ExecutionContext
+  Ctx extends ContextLike = ContextLike
 > {
   constructor(
-    protected request: Request,
+    protected request: RequestLike,
     protected env: Env,
     protected ctx: Ctx,
   ) {}
   
-  async handle(request: Request): Promise<Response> {
+  async handle(request: RequestLike): Promise<Response> {
     throw new Error("Not implemented");
   }
 }

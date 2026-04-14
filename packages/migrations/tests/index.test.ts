@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Migration } from "../src/index.ts";
 
 describe("Migration", () => {
@@ -11,7 +10,7 @@ describe("Migration", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
     
@@ -21,7 +20,7 @@ describe("Migration", () => {
   test("up can be implemented", async () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
     
@@ -31,7 +30,7 @@ describe("Migration", () => {
   test("down can be implemented", async () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
     

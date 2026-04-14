@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Validator, BaseValidator } from "../src/index.ts";
 
 describe("Validator", () => {
@@ -22,7 +21,7 @@ describe("BaseValidator", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const validator = new TestValidator(mockRequest, mockEnv, mockCtx);
     
@@ -32,7 +31,7 @@ describe("BaseValidator", () => {
   test("validate can be overridden", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const validator = new TestValidator(mockRequest, mockEnv, mockCtx);
     const result = validator.validate({ name: "test" });

@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Gateway } from "../src/index.ts";
 
 describe("Gateway", () => {
@@ -12,7 +11,7 @@ describe("Gateway", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const gateway = new TestGateway(mockRequest, mockEnv, mockCtx);
     
@@ -22,7 +21,7 @@ describe("Gateway", () => {
   test("execute can be overridden", async () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const gateway = new TestGateway(mockRequest, mockEnv, mockCtx);
     const result = await gateway.execute("input");
@@ -32,7 +31,7 @@ describe("Gateway", () => {
   test("execute throws error when not implemented", async () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const gateway = new Gateway(mockRequest, mockEnv, mockCtx);
     

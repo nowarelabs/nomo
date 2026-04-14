@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { BaseController } from "../src/index.ts";
 
 describe("BaseController", () => {
@@ -14,7 +13,7 @@ describe("BaseController", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const controller = new TestController(mockRequest, mockEnv, mockCtx);
     
@@ -27,7 +26,7 @@ describe("BaseController", () => {
   test("getService returns the service", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const controller = new TestController(mockRequest, mockEnv, mockCtx);
     
@@ -37,7 +36,7 @@ describe("BaseController", () => {
   test("runAction throws error when not implemented", async () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const controller = new TestController(mockRequest, mockEnv, mockCtx);
     

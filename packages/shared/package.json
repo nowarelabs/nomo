@@ -1,7 +1,7 @@
 {
-  "name": "noware-domains",
+  "name": "noware-shared",
   "version": "0.0.1",
-  "description": "Domain types for Standard Gauge",
+  "description": "Shared types for Standard Gauge - Request, Env, Context",
   "homepage": "https://github.com/nowarelabs/noware#readme",
   "bugs": {
     "url": "https://github.com/nowarelabs/noware/issues"
@@ -30,9 +30,7 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
-  "dependencies": {
-    "noware-shared": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@typescript/native-preview": "7.0.0-dev.20260328.1",

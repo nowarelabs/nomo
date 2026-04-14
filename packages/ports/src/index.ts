@@ -6,7 +6,7 @@
  * Connection: Defines interfaces that gateways must implement
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export interface Port<T = unknown> {
   execute(input: unknown): Promise<T>;
@@ -14,10 +14,10 @@ export interface Port<T = unknown> {
 
 export abstract class BasePort<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ExecutionContext = ExecutionContext
+  Ctx extends ContextLike = ContextLike
 > {
   constructor(
-    protected request: Request,
+    protected request: RequestLike,
     protected env: Env,
     protected ctx: Ctx,
   ) {}

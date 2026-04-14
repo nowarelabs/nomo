@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Adapter, BaseAdapter } from "../src/index.ts";
 
 describe("Adapter", () => {
@@ -22,7 +21,7 @@ describe("BaseAdapter", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const adapter = new TestAdapter(mockRequest, mockEnv, mockCtx);
     
@@ -32,7 +31,7 @@ describe("BaseAdapter", () => {
   test("execute can be overridden", async () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const adapter = new TestAdapter(mockRequest, mockEnv, mockCtx);
     const result = await adapter.execute("input");

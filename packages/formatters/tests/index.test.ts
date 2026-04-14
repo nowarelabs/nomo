@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Formatter, BaseFormatter } from "../src/index.ts";
 
 describe("Formatter", () => {
@@ -22,7 +21,7 @@ describe("BaseFormatter", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const formatter = new TestFormatter(mockRequest, mockEnv, mockCtx);
     
@@ -32,7 +31,7 @@ describe("BaseFormatter", () => {
   test("format can be overridden", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const formatter = new TestFormatter(mockRequest, mockEnv, mockCtx);
     const result = formatter.format({ name: "test" });

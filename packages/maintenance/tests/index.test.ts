@@ -1,12 +1,11 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Maintenance } from "../src/index.ts";
 
 describe("Maintenance", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const maintenance = new Maintenance(mockRequest, mockEnv, mockCtx);
     

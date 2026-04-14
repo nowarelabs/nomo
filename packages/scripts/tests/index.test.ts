@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { GENERATORS, ScriptRunner } from "../src/index.ts";
 
 describe("GENERATORS", () => {
@@ -28,7 +27,7 @@ describe("ScriptRunner", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const runner = new ScriptRunner(mockRequest, mockEnv, mockCtx);
     expect(runner).toBeDefined();

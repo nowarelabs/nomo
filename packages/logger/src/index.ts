@@ -6,7 +6,7 @@
  * Connection: Used by all layers for logging
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export enum LogLevel {
   DEBUG = 0,
@@ -18,9 +18,9 @@ export enum LogLevel {
 export class Logger {
   constructor(
     protected config: unknown,
-    protected request?: Request,
+    protected request?: RequestLike,
     protected env?: Record<string, unknown>,
-    protected ctx?: ExecutionContext,
+    protected ctx?: ContextLike,
   ) {}
   
   debug(message: string, context?: unknown): void {}

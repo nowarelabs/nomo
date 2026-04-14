@@ -6,14 +6,14 @@
  * Connection: Handles incoming requests, delegates to Router
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export abstract class BaseWorker<
   Env extends Record<string, unknown> = Record<string, unknown>
 > {
   abstract fetch(
-    request: Request,
+    request: RequestLike,
     env: Env,
-    ctx: ExecutionContext,
+    ctx: ContextLike,
   ): Promise<Response>;
 }

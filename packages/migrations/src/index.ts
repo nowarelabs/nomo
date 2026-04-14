@@ -6,13 +6,13 @@
  * Connection: Used by BasePersistence for schema changes
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export abstract class Migration {
   constructor(
-    protected request: Request,
+    protected request: RequestLike,
     protected env: Record<string, unknown>,
-    protected ctx: ExecutionContext,
+    protected ctx: ContextLike,
   ) {}
   
   abstract up(): Promise<void>;

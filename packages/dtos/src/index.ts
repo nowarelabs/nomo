@@ -6,13 +6,13 @@
  * Connection: Define data transfer structures
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export abstract class Dto {
   constructor(
-    protected request?: Request,
+    protected request?: RequestLike,
     protected env?: Record<string, unknown>,
-    protected ctx?: ExecutionContext,
+    protected ctx?: ContextLike,
   ) {}
   
   toJSON(): Record<string, unknown> {

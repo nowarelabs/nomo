@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { BaseService } from "../src/index.ts";
 
 describe("BaseService", () => {
@@ -14,7 +13,7 @@ describe("BaseService", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const service = new TestService(mockRequest, mockEnv, mockCtx);
     
@@ -27,7 +26,7 @@ describe("BaseService", () => {
   test("getModel returns the model", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const service = new TestService(mockRequest, mockEnv, mockCtx);
     

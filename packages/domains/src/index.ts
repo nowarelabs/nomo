@@ -6,7 +6,7 @@
  * Connection: Defines core domain types
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export type Entity<T = unknown> = {
   id: string;
@@ -16,8 +16,8 @@ export type ValueObject<T = unknown> = T;
 
 export class EntityFactory {
   constructor(
-    protected request?: Request,
+    protected request?: RequestLike,
     protected env?: Record<string, unknown>,
-    protected ctx?: ExecutionContext,
+    protected ctx?: ContextLike,
   ) {}
 }

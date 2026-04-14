@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { Normalizer, BaseNormalizer } from "../src/index.ts";
 
 describe("Normalizer", () => {
@@ -22,7 +21,7 @@ describe("BaseNormalizer", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const normalizer = new TestNormalizer(mockRequest, mockEnv, mockCtx);
     
@@ -32,7 +31,7 @@ describe("BaseNormalizer", () => {
   test("normalize can be overridden", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as unknown;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const normalizer = new TestNormalizer(mockRequest, mockEnv, mockCtx);
     const result = normalizer.normalize({ name: "test" });

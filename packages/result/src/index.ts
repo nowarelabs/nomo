@@ -6,7 +6,7 @@
  * Connection: Used by all layers for error handling
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export type Result<T> = 
   | { ok: true; value: T }
@@ -22,8 +22,8 @@ export function err<T>(error: string): Result<T> {
 
 export class ResultFactory {
   constructor(
-    protected request?: Request,
+    protected request?: RequestLike,
     protected env?: Record<string, unknown>,
-    protected ctx?: ExecutionContext,
+    protected ctx?: ContextLike,
   ) {}
 }

@@ -27,7 +27,7 @@ describe("Result", () => {
     test("constructor accepts request, env, ctx", () => {
       const mockRequest = new Request("http://localhost");
       const mockEnv = {} as Record<string, unknown>;
-      const mockCtx = {} as ExecutionContext;
+      const mockCtx = {} as any;
       
       const factory = new ResultFactory(mockRequest, mockEnv, mockCtx);
       expect(factory).toBeDefined();

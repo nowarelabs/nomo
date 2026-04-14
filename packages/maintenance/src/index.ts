@@ -6,13 +6,13 @@
  * Connection: System health checks, cleanup
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export class Maintenance {
   constructor(
-    protected request: Request,
+    protected request: RequestLike,
     protected env: Record<string, unknown>,
-    protected ctx: ExecutionContext,
+    protected ctx: ContextLike,
   ) {}
   
   async healthCheck(): Promise<boolean> {

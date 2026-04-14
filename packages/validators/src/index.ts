@@ -6,7 +6,7 @@
  * Connection: Used by controllers to validate input
  */
 
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
+import type { RequestLike, ContextLike } from "noware-shared";
 
 export interface Validator<T = unknown> {
   validate(data: unknown): T;
@@ -14,10 +14,10 @@ export interface Validator<T = unknown> {
 
 export abstract class BaseValidator<
   Env extends Record<string, unknown> = Record<string, unknown>,
-  Ctx extends ExecutionContext = ExecutionContext
+  Ctx extends ContextLike = ContextLike
 > {
   constructor(
-    protected request: Request,
+    protected request: RequestLike,
     protected env: Env,
     protected ctx: Ctx,
   ) {}

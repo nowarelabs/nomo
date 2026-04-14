@@ -1,19 +1,18 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext, DurableObjectState } from "@cloudflare/workers-types";
 import { DurableObject } from "../src/index.ts";
 
 describe("DurableObject", () => {
   class TestDO extends DurableObject {
-    async fetch(request: Request) {
+    async fetch(request: globalThis.Request) {
       return new Response("OK");
     }
   }
   
   test("constructor accepts state, env, request, ctx", () => {
-    const mockState = {} as DurableObjectState;
+    const mockState = {} as any;
     const mockEnv = {} as Record<string, unknown>;
     const mockRequest = new Request("http://localhost");
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const doInstance = new TestDO(mockState, mockEnv, mockRequest, mockCtx);
     
@@ -21,10 +20,10 @@ describe("DurableObject", () => {
   });
   
   test("fetch can be overridden", async () => {
-    const mockState = {} as DurableObjectState;
+    const mockState = {} as any;
     const mockEnv = {} as Record<string, unknown>;
     const mockRequest = new Request("http://localhost");
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const doInstance = new TestDO(mockState, mockEnv, mockRequest, mockCtx);
     

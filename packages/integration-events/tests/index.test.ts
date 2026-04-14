@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { Request, ExecutionContext } from "@cloudflare/workers-types";
 import { IntegrationEvent, BaseIntegrationHandler } from "../src/index.ts";
 
 describe("IntegrationEvent", () => {
@@ -27,7 +26,7 @@ describe("BaseIntegrationHandler", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const handler = new TestHandler(mockRequest, mockEnv, mockCtx);
     
@@ -37,7 +36,7 @@ describe("BaseIntegrationHandler", () => {
   test("handle can be implemented", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as ExecutionContext;
+    const mockCtx = {} as any;
     
     const handler = new TestHandler(mockRequest, mockEnv, mockCtx);
     const event: IntegrationEvent = {
