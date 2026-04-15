@@ -17,75 +17,75 @@ jobs:
           node-version: '22'
           cache: true
       - run: |
-          cd packages/adapters && pnpm install && vp test
+          cd packages/adapters && vp install && vp test
       - run: |
-          cd packages/aggregates && pnpm install && vp test
+          cd packages/aggregates && vp install && vp test
       - run: |
-          cd packages/assets && pnpm install && vp test
+          cd packages/assets && vp install && vp test
       - run: |
-          cd packages/contexts && pnpm install && vp test
+          cd packages/contexts && vp install && vp test
       - run: |
-          cd packages/controllers && pnpm install && vp test
+          cd packages/controllers && vp install && vp test
       - run: |
-          cd packages/domains && pnpm install && vp test
+          cd packages/domains && vp install && vp test
       - run: |
-          cd packages/dtos && pnpm install && vp test
+          cd packages/dtos && vp install && vp test
       - run: |
-          cd packages/durable_objects && pnpm install && vp test
+          cd packages/durable_objects && vp install && vp test
       - run: |
-          cd packages/entrypoints && pnpm install && vp test
+          cd packages/entrypoints && vp install && vp test
       - run: |
-          cd packages/events && pnpm install && vp test
+          cd packages/events && vp install && vp test
       - run: |
-          cd packages/features && pnpm install && vp test
+          cd packages/features && vp install && vp test
       - run: |
-          cd packages/formatters && pnpm install && vp test
+          cd packages/formatters && vp install && vp test
       - run: |
-          cd packages/gateways && pnpm install && vp test
+          cd packages/gateways && vp install && vp test
       - run: |
-          cd packages/integration-events && pnpm install && vp test
+          cd packages/integration-events && vp install && vp test
       - run: |
-          cd packages/jobs && pnpm install && vp test
+          cd packages/jobs && vp install && vp test
       - run: |
-          cd packages/logger && pnpm install && vp test
+          cd packages/logger && vp install && vp test
       - run: |
-          cd packages/maintenance && pnpm install && vp test
+          cd packages/maintenance && vp install && vp test
       - run: |
-          cd packages/migrations && pnpm install && vp test
+          cd packages/migrations && vp install && vp test
       - run: |
-          cd packages/models && pnpm install && vp test
+          cd packages/models && vp install && vp test
       - run: |
-          cd packages/modules && pnpm install && vp test
+          cd packages/modules && vp install && vp test
       - run: |
-          cd packages/normalizers && pnpm install && vp test
+          cd packages/normalizers && vp install && vp test
       - run: |
-          cd packages/persistence && pnpm install && vp test
+          cd packages/persistence && vp install && vp test
       - run: |
-          cd packages/plugins && pnpm install && vp test
+          cd packages/plugins && vp install && vp test
       - run: |
-          cd packages/ports && pnpm install && vp test
+          cd packages/ports && vp install && vp test
       - run: |
-          cd packages/query && pnpm install && vp test
+          cd packages/query && vp install && vp test
       - run: |
-          cd packages/result && pnpm install && vp test
+          cd packages/result && vp install && vp test
       - run: |
-          cd packages/rpc && pnpm install && vp test
+          cd packages/rpc && vp install && vp test
       - run: |
-          cd packages/router && pnpm install && vp test
+          cd packages/router && vp install && vp test
       - run: |
-          cd packages/scripts && pnpm install && vp test
+          cd packages/scripts && vp install && vp test
       - run: |
-          cd packages/serializers && pnpm install && vp test
+          cd packages/serializers && vp install && vp test
       - run: |
-          cd packages/services && pnpm install && vp test
+          cd packages/services && vp install && vp test
       - run: |
-          cd packages/shared && pnpm install && vp test
+          cd packages/shared && vp install && vp test
       - run: |
-          cd packages/sql && pnpm install && vp test
+          cd packages/sql && vp install && vp test
       - run: |
-          cd packages/validators && pnpm install && vp test
+          cd packages/validators && vp install && vp test
       - run: |
-          cd packages/views && pnpm install && vp test
+          cd packages/views && vp install && vp test
 
   build:
     name: Build
@@ -98,75 +98,75 @@ jobs:
           node-version: '22'
           cache: true
       - run: |
-          cd packages/adapters && pnpm install && vp pack
+          cd packages/adapters && vp install && vp pack
       - run: |
-          cd packages/aggregates && pnpm install && vp pack
+          cd packages/aggregates && vp install && vp pack
       - run: |
-          cd packages/assets && pnpm install && vp pack
+          cd packages/assets && vp install && vp pack
       - run: |
-          cd packages/contexts && pnpm install && vp pack
+          cd packages/contexts && vp install && vp pack
       - run: |
-          cd packages/controllers && pnpm install && vp pack
+          cd packages/controllers && vp install && vp pack
       - run: |
-          cd packages/domains && pnpm install && vp pack
+          cd packages/domains && vp install && vp pack
       - run: |
-          cd packages/dtos && pnpm install && vp pack
+          cd packages/dtos && vp install && vp pack
       - run: |
-          cd packages/durable_objects && pnpm install && vp pack
+          cd packages/durable_objects && vp install && vp pack
       - run: |
-          cd packages/entrypoints && pnpm install && vp pack
+          cd packages/entrypoints && vp install && vp pack
       - run: |
-          cd packages/events && pnpm install && vp pack
+          cd packages/events && vp install && vp pack
       - run: |
-          cd packages/features && pnpm install && vp pack
+          cd packages/features && vp install && vp pack
       - run: |
-          cd packages/formatters && pnpm install && vp pack
+          cd packages/formatters && vp install && vp pack
       - run: |
-          cd packages/gateways && pnpm install && vp pack
+          cd packages/gateways && vp install && vp pack
       - run: |
-          cd packages/integration-events && pnpm install && vp pack
+          cd packages/integration-events && vp install && vp pack
       - run: |
-          cd packages/jobs && pnpm install && vp pack
+          cd packages/jobs && vp install && vp pack
       - run: |
-          cd packages/logger && pnpm install && vp pack
+          cd packages/logger && vp install && vp pack
       - run: |
-          cd packages/maintenance && pnpm install && vp pack
+          cd packages/maintenance && vp install && vp pack
       - run: |
-          cd packages/migrations && pnpm install && vp pack
+          cd packages/migrations && vp install && vp pack
       - run: |
-          cd packages/models && pnpm install && vp pack
+          cd packages/models && vp install && vp pack
       - run: |
-          cd packages/modules && pnpm install && vp pack
+          cd packages/modules && vp install && vp pack
       - run: |
-          cd packages/normalizers && pnpm install && vp pack
+          cd packages/normalizers && vp install && vp pack
       - run: |
-          cd packages/persistence && pnpm install && vp pack
+          cd packages/persistence && vp install && vp pack
       - run: |
-          cd packages/plugins && pnpm install && vp pack
+          cd packages/plugins && vp install && vp pack
       - run: |
-          cd packages/ports && pnpm install && vp pack
+          cd packages/ports && vp install && vp pack
       - run: |
-          cd packages/query && pnpm install && vp pack
+          cd packages/query && vp install && vp pack
       - run: |
-          cd packages/result && pnpm install && vp pack
+          cd packages/result && vp install && vp pack
       - run: |
-          cd packages/rpc && pnpm install && vp pack
+          cd packages/rpc && vp install && vp pack
       - run: |
-          cd packages/router && pnpm install && vp pack
+          cd packages/router && vp install && vp pack
       - run: |
-          cd packages/scripts && pnpm install && vp pack
+          cd packages/scripts && vp install && vp pack
       - run: |
-          cd packages/serializers && pnpm install && vp pack
+          cd packages/serializers && vp install && vp pack
       - run: |
-          cd packages/services && pnpm install && vp pack
+          cd packages/services && vp install && vp pack
       - run: |
-          cd packages/shared && pnpm install && vp pack
+          cd packages/shared && vp install && vp pack
       - run: |
-          cd packages/sql && pnpm install && vp pack
+          cd packages/sql && vp install && vp pack
       - run: |
-          cd packages/validators && pnpm install && vp pack
+          cd packages/validators && vp install && vp pack
       - run: |
-          cd packages/views && pnpm install && vp pack
+          cd packages/views && vp install && vp pack
 
   publish:
     name: Publish
@@ -180,74 +180,74 @@ jobs:
           node-version: '22'
           cache: true
       - run: |
-          cd packages/adapters && pnpm install && npm publish
+          cd packages/adapters && vp install && npm publish
       - run: |
-          cd packages/aggregates && pnpm install && npm publish
+          cd packages/aggregates && vp install && npm publish
       - run: |
-          cd packages/assets && pnpm install && npm publish
+          cd packages/assets && vp install && npm publish
       - run: |
-          cd packages/contexts && pnpm install && npm publish
+          cd packages/contexts && vp install && npm publish
       - run: |
-          cd packages/controllers && pnpm install && npm publish
+          cd packages/controllers && vp install && npm publish
       - run: |
-          cd packages/domains && pnpm install && npm publish
+          cd packages/domains && vp install && npm publish
       - run: |
-          cd packages/dtos && pnpm install && npm publish
+          cd packages/dtos && vp install && npm publish
       - run: |
-          cd packages/durable_objects && pnpm install && npm publish
+          cd packages/durable_objects && vp install && npm publish
       - run: |
-          cd packages/entrypoints && pnpm install && npm publish
+          cd packages/entrypoints && vp install && npm publish
       - run: |
-          cd packages/events && pnpm install && npm publish
+          cd packages/events && vp install && npm publish
       - run: |
-          cd packages/features && pnpm install && npm publish
+          cd packages/features && vp install && npm publish
       - run: |
-          cd packages/formatters && pnpm install && npm publish
+          cd packages/formatters && vp install && npm publish
       - run: |
-          cd packages/gateways && pnpm install && npm publish
+          cd packages/gateways && vp install && npm publish
       - run: |
-          cd packages/integration-events && pnpm install && npm publish
+          cd packages/integration-events && vp install && npm publish
       - run: |
-          cd packages/jobs && pnpm install && npm publish
+          cd packages/jobs && vp install && npm publish
       - run: |
-          cd packages/logger && pnpm install && npm publish
+          cd packages/logger && vp install && npm publish
       - run: |
-          cd packages/maintenance && pnpm install && npm publish
+          cd packages/maintenance && vp install && npm publish
       - run: |
-          cd packages/migrations && pnpm install && npm publish
+          cd packages/migrations && vp install && npm publish
       - run: |
-          cd packages/models && pnpm install && npm publish
+          cd packages/models && vp install && npm publish
       - run: |
-          cd packages/modules && pnpm install && npm publish
+          cd packages/modules && vp install && npm publish
       - run: |
-          cd packages/normalizers && pnpm install && npm publish
+          cd packages/normalizers && vp install && npm publish
       - run: |
-          cd packages/persistence && pnpm install && npm publish
+          cd packages/persistence && vp install && npm publish
       - run: |
-          cd packages/plugins && pnpm install && npm publish
+          cd packages/plugins && vp install && npm publish
       - run: |
-          cd packages/ports && pnpm install && npm publish
+          cd packages/ports && vp install && npm publish
       - run: |
-          cd packages/query && pnpm install && npm publish
+          cd packages/query && vp install && npm publish
       - run: |
-          cd packages/result && pnpm install && npm publish
+          cd packages/result && vp install && npm publish
       - run: |
-          cd packages/rpc && pnpm install && npm publish
+          cd packages/rpc && vp install && npm publish
       - run: |
-          cd packages/router && pnpm install && npm publish
+          cd packages/router && vp install && npm publish
       - run: |
-          cd packages/scripts && pnpm install && npm publish
+          cd packages/scripts && vp install && npm publish
       - run: |
-          cd packages/serializers && pnpm install && npm publish
+          cd packages/serializers && vp install && npm publish
       - run: |
-          cd packages/services && pnpm install && npm publish
+          cd packages/services && vp install && npm publish
       - run: |
-          cd packages/shared && pnpm install && npm publish
+          cd packages/shared && vp install && npm publish
       - run: |
-          cd packages/sql && pnpm install && npm publish
+          cd packages/sql && vp install && npm publish
       - run: |
-          cd packages/validators && pnpm install && npm publish
+          cd packages/validators && vp install && npm publish
       - run: |
-          cd packages/views && pnpm install && npm publish
+          cd packages/views && vp install && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
