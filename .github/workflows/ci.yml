@@ -16,9 +16,10 @@ jobs:
         with:
           node-version: '22'
           cache: true
+      - run: vp install
       - run: |
           for dir in packages/adapters packages/aggregates packages/assets packages/contexts packages/controllers packages/domains packages/dtos packages/durable_objects packages/entrypoints packages/events packages/features packages/formatters packages/gateways packages/integration-events packages/jobs packages/logger packages/maintenance packages/migrations packages/models packages/modules packages/normalizers packages/persistence packages/plugins packages/ports packages/query packages/result packages/rpc packages/router packages/scripts packages/serializers packages/services packages/shared packages/sql packages/validators packages/views; do
-            (cd "$dir" && vp install && vp test)
+            (cd "$dir" && vp test)
           done
 
   build:
@@ -31,9 +32,10 @@ jobs:
         with:
           node-version: '22'
           cache: true
+      - run: vp install
       - run: |
           for dir in packages/adapters packages/aggregates packages/assets packages/contexts packages/controllers packages/domains packages/dtos packages/durable_objects packages/entrypoints packages/events packages/features packages/formatters packages/gateways packages/integration-events packages/jobs packages/logger packages/maintenance packages/migrations packages/models packages/modules packages/normalizers packages/persistence packages/plugins packages/ports packages/query packages/result packages/rpc packages/router packages/scripts packages/serializers packages/services packages/shared packages/sql packages/validators packages/views; do
-            (cd "$dir" && vp install && vp pack)
+            (cd "$dir" && vp pack)
           done
 
   publish:
@@ -47,6 +49,7 @@ jobs:
         with:
           node-version: '22'
           cache: true
+      - run: vp install
       - run: |
           for dir in packages/adapters packages/aggregates packages/assets packages/contexts packages/controllers packages/domains packages/dtos packages/durable_objects packages/entrypoints packages/events packages/features packages/formatters packages/gateways packages/integration-events packages/jobs packages/logger packages/maintenance packages/migrations packages/models packages/modules packages/normalizers packages/persistence packages/plugins packages/ports packages/query packages/result packages/rpc packages/router packages/scripts packages/serializers packages/services packages/shared packages/sql packages/validators packages/views; do
             (cd "$dir" && npm publish)
