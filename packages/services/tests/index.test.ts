@@ -30,11 +30,12 @@ describe("BaseService", () => {
     const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
     const service = new TestService(mockRequest, mockEnv, mockCtx);
-
+ 
     expect((service as unknown as { getModel: () => object }).getModel()).toEqual({});
   });
 
   test("static hooks exist", () => {
-    expect(BaseService.hooks).toBeDefined();
+    expect(BaseService.beforeHooks).toBeDefined();
+    expect(BaseService.afterHooks).toBeDefined();
   });
 });

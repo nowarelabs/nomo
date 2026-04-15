@@ -1,21 +1,25 @@
 import { describe, expect, test } from "vite-plus/test";
-import { BaseWorker } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { BaseEntrypoint } from "../src/index.ts";
 
-describe("BaseWorker", () => {
-  class TestWorker extends BaseWorker {
+describe("BaseEntrypoint", () => {
+  class TestEntrypoint extends BaseEntrypoint {
     async fetch(_request: globalThis.Request, _env: Record<string, unknown>, _ctx: any) {
       return new Response("OK");
     }
   }
 
-  test("fetch must be implemented", async () => {
+  test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const worker = new TestWorker();
+    const entrypoint = new TestEntrypoint(mockRequest, mockEnv, mockCtx);
+    expect(entrypoint).toBeDefined();
+  });
 
-    const response = await worker.fetch(mockRequest, mockEnv, mockCtx);
-    expect(response.status).toBe(200);
+  test("static hooks exist", () => {
+    expect(BaseEntrypoint.beforeHooks).toBeDefined();
+    expect(BaseEntrypoint.afterHooks).toBeDefined();
   });
 });

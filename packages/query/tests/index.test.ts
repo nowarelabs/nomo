@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vite-plus/test";
 import type { ContextLike } from "noware-shared";
-import { BaseQueryProjection } from "../src/index.ts";
+import { BaseQuery } from "../src/index.ts";
 
-describe("BaseQueryProjection", () => {
-  class TestProjection extends BaseQueryProjection {
-    async onEvent(_event: unknown) {}
-    async materialize(entityId: string) {
-      return { id: entityId };
+describe("BaseQuery", () => {
+  class TestQuery extends BaseQuery {
+    protected persistence = {} as any;
+
+    protected getPersistence() {
+      return this.persistence;
     }
   }
 
@@ -15,34 +16,25 @@ describe("BaseQueryProjection", () => {
     const mockEnv = { DB: {} } as Record<string, unknown>;
     const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const projection = new TestProjection(mockRequest, mockEnv, mockCtx);
+    const query = new TestQuery(mockRequest, mockEnv, mockCtx);
 
-    expect(projection).toBeDefined();
-    expect((projection as unknown as { request: Request }).request).toBe(mockRequest);
-    expect((projection as unknown as { env: Record<string, unknown> }).env).toBe(mockEnv);
+    expect(query).toBeDefined();
+    expect((query as unknown as { request: Request }).request).toBe(mockRequest);
+    expect((query as unknown as { env: Record<string, unknown> }).env).toBe(mockEnv);
   });
 
-  test("onEvent can be overridden", async () => {
+  test("getPersistence returns the persistence", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
     const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const projection = new TestProjection(mockRequest, mockEnv, mockCtx);
+    const query = new TestQuery(mockRequest, mockEnv, mockCtx);
 
-    await expect(projection.onEvent({ type: "test" })).resolves.toBeUndefined();
+    expect((query as unknown as { getPersistence: () => object }).getPersistence()).toEqual({});
   });
 
-  test("materialize can be overridden", async () => {
-    const mockRequest = new Request("http://localhost");
-    const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
-
-    const projection = new TestProjection(mockRequest, mockEnv, mockCtx);
-    const result = await projection.materialize("entity-1");
-    expect(result).toEqual({ id: "entity-1" });
-  });
-
-  test("static eventHandlers exist", () => {
-    expect(BaseQueryProjection.eventHandlers).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseQuery.beforeHooks).toBeDefined();
+    expect(BaseQuery.afterHooks).toBeDefined();
   });
 });

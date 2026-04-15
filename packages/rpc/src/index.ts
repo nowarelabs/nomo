@@ -36,3 +36,11 @@ export abstract class BaseRpc<
   ) {}
   protected abstract getFeature(): Feature;
 }
+
+export abstract class BaseRpcServer extends BaseRpc {
+  static handlers: Map<string, unknown> = new Map();
+
+  async handle(_request: RequestLike): Promise<Response> {
+    throw new Error("Not implemented");
+  }
+}

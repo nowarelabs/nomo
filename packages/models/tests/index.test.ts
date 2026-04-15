@@ -34,11 +34,8 @@ describe("BaseModel", () => {
     expect((model as unknown as { getPersistence: () => object }).getPersistence()).toEqual({});
   });
 
-  test("static columnTypes exist", () => {
-    expect(BaseModel.columnTypes).toBeDefined();
-  });
-
-  test("static relations exist", () => {
-    expect(BaseModel.relations).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseModel.beforeHooks).toBeDefined();
+    expect(BaseModel.afterHooks).toBeDefined();
   });
 });

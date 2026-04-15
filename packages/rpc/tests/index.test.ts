@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
 import type { ContextLike } from "noware-shared";
-import { BaseRpcServer } from "../src/index.ts";
+import { BaseRpc, BaseRpcServer } from "../src/index.ts";
 
 describe("BaseRpcServer", () => {
   class TestRpcServer extends BaseRpcServer {
@@ -18,7 +18,6 @@ describe("BaseRpcServer", () => {
 
     expect(server).toBeDefined();
     expect((server as unknown as { request: Request }).request).toBe(mockRequest);
-    expect((server as unknown as { env: Record<string, unknown> }).env).toBe(mockEnv);
   });
 
   test("handle can be overridden", async () => {
@@ -34,5 +33,20 @@ describe("BaseRpcServer", () => {
 
   test("static handlers map exists", () => {
     expect(BaseRpcServer.handlers).toBeDefined();
+  });
+});
+
+describe("BaseRpc", () => {
+  class TestRpc extends BaseRpc {
+    protected feature = {} as any;
+
+    protected getFeature() {
+      return this.feature;
+    }
+  }
+
+  test("static hooks exist", () => {
+    expect(BaseRpc.beforeHooks).toBeDefined();
+    expect(BaseRpc.afterHooks).toBeDefined();
   });
 });

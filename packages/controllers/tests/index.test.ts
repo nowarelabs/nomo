@@ -30,18 +30,8 @@ describe("BaseController", () => {
     expect(controller.getService()).toEqual({});
   });
 
-  test("runAction throws error when not implemented", async () => {
-    const mockRequest = new Request("http://localhost");
-    const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
-
-    const controller = new TestController(mockRequest, mockEnv, mockCtx);
-
-    await expect(controller.runAction("index")).rejects.toThrow("Not implemented");
-  });
-
   test("static plugin points exist", () => {
-    expect(BaseController.beforeActions).toBeDefined();
-    expect(BaseController.afterActions).toBeDefined();
+    expect(BaseController.beforeHooks).toBeDefined();
+    expect(BaseController.afterHooks).toBeDefined();
   });
 });

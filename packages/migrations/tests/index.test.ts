@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
-import { Migration } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { Migration, BaseMigration } from "../src/index.ts";
 
 describe("Migration", () => {
   class TestMigration extends Migration {
@@ -13,7 +14,6 @@ describe("Migration", () => {
     const mockCtx = {} as any;
 
     const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
-
     expect(migration).toBeDefined();
   });
 
@@ -23,7 +23,6 @@ describe("Migration", () => {
     const mockCtx = {} as any;
 
     const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
-
     await expect(migration.up()).resolves.toBeUndefined();
   });
 
@@ -33,7 +32,22 @@ describe("Migration", () => {
     const mockCtx = {} as any;
 
     const migration = new TestMigration(mockRequest, mockEnv, mockCtx);
-
     await expect(migration.down()).resolves.toBeUndefined();
+  });
+});
+
+describe("BaseMigration", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const migration = new BaseMigration(mockRequest, mockEnv, mockCtx);
+    expect(migration).toBeDefined();
+  });
+
+  test("static hooks exist", () => {
+    expect(BaseMigration.beforeHooks).toBeDefined();
+    expect(BaseMigration.afterHooks).toBeDefined();
   });
 });

@@ -12,6 +12,13 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export interface IntegrationEvent {
+  type: string;
+  payload: unknown;
+  source: string;
+  timestamp: Date;
+}
+
 export class BaseIntegrationEvent<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
-import { Logger, LogLevel } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { Logger, LogLevel, BaseLogger } from "../src/index.ts";
 
 describe("Logger", () => {
   test("LogLevel enum values", () => {
@@ -21,17 +22,20 @@ describe("Logger", () => {
     expect(typeof logger.warn).toBe("function");
     expect(typeof logger.error).toBe("function");
   });
+});
 
-  test("logger methods can be called", () => {
-    const logger = new Logger({});
-    logger.debug("debug message");
-    logger.info("info message");
-    logger.warn("warn message");
-    logger.error("error message");
+describe("BaseLogger", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const logger = new BaseLogger({}, mockRequest, mockEnv, mockCtx);
+    expect(logger).toBeDefined();
   });
 
-  test("logger methods accept context", () => {
-    const logger = new Logger({});
-    logger.info("message", { key: "value" });
+  test("static hooks exist", () => {
+    expect(BaseLogger.beforeHooks).toBeDefined();
+    expect(BaseLogger.afterHooks).toBeDefined();
   });
 });

@@ -12,6 +12,18 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export class QueryBuilder {
+  constructor(
+    protected request: RequestLike,
+    protected env: EnvLike,
+    protected ctx: ContextLike,
+  ) {}
+
+  toSql(): string {
+    return "";
+  }
+}
+
 export class BaseSql<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

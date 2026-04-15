@@ -4,11 +4,10 @@ import { BaseModule } from "../src/index.ts";
 
 describe("BaseModule", () => {
   class TestModule extends BaseModule {
-    async load() {
-      return;
-    }
-    async unload() {
-      return;
+    protected feature = {} as any;
+
+    protected getFeature() {
+      return this.feature;
     }
   }
 
@@ -23,27 +22,18 @@ describe("BaseModule", () => {
     expect((module as unknown as { request: Request }).request).toBe(mockRequest);
   });
 
-  test("load can be overridden", async () => {
+  test("getFeature returns the feature", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
     const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
     const module = new TestModule(mockRequest, mockEnv, mockCtx);
 
-    await expect(module.load()).resolves.toBeUndefined();
+    expect((module as unknown as { getFeature: () => object }).getFeature()).toEqual({});
   });
 
-  test("unload can be overridden", async () => {
-    const mockRequest = new Request("http://localhost");
-    const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
-
-    const module = new TestModule(mockRequest, mockEnv, mockCtx);
-
-    await expect(module.unload()).resolves.toBeUndefined();
-  });
-
-  test("static handlers map exists", () => {
-    expect(BaseModule.handlers).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseModule.beforeHooks).toBeDefined();
+    expect(BaseModule.afterHooks).toBeDefined();
   });
 });

@@ -15,6 +15,22 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export type DurableObjectState = {
+  id: {
+    name: string;
+    toString(): string;
+  };
+  storage: {
+    get<T>(key: string): Promise<T | undefined>;
+    put(key: string, value: unknown): Promise<void>;
+    delete(key: string): Promise<boolean>;
+    list<T>(options?: {
+      prefix?: string;
+      limit?: number;
+    }): Promise<{ keys: Array<{ name: string }> }>;
+  };
+};
+
 export class BaseDurableObject<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

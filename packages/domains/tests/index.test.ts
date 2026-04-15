@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import { Entity, ValueObject, EntityFactory } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { Entity, ValueObject, BaseDomain } from "../src/index.ts";
 
 describe("Entity", () => {
   test("Entity type requires id", () => {
@@ -20,18 +21,18 @@ describe("ValueObject", () => {
   });
 });
 
-describe("EntityFactory", () => {
-  test("constructor accepts optional params", () => {
-    const factory = new EntityFactory();
-    expect(factory).toBeDefined();
-  });
-
+describe("BaseDomain", () => {
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const factory = new EntityFactory(mockRequest, mockEnv, mockCtx);
-    expect(factory).toBeDefined();
+    const domain = new BaseDomain(mockRequest, mockEnv, mockCtx);
+    expect(domain).toBeDefined();
+  });
+
+  test("static hooks exist", () => {
+    expect(BaseDomain.beforeHooks).toBeDefined();
+    expect(BaseDomain.afterHooks).toBeDefined();
   });
 });

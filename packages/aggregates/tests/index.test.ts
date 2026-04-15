@@ -1,51 +1,39 @@
 import { describe, expect, test } from "vite-plus/test";
+import type { ContextLike } from "noware-shared";
 import { BaseAggregate } from "../src/index.ts";
 
 describe("BaseAggregate", () => {
-  class TestAggregate extends BaseAggregate<{ count: number }, { type: string }> {
-    protected apply(event: { type: string }) {
-      super.apply(event);
+  class TestAggregate extends BaseAggregate {
+    protected event = {} as any;
+
+    protected getEvent() {
+      return this.event;
     }
   }
 
-  test("constructor accepts id, request, env, ctx", () => {
+  test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const aggregate = new TestAggregate("agg-1", mockRequest, mockEnv, mockCtx);
+    const aggregate = new TestAggregate(mockRequest, mockEnv, mockCtx);
 
     expect(aggregate).toBeDefined();
+    expect((aggregate as unknown as { request: Request }).request).toBe(mockRequest);
   });
 
-  test("apply adds event to events array", () => {
+  test("getEvent returns the event", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const aggregate = new TestAggregate("agg-1", mockRequest, mockEnv, mockCtx);
-    aggregate.apply({ type: "TestEvent" });
+    const aggregate = new TestAggregate(mockRequest, mockEnv, mockCtx);
 
-    expect(aggregate.getEvents()).toHaveLength(1);
+    expect((aggregate as unknown as { getEvent: () => object }).getEvent()).toEqual({});
   });
 
-  test("getEvents returns all applied events", () => {
-    const mockRequest = new Request("http://localhost");
-    const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
-
-    const aggregate = new TestAggregate("agg-1", mockRequest, mockEnv, mockCtx);
-    aggregate.apply({ type: "Event1" });
-    aggregate.apply({ type: "Event2" });
-
-    expect(aggregate.getEvents()).toHaveLength(2);
-  });
-
-  test("static commandHandlers exist", () => {
-    expect(BaseAggregate.commandHandlers).toBeDefined();
-  });
-
-  test("static eventAppliers exist", () => {
-    expect(BaseAggregate.eventAppliers).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseAggregate.beforeHooks).toBeDefined();
+    expect(BaseAggregate.afterHooks).toBeDefined();
   });
 });

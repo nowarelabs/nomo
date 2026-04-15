@@ -1,35 +1,41 @@
 import { describe, expect, test } from "vite-plus/test";
-import { BaseFeatureHandler } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { BaseFeature } from "../src/index.ts";
 
-describe("BaseFeatureHandler", () => {
-  class TestFeatureHandler extends BaseFeatureHandler {
-    async handle(input: unknown) {
-      return { result: input };
+describe("BaseFeature", () => {
+  class TestFeature extends BaseFeature {
+    protected rpc = {} as any;
+
+    protected getRpc() {
+      return this.rpc;
     }
   }
 
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { DB: {} } as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const handler = new TestFeatureHandler(mockRequest, mockEnv, mockCtx);
+    const feature = new TestFeature(mockRequest, mockEnv, mockCtx);
 
-    expect(handler).toBeDefined();
+    expect(feature).toBeDefined();
+    expect((feature as unknown as { request: Request }).request).toBe(mockRequest);
+    expect((feature as unknown as { env: Record<string, unknown> }).env).toBe(mockEnv);
+    expect((feature as unknown as { ctx: ContextLike }).ctx).toBe(mockCtx);
   });
 
-  test("handle can be overridden", async () => {
+  test("getRpc returns the rpc", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const handler = new TestFeatureHandler(mockRequest, mockEnv, mockCtx);
+    const feature = new TestFeature(mockRequest, mockEnv, mockCtx);
 
-    const result = await handler.handle("test input");
-    expect(result).toEqual({ result: "test input" });
+    expect((feature as unknown as { getRpc: () => object }).getRpc()).toEqual({});
   });
 
-  test("static controllers map exists", () => {
-    expect(BaseFeatureHandler.controllers).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseFeature.beforeHooks).toBeDefined();
+    expect(BaseFeature.afterHooks).toBeDefined();
   });
 });

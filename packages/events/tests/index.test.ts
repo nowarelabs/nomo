@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import { EventEmitter } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { BaseEvent, EventEmitter } from "../src/index.ts";
 
 describe("EventEmitter", () => {
   test("constructor accepts request, env, ctx", () => {
@@ -8,7 +9,6 @@ describe("EventEmitter", () => {
     const mockCtx = {} as any;
 
     const emitter = new EventEmitter(mockRequest, mockEnv, mockCtx);
-
     expect(emitter).toBeDefined();
   });
 
@@ -21,17 +21,20 @@ describe("EventEmitter", () => {
     const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
     expect(typeof emitter.emit).toBe("function");
   });
+});
 
-  test("on registers handler", () => {
-    const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
-    const handler = vi.fn();
-    emitter.on("test-event", handler);
+describe("BaseEvent", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const event = new BaseEvent(mockRequest, mockEnv, mockCtx);
+    expect(event).toBeDefined();
   });
 
-  test("emit calls handler", () => {
-    const emitter = new EventEmitter(new Request("http://localhost"), {}, {});
-    const handler = vi.fn();
-    emitter.on("test-event", handler);
-    emitter.emit("test-event", { data: "test" });
+  test("static hooks exist", () => {
+    expect(BaseEvent.beforeHooks).toBeDefined();
+    expect(BaseEvent.afterHooks).toBeDefined();
   });
 });

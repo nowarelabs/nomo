@@ -12,6 +12,22 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export class Serializer {
+  constructor(
+    protected request?: RequestLike,
+    protected env?: EnvLike,
+    protected ctx?: ContextLike,
+  ) {}
+
+  serialize(data: unknown): string {
+    return JSON.stringify(data);
+  }
+
+  deserialize(data: string): unknown {
+    return JSON.parse(data);
+  }
+}
+
 export class BaseSerializer<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

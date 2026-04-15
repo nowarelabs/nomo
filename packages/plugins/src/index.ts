@@ -12,6 +12,11 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export interface Plugin {
+  name: string;
+  install(): void;
+}
+
 export class BasePlugin<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

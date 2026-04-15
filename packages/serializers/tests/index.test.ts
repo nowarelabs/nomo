@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
-import { Serializer } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { Serializer, BaseSerializer } from "../src/index.ts";
 
 describe("Serializer", () => {
   class TestSerializer extends Serializer {}
@@ -19,5 +20,21 @@ describe("Serializer", () => {
     const serializer = new TestSerializer();
     const result = serializer.deserialize('{"name":"test"}');
     expect(result).toEqual({ name: "test" });
+  });
+});
+
+describe("BaseSerializer", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const serializer = new BaseSerializer(mockRequest, mockEnv, mockCtx);
+    expect(serializer).toBeDefined();
+  });
+
+  test("static hooks exist", () => {
+    expect(BaseSerializer.beforeHooks).toBeDefined();
+    expect(BaseSerializer.afterHooks).toBeDefined();
   });
 });

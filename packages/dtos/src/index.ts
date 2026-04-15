@@ -12,6 +12,22 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export abstract class Dto {
+  constructor(
+    protected request?: RequestLike,
+    protected env?: EnvLike,
+    protected ctx?: ContextLike,
+  ) {}
+
+  toJSON(): Record<string, unknown> {
+    return {};
+  }
+
+  static fromJSON(data: Record<string, unknown>): Dto {
+    return new Dto();
+  }
+}
+
 export class BaseDto<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

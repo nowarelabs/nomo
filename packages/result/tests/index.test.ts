@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
 import type { ContextLike } from "noware-shared";
-import { ok, err, ResultFactory } from "../src/index.ts";
+import { ok, err, ResultFactory, BaseResult } from "../src/index.ts";
 
 describe("Result", () => {
   describe("ok", () => {
@@ -24,14 +24,21 @@ describe("Result", () => {
       const factory = new ResultFactory();
       expect(factory).toBeDefined();
     });
+  });
+});
 
-    test("constructor accepts request, env, ctx", () => {
-      const mockRequest = new Request("http://localhost");
-      const mockEnv = {} as Record<string, unknown>;
-      const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+describe("BaseResult", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-      const factory = new ResultFactory(mockRequest, mockEnv, mockCtx);
-      expect(factory).toBeDefined();
-    });
+    const result = new BaseResult(mockRequest, mockEnv, mockCtx);
+    expect(result).toBeDefined();
+  });
+
+  test("static hooks exist", () => {
+    expect(BaseResult.beforeHooks).toBeDefined();
+    expect(BaseResult.afterHooks).toBeDefined();
   });
 });

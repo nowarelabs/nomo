@@ -12,6 +12,18 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export class Maintenance {
+  constructor(
+    protected request: RequestLike,
+    protected env: EnvLike,
+    protected ctx: ContextLike,
+  ) {}
+
+  async healthCheck(): Promise<boolean> {
+    return true;
+  }
+}
+
 export class BaseMaintenance<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

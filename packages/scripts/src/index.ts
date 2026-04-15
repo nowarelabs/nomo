@@ -12,6 +12,20 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export const GENERATORS = {
+  controller: (name: string) => `// Controller template`,
+  service: (name: string) => `// Service template`,
+  model: (name: string) => `// Model template`,
+};
+
+export class ScriptRunner {
+  constructor(
+    protected request?: RequestLike,
+    protected env?: EnvLike,
+    protected ctx?: ContextLike,
+  ) {}
+}
+
 export class BaseScript<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

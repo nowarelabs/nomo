@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
-import { Dto } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { Dto, BaseDto } from "../src/index.ts";
 
 describe("Dto", () => {
   class TestDto extends Dto {}
@@ -17,5 +18,21 @@ describe("Dto", () => {
   test("fromJSON creates Dto instance", () => {
     const dto = TestDto.fromJSON({ name: "test" });
     expect(dto).toBeDefined();
+  });
+});
+
+describe("BaseDto", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const dto = new BaseDto(mockRequest, mockEnv, mockCtx);
+    expect(dto).toBeDefined();
+  });
+
+  test("static hooks exist", () => {
+    expect(BaseDto.beforeHooks).toBeDefined();
+    expect(BaseDto.afterHooks).toBeDefined();
   });
 });

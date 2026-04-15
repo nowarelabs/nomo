@@ -12,6 +12,24 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export abstract class Migration {
+  static beforeHooks: unknown[] = [];
+  static afterHooks: unknown[] = [];
+  
+  protected request: RequestLike;
+  protected env: EnvLike;
+  protected ctx: ContextLike;
+
+  constructor(
+    protected request: RequestLike,
+    protected env: EnvLike,
+    protected ctx: ContextLike,
+  ) {}
+
+  abstract up(): Promise<void>;
+  abstract down(): Promise<void>;
+}
+
 export class BaseMigration<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

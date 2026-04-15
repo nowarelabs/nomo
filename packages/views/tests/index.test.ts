@@ -4,8 +4,10 @@ import { BaseView } from "../src/index.ts";
 
 describe("BaseView", () => {
   class TestView extends BaseView {
-    static render(data: unknown, _assets?: unknown) {
-      return `<div>${JSON.stringify(data)}</div>`;
+    protected component = {} as any;
+
+    protected getComponent() {
+      return this.component;
     }
   }
 
@@ -19,12 +21,18 @@ describe("BaseView", () => {
     expect(view).toBeDefined();
   });
 
-  test("render can be overridden", () => {
-    const result = TestView.render({ name: "test" });
-    expect(result).toBe('<div>{"name":"test"}</div>');
+  test("getComponent returns the component", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const view = new TestView(mockRequest, mockEnv, mockCtx);
+
+    expect((view as unknown as { getComponent: () => object }).getComponent()).toEqual({});
   });
 
-  test("static components exist", () => {
-    expect(BaseView.components).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseView.beforeHooks).toBeDefined();
+    expect(BaseView.afterHooks).toBeDefined();
   });
 });

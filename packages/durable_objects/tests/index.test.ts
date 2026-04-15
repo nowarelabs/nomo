@@ -1,33 +1,33 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import { DurableObject } from "../src/index.ts";
+import { BaseDurableObject, DurableObjectState } from "../src/index.ts";
 
-describe("DurableObject", () => {
-  class TestDO extends DurableObject {
-    async fetch(request: globalThis.Request) {
-      return new Response("OK");
-    }
-  }
+describe("DurableObjectState", () => {
+  test("DurableObjectState type is defined", () => {
+    const state: DurableObjectState = {
+      id: { name: "test-id", toString: () => "test-id" },
+      storage: {
+        get: vi.fn(),
+        put: vi.fn(),
+        delete: vi.fn(),
+        list: vi.fn(),
+      },
+    };
+    expect(state.id.name).toBe("test-id");
+  });
+});
 
-  test("constructor accepts state, env, request, ctx", () => {
-    const mockState = {} as any;
-    const mockEnv = {} as Record<string, unknown>;
+describe("BaseDurableObject", () => {
+  test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
-    const mockCtx = {} as any;
+    const mockEnv = { DB: {} } as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as any;
 
-    const doInstance = new TestDO(mockState, mockEnv, mockRequest, mockCtx);
-
-    expect(doInstance).toBeDefined();
+    const doObj = new BaseDurableObject(mockRequest, mockEnv, mockCtx);
+    expect(doObj).toBeDefined();
   });
 
-  test("fetch can be overridden", async () => {
-    const mockState = {} as any;
-    const mockEnv = {} as Record<string, unknown>;
-    const mockRequest = new Request("http://localhost");
-    const mockCtx = {} as any;
-
-    const doInstance = new TestDO(mockState, mockEnv, mockRequest, mockCtx);
-
-    const response = await doInstance.fetch(mockRequest);
-    expect(response.status).toBe(200);
+  test("static hooks exist", () => {
+    expect(BaseDurableObject.beforeHooks).toBeDefined();
+    expect(BaseDurableObject.afterHooks).toBeDefined();
   });
 });

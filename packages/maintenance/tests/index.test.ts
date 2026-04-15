@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
-import { Maintenance } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { Maintenance, BaseMaintenance } from "../src/index.ts";
 
 describe("Maintenance", () => {
   test("constructor accepts request, env, ctx", () => {
@@ -8,7 +9,6 @@ describe("Maintenance", () => {
     const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} };
 
     const maintenance = new Maintenance(mockRequest, mockEnv, mockCtx);
-
     expect(maintenance).toBeDefined();
   });
 
@@ -20,5 +20,21 @@ describe("Maintenance", () => {
     );
     const result = await maintenance.healthCheck();
     expect(result).toBe(true);
+  });
+});
+
+describe("BaseMaintenance", () => {
+  test("constructor accepts request, env, ctx", () => {
+    const mockRequest = new Request("http://localhost");
+    const mockEnv = {} as Record<string, unknown>;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
+
+    const maintenance = new BaseMaintenance(mockRequest, mockEnv, mockCtx);
+    expect(maintenance).toBeDefined();
+  });
+
+  test("static hooks exist", () => {
+    expect(BaseMaintenance.beforeHooks).toBeDefined();
+    expect(BaseMaintenance.afterHooks).toBeDefined();
   });
 });

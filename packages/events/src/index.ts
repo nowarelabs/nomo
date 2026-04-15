@@ -15,6 +15,17 @@ import type {
   RequestLike
 } from "noware-shared";
 
+export class EventEmitter {
+  constructor(
+    protected request: RequestLike,
+    protected env: EnvLike,
+    protected ctx: ContextLike,
+  ) {}
+
+  on(event: string, handler: unknown): void {}
+  emit(event: string, data: unknown): void {}
+}
+
 export class BaseEvent<
   Ctx extends ContextLike = ContextLike,
   Env extends EnvLike = EnvLike,

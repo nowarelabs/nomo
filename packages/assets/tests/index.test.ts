@@ -1,27 +1,19 @@
 import { describe, expect, test } from "vite-plus/test";
-import { AssetPipeline } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { BaseAsset } from "../src/index.ts";
 
-describe("AssetPipeline", () => {
-  test("constructor accepts config", () => {
-    const pipeline = new AssetPipeline({ basePath: "/assets" });
-    expect(pipeline).toBeDefined();
-  });
-
-  test("constructor accepts request, env, ctx", () => {
+describe("BaseAsset", () => {
+  test("constructor accepts config, request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const pipeline = new AssetPipeline({}, mockRequest, mockEnv, mockCtx);
-    expect(pipeline).toBeDefined();
+    const asset = new BaseAsset({}, mockRequest, mockEnv, mockCtx);
+    expect(asset).toBeDefined();
   });
 
-  test("get returns null by default", () => {
-    const pipeline = new AssetPipeline({});
-    expect(pipeline.get("test.css")).toBeNull();
-  });
-
-  test("static loaders exist", () => {
-    expect(AssetPipeline.loaders).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseAsset.beforeHooks).toBeDefined();
+    expect(BaseAsset.afterHooks).toBeDefined();
   });
 });

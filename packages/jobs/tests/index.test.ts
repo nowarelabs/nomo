@@ -1,34 +1,25 @@
 import { describe, expect, test } from "vite-plus/test";
-import { JobDispatcher } from "../src/index.ts";
+import type { ContextLike } from "noware-shared";
+import { BaseJob } from "../src/index.ts";
 
-describe("JobDispatcher", () => {
-  class TestDispatcher extends JobDispatcher {
-    async dispatch(_jobName: string, _payload: unknown) {
-      return;
-    }
+describe("BaseJob", () => {
+  class TestJob extends BaseJob {
+    protected async dispatch(_jobName: string, _payload: unknown) {}
   }
 
   test("constructor accepts request, env, ctx", () => {
     const mockRequest = new Request("http://localhost");
     const mockEnv = { QUEUE: {} } as Record<string, unknown>;
-    const mockCtx = {} as any;
+    const mockCtx = { waitUntil: () => {}, passThroughOnException: () => {} } as ContextLike;
 
-    const dispatcher = new TestDispatcher(mockRequest, mockEnv, mockCtx);
+    const job = new TestJob(mockRequest, mockEnv, mockCtx);
 
-    expect(dispatcher).toBeDefined();
+    expect(job).toBeDefined();
+    expect((job as unknown as { request: Request }).request).toBe(mockRequest);
   });
 
-  test("dispatch can be overridden", async () => {
-    const mockRequest = new Request("http://localhost");
-    const mockEnv = {} as Record<string, unknown>;
-    const mockCtx = {} as any;
-
-    const dispatcher = new TestDispatcher(mockRequest, mockEnv, mockCtx);
-
-    await expect(dispatcher.dispatch("test-job", { data: "test" })).resolves.toBeUndefined();
-  });
-
-  test("static jobs map exists", () => {
-    expect(JobDispatcher.jobs).toBeDefined();
+  test("static hooks exist", () => {
+    expect(BaseJob.beforeHooks).toBeDefined();
+    expect(BaseJob.afterHooks).toBeDefined();
   });
 });
