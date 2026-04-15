@@ -98,75 +98,75 @@ jobs:
           node-version: '22'
           cache: true
       - run: |
-          cd packages/adapters && vp install && vp pack
+          cd packages/adapters && vp install && vp run build
       - run: |
-          cd packages/aggregates && vp install && vp pack
+          cd packages/aggregates && vp install && vp run build
       - run: |
-          cd packages/assets && vp install && vp pack
+          cd packages/assets && vp install && vp run build
       - run: |
-          cd packages/contexts && vp install && vp pack
+          cd packages/contexts && vp install && vp run build
       - run: |
-          cd packages/controllers && vp install && vp pack
+          cd packages/controllers && vp install && vp run build
       - run: |
-          cd packages/domains && vp install && vp pack
+          cd packages/domains && vp install && vp run build
       - run: |
-          cd packages/dtos && vp install && vp pack
+          cd packages/dtos && vp install && vp run build
       - run: |
-          cd packages/durable_objects && vp install && vp pack
+          cd packages/durable_objects && vp install && vp run build
       - run: |
-          cd packages/entrypoints && vp install && vp pack
+          cd packages/entrypoints && vp install && vp run build
       - run: |
-          cd packages/events && vp install && vp pack
+          cd packages/events && vp install && vp run build
       - run: |
-          cd packages/features && vp install && vp pack
+          cd packages/features && vp install && vp run build
       - run: |
-          cd packages/formatters && vp install && vp pack
+          cd packages/formatters && vp install && vp run build
       - run: |
-          cd packages/gateways && vp install && vp pack
+          cd packages/gateways && vp install && vp run build
       - run: |
-          cd packages/integration-events && vp install && vp pack
+          cd packages/integration-events && vp install && vp run build
       - run: |
-          cd packages/jobs && vp install && vp pack
+          cd packages/jobs && vp install && vp run build
       - run: |
-          cd packages/logger && vp install && vp pack
+          cd packages/logger && vp install && vp run build
       - run: |
-          cd packages/maintenance && vp install && vp pack
+          cd packages/maintenance && vp install && vp run build
       - run: |
-          cd packages/migrations && vp install && vp pack
+          cd packages/migrations && vp install && vp run build
       - run: |
-          cd packages/models && vp install && vp pack
+          cd packages/models && vp install && vp run build
       - run: |
-          cd packages/modules && vp install && vp pack
+          cd packages/modules && vp install && vp run build
       - run: |
-          cd packages/normalizers && vp install && vp pack
+          cd packages/normalizers && vp install && vp run build
       - run: |
-          cd packages/persistence && vp install && vp pack
+          cd packages/persistence && vp install && vp run build
       - run: |
-          cd packages/plugins && vp install && vp pack
+          cd packages/plugins && vp install && vp run build
       - run: |
-          cd packages/ports && vp install && vp pack
+          cd packages/ports && vp install && vp run build
       - run: |
-          cd packages/query && vp install && vp pack
+          cd packages/query && vp install && vp run build
       - run: |
-          cd packages/result && vp install && vp pack
+          cd packages/result && vp install && vp run build
       - run: |
-          cd packages/rpc && vp install && vp pack
+          cd packages/rpc && vp install && vp run build
       - run: |
-          cd packages/router && vp install && vp pack
+          cd packages/router && vp install && vp run build
       - run: |
-          cd packages/scripts && vp install && vp pack
+          cd packages/scripts && vp install && vp run build
       - run: |
-          cd packages/serializers && vp install && vp pack
+          cd packages/serializers && vp install && vp run build
       - run: |
-          cd packages/services && vp install && vp pack
+          cd packages/services && vp install && vp run build
       - run: |
-          cd packages/shared && vp install && vp pack
+          cd packages/shared && vp install && vp run build
       - run: |
-          cd packages/sql && vp install && vp pack
+          cd packages/sql && vp install && vp run build
       - run: |
-          cd packages/validators && vp install && vp pack
+          cd packages/validators && vp install && vp run build
       - run: |
-          cd packages/views && vp install && vp pack
+          cd packages/views && vp install && vp run build
 
   publish:
     name: Publish
