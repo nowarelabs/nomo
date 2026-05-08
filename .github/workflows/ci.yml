@@ -183,7 +183,8 @@ jobs:
           cache: true
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org/'
+          registry-url: 'https://registry.npmjs.org'
+      - run: echo "Token length: ${#NODE_AUTH_TOKEN}"
       - run: npm whoami
       - name: publish-shared
         run: cd packages/shared && vp install && npm publish --provenance --access public
