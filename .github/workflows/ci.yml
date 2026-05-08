@@ -184,7 +184,6 @@ jobs:
       - run: |
           npm config set //registry.npmjs.org/:_authToken ${NODE_AUTH_TOKEN}
           npm config set registry https://registry.npmjs.org/
-          npm config set always-auth true
       - run: npm whoami
       - name: publish-shared
         run: cd packages/shared && vp install && npm publish --provenance --access public
