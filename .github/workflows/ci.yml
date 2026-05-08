@@ -176,6 +176,9 @@ jobs:
     environment: npm
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: voidzero-dev/setup-vp@v1
@@ -185,7 +188,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: 'https://registry.npmjs.org'
-      - run: echo "Token length ${#NODE_AUTH_TOKEN}"
       - run: npm whoami
       - name: publish-shared
         run: cd packages/shared && vp install && npm publish --provenance --access public
